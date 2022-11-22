@@ -2,7 +2,7 @@
 """
 Created on Thu Oct 13 10:28:58 2022
 
-@author:  Paulo R.A. Bloemer
+@author:  Paulo R.A. Bloemer, Maikol Drechsler
 Vehicle Dynamic Model
 
 """
