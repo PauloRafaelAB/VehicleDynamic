@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Debug material 
+__init__.py
+pacejka.py
+testecopia.py
+Tire.py
+torque_interpolation.py
+__pycache__/
+
