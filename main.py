@@ -26,9 +26,6 @@ gear = 0
 t_step = 0.01               # seconds
 
 
-
-
-
 #vehicle_dynamics = VehicleDynamics.
 vehicle_dynamics = VehicleDynamics(min_rpm = 1500., initial_vel = 0., position_0 = [0, 0, 0], throttle=0.0, steer=0.0, brake=0.0, gear = 0)
 

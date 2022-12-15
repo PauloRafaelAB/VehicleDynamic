@@ -78,10 +78,19 @@ class Parameters_bmw_m8():
        
         
         self.cg_height = 300.                              # center of gravity height of total mass [m]
-        self.cg_x = 12500                                  # [m]
+        self.cg_x = 12500                                  #  cg_x [m]
         self.cg_y = 0.                                     # [m]
         self.track_width = 0.                              # [m]
-        self.wheel_base = 2500.0                           # [m]
+        self.wheel_base = 2.6897                           # [m]
+        
+        # axes distances
+        self.lv = 1.1853                                   # x-distance from Vehicle CoG to the front hub [m]
+        self.lh = .0                                       # x-distance from Vehicle Cog to the rear hub [m]
+        
+        # Half track
+        self.sl = .0                                       # Half track width front [m]
+        self.sr = .0                                       # Half track width rear  [m]
+        
         #self.weight_rear = self.m * self.CG_x / self.wb  
         #self.weight_front = self.m - self.weightrear 
         
@@ -113,9 +122,7 @@ class Parameters_bmw_m8():
         self.m_uf = 0  # unsprung mass front [kg]  UMASSF
         self.m_ur = 0  # unsprung mass rear [kg]  UMASSR
     
-        # axes distances
-        self.a = 0  # distance from spring mass center of gravity to front axle [m]  LENA
-        self.b = 0  # distance from spring mass center of gravity to rear axle [m]  LENB
+        
     
         # moments of inertia of sprung mass
         self.I_Phi_s = 0 # moment of inertia for sprung mass in roll [kg m^2]  IXS

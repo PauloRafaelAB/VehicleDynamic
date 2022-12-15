@@ -138,23 +138,25 @@ class VehicleDynamics(object):
         else:
             self.brake = d_brake_torque
         self.brake_force = self.brake/ P.r_dyn
-        "miltiplied by wheight tranference"
+        "miltiplied by wheight transference"
         
         # TODO calculate ax positive and negative
         self.traction_force = (d_engine_torque * P.final_ratio * P.diff_ni * P.tranmisson_ni) / P.r_dyn - ((P.I_engine + P.I_transmission) * self.gear ** 2 + P.I_diff * P.final_ratio ** 2 + P.Iw) * self.acc_x/(P.r_dyn**2)
         self.Fx = self.traction_force - self.brake_force - self.f_resist
         self.acc_x = self.Fx/(P.m)   # make generic for 4 wheels 
         
+        # TODO: traction divided between axles
+        
         
         
 #############################################################################################################################
         
         
-        self.wheight_front = P.m * P.g *((P.wheel_base - P.cg_x)/P.wheel_base + self.acc_x * P.cg_height/(P.g * P.wheel_base))
-        self.wheight_rear = P.m * P.g *(P.cg_x/P.wheel_base + self.acc_x * P.cg_height/(P.g * P.wheel_base))
+        # self.wheight_front = P.m * P.g *((P.wheel_base - P.cg_x)/P.wheel_base + self.acc_x * P.cg_height/(P.g * P.wheel_base))
+        # self.wheight_rear = P.m * P.g *(P.cg_x/P.wheel_base + self.acc_x * P.cg_height/(P.g * P.wheel_base))
         
-        self.brake_ff = self.brake_force * self.wheight_front
-        self.brake_rf = self.brake_force * self.wheight_rear
+        # self.brake_ff = self.brake_force * self.wheight_front
+        # self.brake_rf = self.brake_force * self.wheight_rear
         
 
         
@@ -191,8 +193,7 @@ class VehicleDynamics(object):
         
         
         
-        
-        
+    
         # initial state vector for the kinematic single-track model
 
         
@@ -200,42 +201,43 @@ class VehicleDynamics(object):
         u = [delta, des_torque, des_brake]
         x_dot = odeint(x,time_stemp, u)
         
-        sx0 = init_state[0] # x1 = x-position in a global coordinate system
-        sy0 = init_state[1] # x2 = y-position in a global coordinate system
+        sx0 = init_state[0]     # x1 = x-position in a global coordinate system
+        sy0 = init_state[1]     # x2 = y-position in a global coordinate system
         delta0 = init_state[2]  # x3 = steering angle of front wheels
-        vel0 = init_state[3] # x4 = velocity in x-direction
-        Psi0 = init_state[4]  # x5 = yaw angle
-        beta0 = init_state[6] # x6 = yaw rate
-                            # x7 = roll angle
-   # x8 = roll rate
-   # x9 = pitch angle
-   # x10 = pitch rate
-   # x11 = velocity in y-direction
-   # x12 = z-position
-   # x13 = velocity in z-direction
-
-   # x14 = roll angle front
-   # x15 = roll rate front
-   # x16 = velocity in y-direction front
-   # x17 = z-position front
-   # x18 = velocity in z-direction front
-
-   # x19 = roll angle rear
-   # x20 = roll rate rear
-   # x21 = velocity in y-direction rear
-   # x22 = z-position rear
-   # x23 = velocity in z-direction rear
-
-   # x24 = left front wheel angular speed
-   # x25 = right front wheel angular speed
-   # x26 = left rear wheel angular speed
-   # x27 = right rear wheel angular speed
-
-   # x28 = delta_y_f
-   # x29 = delta_y_r
-
-   # u1 = steering angle velocity of front wheels
-   # u2 = acceleration
+        vel0 = init_state[3]    # x4 = velocity in x-direction
+        Psi0 = init_state[4]    # x5 = yaw angle
+        beta0 = init_state[6]   # x6 = yaw rate
+                                # x7 = roll angle
+                                # x8 = roll rate
+                                
+       # x9 = pitch angle
+       # x10 = pitch rate
+       # x11 = velocity in y-direction
+       # x12 = z-position
+       # x13 = velocity in z-direction
+    
+       # x14 = roll angle front
+       # x15 = roll rate front
+       # x16 = velocity in y-direction front
+       # x17 = z-position front
+       # x18 = velocity in z-direction front
+    
+       # x19 = roll angle rear
+       # x20 = roll rate rear
+       # x21 = velocity in y-direction rear
+       # x22 = z-position rear
+       # x23 = velocity in z-direction rear
+    
+       # x24 = left front wheel angular speed
+       # x25 = right front wheel angular speed
+       # x26 = left rear wheel angular speed
+       # x27 = right rear wheel angular speed
+    
+       # x28 = delta_y_f
+       # x29 = delta_y_r
+    
+       # u1 = steering angle velocity of front wheels
+       # u2 = acceleration
 
         ### 
     
@@ -247,9 +249,66 @@ class VehicleDynamics(object):
         x0.append(vel0)  # velocity
         x0.append(Psi0)  # yaw angle
         
+        #########################################
+        # Global Coordinates system  -- inertial system (O_E)
+        o_e = [0., 0., 0.]
+        
+        # Coordinates of the vehicle CoG in the inertial system O_V
+        o_v = [P.cg_x, P.cg_y, P.cg_height] # [xv, yv,zv] [m]
     
-
-
+        # Transformation matrix (rotational matrix) External_T_V -- Bardini pag 260
+        E_T_V = [[np.cos(theta_v) * np.cos(psi_v)  ,  np.sin(phi_v) * np.sin(theta_v) * np.cos(psi_v) - np.cos(phi_v) * np.sin(psi_v),     np.cos(phi_v) * np.sin(theta_v) * np.cos(psi_v) + np.sin(phi_v) * np.sin(psi_v)],
+                 [np.cos(theta_v) * np.sin(psi_v),    np.sin(phi_v) * np.sin(theta_v) * np.sin(psi_v) + np.cos(phi_v) * np.sin(psi_v),     np.cos(phi_v) * np.sin(theta_v) * np.sin(psi_v) - np.sin(phi_v) * np.cos(psi_v)],
+                 [-np.sin(theta_v),                   np.sin(phi_v) * np.cos(theta_v),                                                      np.cos(phi_v) * np.cos(theta_v)]]     #  Bardini pag 260
+        
+        # Transposed 
+        V_T_E = np.transpose(E_T_V)
+        
+        # For the angular velocity of the chassis we have:   Bardini Pag. 260
+        Tw = [[                -np.sin(theta_v),                 0,            1],
+              [ np.cos(theta_v) * np.sin(psi_v),     np.cos(psi_v),            0],
+              [ np.cos(theta_v) * np.cos(psi_v),  - np.sin(psi_v),             0]]
+        
+        
+        chassis_w_velocity = [[  phi_v_dot],
+                              [ theta_v_dot],
+                              [   psi_v_dot]] 
+        
+        # Coordinate representation of the absolute velocity of point v with respect to coordinate system “E”, described in coordinates of coordinate system “v”
+        # bardni. Pag 260
+        w_v = np.dot(Tw, chassis_w_velocity) 
+        
+        # Matrix E_T_R (wheel angles) is calculate at steering fuction
+        
+        # wheel rotation relativo to Kv(vehicle system)  Pag 261
+        VTR_front_axel = [[                                                 np.cos(delta) * np.cos(theta_v),                                                -np.sin(delta) * np.cos(theta_v),                          -np.sin(theta_v)],
+                          [ np.sin(psi_v) * np.sin(theta_v) * np.cos(delta) + np.cos(psi_v) * np.sin(delta),     -np.sin(psi_v) * np.sin(theta_v)*sin(delta) + np.cos(psi_v) * np.cos(delta),            np.sin(psi_v)* np.cos(theta_v)],
+                          [ np.cos(psi_v) * np.sin(theta_v) * np.cos(delta) - np.sin(psi_v) * np.sin(delta),     -np.cos(psi_v) * np.sin(theta_v)*sin(delta) - np.sin(psi_v) * np.cos(delta),            np.cos(psi_v)* np.cos(theta_v)]]
+        
+        VTR_rear_axel = [[                  np.cos(theta_v),                 0,                          -np.sin(theta_v)],
+                          [ np.sin(psi_v) * np.sin(theta_v),     np.cos(psi_v),            np.sin(psi_v)* np.cos(theta_v)],
+                          [ np.cos(psi_v) * np.sin(theta_v),   - np.sin(psi_v),            np.cos(psi_v)* np.cos(theta_v)]]
+        
+        
+        # Coordinate representation of the point i (corner) with respect to vehicle O_v (origim)  pag 265 Bardini
+        # TODO: measure and declare variable (lv,lh, sl,sr)
+        vehicle_coordinate_A_1 = [[ P.lv],[ P.sl],[-P.sz]]
+        vehicle_coordinate_A_2 = [[-P.lh],[ P.sl],[-P.sz]]
+        vehicle_coordinate_A_3 = [[ P.lv],[-P.sr],[-P.sz]]
+        vehicle_coordinate_A_4 = [[-P.lh],[-P.sr],[-P.sz]]
+        
+        # Static spring force/ or displacement at the front (bardini Pag 265)
+        for i in range(4):
+            
+            v_F_f = - (P.f_spring_stiff[i] * (Za[i]-Zr[i]) + P.spring_stiff[i] * (l_stat[i])) *  V_T_E * np.array([[0],[0],[1]])
+        
+            v_F_D = (P.dumper[i] * (Za_dot[i] - Zr_dot[i]) + P.dumper[i]) *  V_T_E * np.array([[0],[0],[1]])
+            
+        # forces on the vehicle chassis at the pivot points Ai
+        # vehicle_F_i = 
+        
+        
+        
         return x0
 
         def steering(des_curvature, position): # input(steering wheel angle)
@@ -266,33 +325,47 @@ class VehicleDynamics(object):
             # elif steering_velocity >= p.v_max:
             #     steering_velocity = p.v_max
                 
-                
-            wheel_angle_front =  [[np.cos(phi_v + delta) ,      -np.sin(phi_v + delta),     0],
-                                  [np.sin(phi_v + delta),      np.cos(phi_v + delta),       0],
-                                  [0,                        0,                         1]] # Schramm, Dieter Hiller, ManfredBardini, Roberto Pag 261 (TR1, TR3)
+            # wheel rotation relative to inertial system O_E (without spinnig)    
+            wheel_angle_front =  [[np.cos(phi_v + delta),        -np.sin(phi_v + delta),      0],
+                                  [np.sin(phi_v + delta),         np.cos(phi_v + delta),      0],
+                                  [                    0,                             0,      1]] # Schramm, Dieter Hiller, ManfredBardini, Roberto Pag 261 (TR1, TR3)
             
             wheel_angle_rear =  [[np.cos(phi_v),    - np.sin( phi_v),       0],
-                                 [np.sin(phi_v),    np.cos(phi_v),          0],
-                                 [0,            0,              1]] # Schramm, Dieter Hiller, ManfredBardini, Roberto Pag 261 (TR2, TR4)
+                                 [np.sin(phi_v),       np.cos(phi_v),       0],
+                                 [            0,                   0,       1]] # Schramm, Dieter Hiller, ManfredBardini, Roberto Pag 261 (TR2, TR4)
+            
             "says rotational transformation to Kv is necessary"
+            
             
             
             return wheel_angle
 
         def tire(wheel_angle, wheel_forces):
             
-            'initial states of tire load are mandatory [Wheel torque], [Wheel_Fz]'
+            'initial states of tire load are mandatory [Wheel torque], [Wheel_Fz], slip_x, slip_y]'
             
             # wheel states
             
-            x0 = []
-            x0.append(x0[3] / (P.r_dyn))  # left front wheel angular speed
-            x0.append(x0[3] / (P.r_dyn)  # right front wheel angular speed
-            x0.append(x0[3] / (P.r_dyn))  # left rear wheel angular speed
-            x0.append(x0[3] / (P.r_dyn))  # right rear wheel angular speed
-        
-            x0.append(0)  # delta_y_f
-            x0.append(0)  # delta_y_r
+            
+            #  Slip calculation
+            #TODO: initialize angular velocity of each wheel (relative to vehicle system)
+            wheel_w_vel = [0., 0., 0., 0.]
+            wheel_vx = [0., 0., 0., 0.]
+            wheel_vy = [0., 0., 0., 0.]
+            
+            # wheel slip is calculated by wheel fixed system
+            for i in range(4):
+                longi_slip = (P.dyn * wheel_w_vel[i] - wheel_vx[i] / max([P.dyn * wheel_w_vel[i], wheel_vx[i]]))         # equation 11.30 Bardini (only using 1 r_dyn)
+                
+                alpha_slip = - np.arctan( wheel_vy[i] / max([P.dyn * wheel_w_vel[i], wheel_vx[i]]))                      # equation 11.31 Bardini
+            
+            #TODO: Wheelforces calculation 
+            
+            inital_wheel_force = [w1, w2, w3, w4] # pag 267 Bardini
+            
+            #TODO: solve EDO 11-25 Bardini pag 266
+            #TODO: 11-26   Bardini pag 266
+            
         
             return x0
 
@@ -300,51 +373,61 @@ class VehicleDynamics(object):
         
         def  suspension(ax,ay,heave):
             
-            # auxiliary initial states
-            F0_z_f = p.m_s * g * p.b / ((p.a + p.b)) + p.m_uf * g
-            F0_z_r = p.m_s * g * p.a / ((p.a + p.b)) + p.m_ur * g
-            
-            
-            # all this state vector need to be atualized not extended
-            # sprung mass states
-            
-            x0 = []  # init initial state vector
-            x0.append(sx0)  # x-position in a global coordinate system
-            x0.append(sy0)  # y-position in a global coordinate system
-            x0.append(delta0)  # steering angle of front wheels
-            x0.append(math.cos(beta0) * vel0)  # velocity in x-direction
-            x0.append(Psi0)  # yaw angle
-            x0.append(dotPsi0)  # yaw rate
-            x0.append(0)  # roll angle
-            x0.append(0)  # roll rate
-            x0.append(0)  # pitch angle
-            x0.append(0)  # pitch rate
-            x0.append(math.sin(beta0) * vel0)  # velocity in y-direction
-            x0.append(0)  # z-position (zero height corresponds to steady state solution)
-            x0.append(0)  # velocity in z-direction
-        
-            # unsprung mass states (front)
-            x0.append(0)  # roll angle front
-            x0.append(0)  # roll rate front
-            x0.append(math.sin(beta0) * vel0 + p.a * dotPsi0)  # velocity in y-direction front
-            x0.append((F0_z_f) / (2 * p.K_zt))  # z-position front
-            x0.append(0)  # velocity in z-direction front
-        
-            # unsprung mass states (rear)
-            x0.append(0)  # roll angle rear
-            x0.append(0)  # roll rate rear
-            x0.append(math.sin(beta0) * vel0 - p.b * dotPsi0)  # velocity in y-direction rear
-            x0.append((F0_z_r) / (2 * p.K_zt))  # z-position rear
-            x0.append(0)  # velocity in z-direction rear
+           
 
             return vertical_loads
         
         def  chassis(vertical_loads, ax, ay, t_step ):
-            ""
+            "Equations of motion Bardini, pag 272 ---- need initialize values"
+            
+            velocity = [x_vel,
+                        [y_vel],
+                        [z_vel]]
+            
+            acc_vector = [x_acc,
+                         [y_acc],
+                         [z_acc]]
+            
+            # bardini pag 260 -- use vector of torque x euler angle rate 
+            
+            vector_w =  [x_w,
+                         [y_w],
+                         [z_w]]
+            
+            # forces on the vehicle chassis at the pivot points Ai of the four wheel >> Bardini pag 236
+            #horizontal forces pag 264
+            fxh = np.zeros(4)
+            fyh = np.zeros(4)
+            fzh = np.zeros(4)
+            
+            # Forces of the suspension spring
+            
+            fxs = np.zeros(4)
+            fys = np.zeros(4)
+            fzs = np.zeros(4)
+            
+            # Forces of the suspension dampers
+            fxd = np.zeros(4)
+            fyd = np.zeros(4)
+            fzd = np.zeros(4)
+            
+            ##################### Wheel forces##############
+            
+            fx_wheel = np.zeros(4)
+            fz_wheel = np.zeros(4)
+            fy_wheel = np.zeros(4)
+            
+            for i in range():
+                #TODO: fill the wheel force matriz >>  "i" will be one of the tires
+                
+                
+            #############################
+            #mass_v =  [[0],[0], [-P.mass * P.g]]    # equação 11- 46 bardini
+            
+            #############################
             
             
-            
-            return x, x_dot, pitch, yaw, roll
+            #return x, x_dot, pitch, yaw, roll
         
         def road():
             return
@@ -352,6 +435,4 @@ class VehicleDynamics(object):
             
         
         
-            
-    
-# TODO: x is incorparate with y
+
