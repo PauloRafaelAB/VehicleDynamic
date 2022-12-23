@@ -117,11 +117,10 @@ class Parameters_bmw_m8():
         # self.longitudinal.a_max = 11.5  # maximum absolute acceleration [m/s^2]
     
         # masses
-        self.m = 0  # vehicle mass [kg]  MASS
-        self.m_s = 0  # sprung mass [kg]  SMASS
-        self.m_uf = 0  # unsprung mass front [kg]  UMASSF
-        self.m_ur = 0  # unsprung mass rear [kg]  UMASSR
-    
+        self.m = 1780  # vehicle mass [kg]  MASS
+        self.m_s = [350.,400.,350.,400.]  # sprung mass [kg]  SMASS
+        self.unsprung_mass = [70.,70.,70.,70.] # unsprung mass vector [kg]  UMASSF
+        
         
     
         # moments of inertia of sprung mass
@@ -131,10 +130,11 @@ class Parameters_bmw_m8():
         self.I_xz_s = 0   # moment of inertia cross product [kg m^2]  IXZ
     
         # suspension parameters
-        self.K_sf = 0  # suspension spring rate (front) [N/m]  KSF
-        self.K_sdf =  0 # suspension damping rate (front) [N s/m]  KSDF
-        self.K_sr = 0  # suspension spring rate (rear) [N/m]  KSR
-        self.K_sdr = 0 # suspension damping rate (rear) [N s/m]  KSDR
+        self.f_spring_stiff = 34900     # suspension spring rate (front) [N/m]  KSF 
+        self.f_dumper =   4360.         # suspension damping rate (front) [N s/m]  KSDF
+        self.r_spring_stiff = 32600.    # suspension spring rate (rear) [N/m]  KSR
+        self.f_dumper = 3870            # suspension damping rate (rear) [N s/m]  KSDR
+        self.anti_roll_stiffness = 2882 # Anti roll bar stiffness [Nm/rad]
     
         # geometric parameters
         self.T_f = 0  # track width front [m]  TRWF
@@ -158,13 +158,8 @@ class Parameters_bmw_m8():
     
         self.K_lt = 0  # lateral compliance rate of tire, wheel, and suspension, per tire [m/N]  KLT
         self.R_w = 0.344  # effective wheel/tire radius  chosen as tire rolling radius RR  taken from ADAMS documentation [m]
-    
-    
-        # suspension parameters
-        self.D_f = 0  # [rad/m]  DF
-        self.D_r = 0  # [rad/m]  DR
-        self.E_f = 0  # [needs conversion if nonzero]  EF
-        self.E_r = 0  # [needs conversion if nonzero]  ER
+        self.I_wheel = [[70.,55.,70.,55.]]
+
     
 
 
