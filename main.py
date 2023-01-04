@@ -38,6 +38,7 @@ def func_KS(x, t, u, p):
 tStart = 0  # start time
 tFinal = 5  # start time
 
+
 # load vehicle parameters
 p = Parameters_bmw_m8()
 

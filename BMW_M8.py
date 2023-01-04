@@ -130,10 +130,8 @@ class Parameters_bmw_m8():
         self.I_xz_s = 0   # moment of inertia cross product [kg m^2]  IXZ
     
         # suspension parameters
-        self.f_spring_stiff = 34900     # suspension spring rate (front) [N/m]  KSF 
-        self.f_dumper =   4360.         # suspension damping rate (front) [N s/m]  KSDF
-        self.r_spring_stiff = 32600.    # suspension spring rate (rear) [N/m]  KSR
-        self.f_dumper = 3870            # suspension damping rate (rear) [N s/m]  KSDR
+        self.spring_stiff = [34900, 32600., 34900, 32600.]      # suspension spring rate (front i = 1 or 3)  (rear = 1 = 2,4) [N/m]  KSF 
+        self.f_dumper =   [4360., 3870.,4360., 3870]         # suspension damping rate (front i = 1 or 3)  (rear = 1 = 2,4)[N s/m]  KSDF
         self.anti_roll_stiffness = 2882 # Anti roll bar stiffness [Nm/rad]
     
         # geometric parameters
@@ -155,10 +153,13 @@ class Parameters_bmw_m8():
         self.I_uf = 0        # moment of inertia for unsprung mass about x-axis (front) [kg m^2]  IXUF
         self.I_ur = 0   # moment of inertia for unsprung mass about x-axis (rear) [kg m^2]  IXUR
         self.I_y_w = 1.7  # wheel inertia, from internet forum for 235/65 R 17 [kg m^2]
-    
+        
+        # Tire parameters
+        self.cR = [999900, 999900., 999900, 999900.]        # Tire Stiffnes
         self.K_lt = 0  # lateral compliance rate of tire, wheel, and suspension, per tire [m/N]  KLT
         self.R_w = 0.344  # effective wheel/tire radius  chosen as tire rolling radius RR  taken from ADAMS documentation [m]
         self.I_wheel = [[70.,55.,70.,55.]]
+        
 
     
 
