@@ -232,6 +232,7 @@ class VehicleDynamics(object):
     x[2] = x_rz
     x[3] = x_rf
     
+<<<<<<< Updated upstream
     # Global Coordinates system  -- inertial system (O_E)
     o_e = [0., 0., 0.]
         
@@ -242,6 +243,31 @@ class VehicleDynamics(object):
     E_T_V = [[np.cos(theta_v) * np.cos(psi_v)  ,  np.sin(phi_v) * np.sin(theta_v) * np.cos(psi_v) - np.cos(phi_v) * np.sin(psi_v),     np.cos(phi_v) * np.sin(theta_v) * np.cos(psi_v) + np.sin(phi_v) * np.sin(psi_v)],
              [np.cos(theta_v) * np.sin(psi_v),    np.sin(phi_v) * np.sin(theta_v) * np.sin(psi_v) + np.cos(phi_v) * np.sin(psi_v),     np.cos(phi_v) * np.sin(theta_v) * np.sin(psi_v) - np.sin(phi_v) * np.cos(psi_v)],
              [-np.sin(theta_v),                   np.sin(phi_v) * np.cos(theta_v),                                                      np.cos(phi_v) * np.cos(theta_v)]]     #  Bardini pag 260
+=======
+        # Transformation matrix (rotational matrix) External_T_V -- Bardini pag 260 eq. 11.3
+        E_T_V = [[np.cos(theta_v) * np.cos(psi_v)  ,  np.sin(phi_v) * np.sin(theta_v) * np.cos(psi_v) - np.cos(phi_v) * np.sin(psi_v),     np.cos(phi_v) * np.sin(theta_v) * np.cos(psi_v) + np.sin(phi_v) * np.sin(psi_v)],
+                 [np.cos(theta_v) * np.sin(psi_v),    np.sin(phi_v) * np.sin(theta_v) * np.sin(psi_v) + np.cos(phi_v) * np.sin(psi_v),     np.cos(phi_v) * np.sin(theta_v) * np.sin(psi_v) - np.sin(phi_v) * np.cos(psi_v)],
+                 [-np.sin(theta_v),                   np.sin(phi_v) * np.cos(theta_v),                                                      np.cos(phi_v) * np.cos(theta_v)]]     #  Bardini pag 260
+        
+        # Transposed 
+        V_T_E = np.transpose(E_T_V)
+        
+        # For the angular velocity of the chassis we have:   Bardini Pag. 261 Eq. 11.5
+        Tw = [[                -np.sin(theta_v),                 0,            1],
+              [ np.cos(theta_v) * np.sin(psi_v),     np.cos(psi_v),            0],
+              [ np.cos(theta_v) * np.cos(psi_v),  - np.sin(psi_v),             0]]
+        
+        
+        chassis_w_velocity = [[  phi_v_dot],
+                              [ theta_v_dot],
+                              [   psi_v_dot]] 
+        
+        # Coordinate representation of the absolute velocity of point v with respect to coordinate system “E”, described in coordinates of coordinate system “v”
+        # bardni. Pag 260
+        w_v = np.dot(Tw, chassis_w_velocity) 
+        
+        # Matrix E_T_R (wheel angles) is calculate at steering fuction
+>>>>>>> Stashed changes
         
     # Transposed 
     V_T_E = np.transpose(E_T_V)
