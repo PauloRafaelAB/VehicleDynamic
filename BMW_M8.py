@@ -4,6 +4,7 @@ Created on Thu Jun 30 10:55:21 2022
 
 @author: Paulo Rafael A.Bloemer
 """
+import numpy as np
 
 class Parameters_bmw_m8(): 
     
@@ -41,9 +42,19 @@ class Parameters_bmw_m8():
         #=====================================
         # Tire Data
         #=====================================
-        self.c = 406884. ##                                     # Tire Stiffiness [N/m]
+        self.cx = 406884. ##                                    # Tire Stiffiness [N/m]
+        self.cy = 406884.
         self.F_max = 5440. ###                                  # Tire load
+        self.mi_x = 0.4
+        self.mi_y = 0.4
+        self.bx = 1                                             # tire coeficient Bardini pag 268
+        self.by = 1
+        self.cR = [999900, 999900., 999900, 999900.]            # Tire Stiffnes
+        self.K_lt = 0                                           # lateral compliance rate of tire, wheel, and suspension, per tire [m/N]  KLT
+        self.r_stat = 0.5334                                    # Tire Radius Static [m]
+        self.r_dyn  = [0.5330, 0.5330,0.5330,0.5330]            # Tire Radius Dynamic [m]
         
+        self.I_wheel = [[70.,55.,70.,55.]]
         #=====================================
         # Rolling Resistance Parameters
         #=====================================
@@ -60,24 +71,7 @@ class Parameters_bmw_m8():
         self.Front_area = 2.057###                                  #Front Area of Car
         self.Air_density = 1.2                                     # Air Dencity 
         
-        #=====================================
-        "Intertial Resistance Parameters need to be measured"
-        #=====================================
-        
-        self.Iw = 0.953                                    # Wheel Inertia [Kgm^2]
-        self.Ia = 0.135                                    # Axel Inertia [Kgm^2]
-        self.Id = 0.0                                      # drive shaft Inertia [Kgm^2]
-                                      
-        self.Gd = 1                                        # Differential Gear Ratio
-        self.Ig = 0.01                                     # Gear Box Inertia [Kgm^2]
-        self.b_1 = 7                                       # Acceleration / Deaceleration Calib Coefficient 
-        self.brake_caliper = 1.5                           # Break Calib Coefficient
-        self.I_engine = 0.227                              # Engine Inertia [Kgm^2]
-        self.r_stat = 0.5334                               # Tire Radius Static [m]
-        self.r_dyn  = 0.5330                               # Tire Radius Dynamic [m]
-       
-        
-        self.cg_height = 300.                              # center of gravity height of total mass [m]
+        self.cg_height = 350.                              # center of gravity height of total mass [m]
         self.cg_x = 12500                                  #  cg_x [m]
         self.cg_y = 0.                                     # [m]
         self.track_width = 0.                              # [m]
@@ -88,11 +82,9 @@ class Parameters_bmw_m8():
         self.lh = .0                                       # x-distance from Vehicle Cog to the rear hub [m]
         
         # Half track
-        self.sl = .0                                       # Half track width front [m]
-        self.sr = .0                                       # Half track width rear  [m]
+        self.sl = 1.0                                       # Distance from Ov to Upper Suspention ponit y direction  [m]
+        self.sr = 1.0                                       # Distance from Ov to Upper Suspention ponit y direction [m]
         
-        #self.weight_rear = self.m * self.CG_x / self.wb  
-        #self.weight_front = self.m - self.weightrear 
         
         self.final_ratio = self.gear_ratio * self.diff    # final ratio             
         
@@ -105,10 +97,10 @@ class Parameters_bmw_m8():
         self.w = 2  # vehicle width [m]
     
         # # steering constraints
-        # self.steering.min = -0.910  # minimum steering angle [rad]
-        # self.steering.max = 0.910  # maximum steering angle [rad]
-        # self.steering.v_min = -0.4  # minimum steering velocity [rad/s]
-        # self.steering.v_max = 0.4  # maximum steering velocity [rad/s]
+        self.steering_min = -0.910  # minimum steering angle [rad]
+        self.steering_max = 0.910  # maximum steering angle [rad]
+        self.steering_v_min = -0.4  # minimum steering velocity [rad/s]
+        self.steering_v_max = 0.4  # maximum steering velocity [rad/s]
     
         # # longitudinal constraints
         # self.longitudinal.v_min = -13.9  # minimum velocity [m/s]
@@ -118,50 +110,54 @@ class Parameters_bmw_m8():
     
         # masses
         self.m = 1780  # vehicle mass [kg]  MASS
-        self.m_s = [350.,400.,350.,400.]  # sprung mass [kg]  SMASS
-        self.unsprung_mass = [70.,70.,70.,70.] # unsprung mass vector [kg]  UMASSF
+        self.m_s = np.array([350.,400.,350.,400.])  # sprung mass [kg]  SMASS
+        self.unsprung_mass = np.array([70.,70.,70.,70.]) # unsprung mass vector [kg]  UMASSF
+        self.F_z = 9.81 * self.m_s    # Static force on wheel hub [N]
         
         
-    
+        # Inertia
+         
+        #=====================================
+        "Intertial Resistance Parameters need to be measured"
+        #=====================================
+        
         # moments of inertia of sprung mass
         self.I_Phi_s = 0 # moment of inertia for sprung mass in roll [kg m^2]  IXS
         self.I_y_s =  0 # moment of inertia for sprung mass in pitch [kg m^2]  IYS
         self.I_z = 0  # moment of inertia for sprung mass in yaw [kg m^2]  IZZ
         self.I_xz_s = 0   # moment of inertia cross product [kg m^2]  IXZ
     
+        
+        # Drivetrain Inertias
+        self.Iw = 0.953                                    # Wheel Inertia [Kgm^2]
+        self.Ia = 0.135                                    # Axel Inertia [Kgm^2]
+        self.Id = 0.0                                      # drive shaft Inertia [Kgm^2]
+        self.Gd = 1                                        # Differential Gear Ratio
+        self.Ig = 0.01                                     # Gear Box Inertia [Kgm^2]
+        self.I_engine = 0.227                              # Engine Inertia [Kgm^2]
+        
         # suspension parameters
         self.spring_stiff = [34900, 32600., 34900, 32600.]      # suspension spring rate (front i = 1 or 3)  (rear = 1 = 2,4) [N/m]  KSF 
-        self.f_dumper =   [4360., 3870.,4360., 3870]         # suspension damping rate (front i = 1 or 3)  (rear = 1 = 2,4)[N s/m]  KSDF
+        self.dumper =       [4360., 3870.,4360., 3870]         # suspension damping rate (front i = 1 or 3)  (rear = 1 = 2,4)[N s/m]  KSDF
         self.anti_roll_stiffness = 2882 # Anti roll bar stiffness [Nm/rad]
     
         # geometric parameters
-        self.T_f = 0  # track width front [m]  TRWF
-        self.T_r = 0 # track width rear [m]  TRWB
-        self.K_ras =0   # lateral spring rate at compliant compliant pin joint between M_s and M_u [N/m]  KRAS
+        self.T_f = 0            # track width front [m]  TRWF
+        self.T_r = 0            # track width rear [m]  TRWB
+        self.K_ras =0           # lateral spring rate at compliant compliant pin joint between M_s and M_u [N/m]  KRAS
     
-        self.K_tsf =   0     # auxiliary torsion roll stiffness per axle (normally negative) (front) [N m/rad]  KTSF
-        self.K_tsr =  0        # auxiliary torsion roll stiffness per axle (normally negative) (rear) [N m/rad]  KTSR
-        self.K_rad =  0       # damping rate at compliant compliant pin joint between M_s and M_u [N s/m]  KRADP
-        self.K_zt =   0        # vertical spring rate of tire [N/m]  TSPRINGR
+        self.K_tsf =   0        # auxiliary torsion roll stiffness per axle (normally negative) (front) [N m/rad]  KTSF
+        self.K_tsr =  0         # auxiliary torsion roll stiffness per axle (normally negative) (rear) [N m/rad]  KTSR
+        self.K_rad =  0         # damping rate at compliant compliant pin joint between M_s and M_u [N s/m]  KRADP
+        self.K_zt =   0         # vertical spring rate of tire [N/m]  TSPRINGR
     
         self.h_cg = 0
-        self.h_raf = 0  # height of roll axis above ground (front) [m]  HRAF
-        self.h_rar = 0  # height of roll axis above ground (rear) [m]  HRAR
+        self.h_raf = 0          # height of roll axis above ground (front) [m]  HRAF
+        self.h_rar = 0          # height of roll axis above ground (rear) [m]  HRAR
     
-        self.h_s = 0  # M_s center of gravity above ground [m]  HS
-    
-        self.I_uf = 0        # moment of inertia for unsprung mass about x-axis (front) [kg m^2]  IXUF
-        self.I_ur = 0   # moment of inertia for unsprung mass about x-axis (rear) [kg m^2]  IXUR
-        self.I_y_w = 1.7  # wheel inertia, from internet forum for 235/65 R 17 [kg m^2]
+        self.h_s = 0            # M_s center of gravity above ground [m]  HS
         
-        # Tire parameters
-        self.cR = [999900, 999900., 999900, 999900.]        # Tire Stiffnes
-        self.K_lt = 0  # lateral compliance rate of tire, wheel, and suspension, per tire [m/N]  KLT
-        self.R_w = 0.344  # effective wheel/tire radius  chosen as tire rolling radius RR  taken from ADAMS documentation [m]
-        self.I_wheel = [[70.,55.,70.,55.]]
+        self.I_uf = 0           # moment of inertia for unsprung mass about x-axis (front) [kg m^2]  IXUF
+        self.I_ur = 0           # moment of inertia for unsprung mass about x-axis (rear) [kg m^2]  IXUR
+        self.I_y_w = 1.7        # wheel inertia, from internet forum for 235/65 R 17 [kg m^2]
         
-
-    
-
-
-
