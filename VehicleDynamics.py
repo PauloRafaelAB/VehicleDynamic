@@ -6,6 +6,7 @@ Created on Thu Oct 13 10:28:58 2022
 Vehicle Dynamic Model
 
 """
+
 from scipy.interpolate import interp1d
 from scipy.integrate import odeint
 import numpy as np
@@ -19,29 +20,28 @@ class VehicleDynamics(object):
     of brake, steer and thorttle positons.
     """
 
-        self.positiony=2
-        self.positionx=1
-        self.time_step = 1/freq
-        self.position = state_0
-        self.speed = initial_speed        
-        
-            self.param = ImportParam(param_path) # Import all the Parameters 
     def __init__(self, initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 0, freq=100, param_path = "config.yaml"):
+    
         if param_path != "":
-        
+            self.param = ImportParam(param_path) # Import all the Parameters 
+            
+        self.speed = initial_speed        
+        self.position = state_0
+        self.time_step = 1/freq
+        self.positionx=1
+        self.positiony=2
 
+        self.rpm = self.param.min_rpm
+        self.gear = initial_gear                 # gear selector
+
+        self.throttle = 0.0
+        self.brake = 0.0                 # Des Brake torque
+        self.alpha_engine = 0.0   # Angular acc engine
+        
+        
     def tick(self, gas_pedal, brake, steering):
 
-
-        self.gear = initial_gear                 # gear selector
-        self.rpm = self.param.min_rpm
-        
-        # TODO: check time_step use
-        self.time_step = time_step                         # seconds
-
-        self.powertrain(gas_pedal, brake,self.param.rpm_table,self.param.torque_max)
-        
-
+        self.powertrain(gas_pedal, brake,self.param.rpm_table,self.param.torque_max)Aerodynamics
         return (position[0],position[1],position[2],roll,pitch,yaw,vx,vy,vz,pho1,pho2,pho3,pho4)
 
     
@@ -50,6 +50,14 @@ class VehicleDynamics(object):
         
         torque_interpolation = interp1d(rpm_table, torque_max_table)
         torque_available = torque_interpolation(self.rpm)
+        
+        req_torque = throttle*torque_available   # Set throttle position
+        
+        #compare engine rpm and TC rpm to define the available torque. 
+        
+        #self.throttle_1 = self.thorttle * 10 //10 WHAT IS THAT? 
+        
+
         
         req_torque = throttle*torque_available   # Set throttle position
         
@@ -486,7 +494,6 @@ class VehicleDynamics(object):
         
         
 
-
 class ImportParam(object):
 
     def __init__(self, path = 'config.yaml'):
@@ -631,3 +638,4 @@ class ImportParam(object):
         self.K_lt = param['vehicle_model']['parameters']['k_lt']  # lateral compliance rate of tire, wheel, and suspension, per tire [m/N]  KLT
         self.R_w = param['vehicle_model']['parameters']['r_w']  # effective wheel/stire radius  chosen as tire rolling radius RR  taken from ADAMS documentation [m]
         self.I_wheel = np.array(param['vehicle_model']['parameters']['i_wheel'])
+
