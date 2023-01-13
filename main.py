@@ -37,4 +37,5 @@ for i in range(len(u[0])):
     states[:,i] = vehicle_dynamics.tick(throttle[i], brake[i], steering[i])
     
 
+
 plt.plot(time, throttle, 'g^', time, states[7], 'g-')

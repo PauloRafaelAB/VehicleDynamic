@@ -20,7 +20,7 @@ class VehicleDynamics(object):
     of brake, steer and thorttle positons.
     """
 
-    def __init__(self, initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 0, freq=100, param_path = "config.yaml"):
+    def __init__(self, initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 0, freq=100, param_path = ""):
     
         if param_path != "":
             self.param = ImportParam(param_path) # Import all the Parameters 
@@ -30,6 +30,8 @@ class VehicleDynamics(object):
         self.time_step = 1/freq
         self.positionx=1
         self.positiony=2
+        self.gravity = 9.81
+        self.vector =np.array([0.1,0.2])
 
         self.rpm = self.param.min_rpm
         self.gear = initial_gear                 # gear selector
@@ -38,11 +40,19 @@ class VehicleDynamics(object):
         self.brake = 0.0                 # Des Brake torque
         self.alpha_engine = 0.0   # Angular acc engine
         
+        # ----------Torque Converter-----------
+        self.torque_converter_ratio_inter = interp1d(self.param.speed_ratio_TC, self.param.torque_converter_ratio)
+        
         
     def tick(self, gas_pedal, brake, steering):
 
-        self.powertrain(gas_pedal, brake,self.param.rpm_table,self.param.torque_max)Aerodynamics
-        return (position[0],position[1],position[2],roll,pitch,yaw,vx,vy,vz,pho1,pho2,pho3,pho4)
+        self.powertrain(gas_pedal, brake, self.param.rpm_table, self.param.torque_max)
+        #self.steering(steering, self.param..., self.param...)
+        #self.tire()
+        #self.suspension()
+        #self.chassis()
+        
+        return (self.position[0],self.position[1],self.position[2],roll,pitch,yaw,vx,vy,vz,pho1,pho2,pho3,pho4)
 
     
 
@@ -53,69 +63,59 @@ class VehicleDynamics(object):
         
         req_torque = throttle*torque_available   # Set throttle position
         
-        #compare engine rpm and TC rpm to define the available torque. 
-        
-        #self.throttle_1 = self.thorttle * 10 //10 WHAT IS THAT? 
-        
-
-        
-        req_torque = throttle*torque_available   # Set throttle position
-        
-        #compare engine rpm and TC rpm to define the available torque. 
-        
-        #self.throttle_1 = self.thorttle * 10 //10 WHAT IS THAT? 
+        #TODO: compare engine rpm and TC rpm to define the available torque. 
         
         # -----------Tranmission ratio----------
         for i in range(len(self.param.gear_ratio)): # CHECKING HOW MANY GEAR DO YOU HAVE?
             if self.acc_x > 0.0: #Would it be valid? 
-                if self.speed > self.param.gear_selection[self.thortlle_1][self.speed]:
+                if self.speed > self.param.gear_selection[round(self.throttle*10)][self.speed]:
                      self.gear = self.param.gear_ratio[i+1]
                      
         ### Using an offset of upshift
             if self.acc_x <0:
-                if  (self.speed * 0.8) < P.gear_selection[self.thortlle_1][self.speed]:
+                if  (self.speed * 0.8) < P.gear_selection[round(self.throttle*10)][self.speed]:
                     self.gear = P.gear_ratio[i]
-                    ### condition works better than interpolation to selec gear
-                    
+                    ### condition works better than interpolation to select gear
+
         # TODO: driveshaft rpm
-        self.wheel_rpm = 30 * self.speed/( P.r_dyn * np.pi)
-        self.rpm = self.gear * self.wheel_rpm * self.torque_converter_ratio_inter
-            
+        self.wheel_rpm = 30 * self.speed/( P.r_dyn * np.pi) #RADSEC2RPM = 30/np.pi
+        #self.tcrpm = self.gear * self.wheel_rpm * self.torque_converter_ratio_inter
+        self.driveshaft_rpm = self.param.final_ratio * self.wheel_rpm
+        speed_ratio = self.driveshaft_rpm/self.rpm
+        if speed_ratio > 1.0:
+            speed_ratio = 1.0
+        torque_convertion = torque_converter_ratio_inter(speed_ratio)
+        
         # TODO: Engine torque to wheel, taking inercia into account
        
-        self.clucht_torque = d_engine_torque - P.I_engine * self.alpha_engine # Gillespi p.26
+        self.clucht_torque = d_engine_torque - P.I_engine * self.alpha_engine * torque_convertion # Gillespi p.26
         
-        # ----------Torque Converter-----------
-        # Model of torque converter -speed_ratio calculation
-        self.speed_ratio_TC = [0,0.9,1]
-        self.torque_converter_ratio = [2.3, 1,1]
-        self.torque_converter_ratio_inter = interp1d(self.speed_ratio_TC, self.torque_converter_ratio)
-        
+        """
         #TODO: Check Angular accelerations
         self.alpha_wheel = self.acc_x / P.r_dyn
         self.alpha_d_shaft = self.gear * self.torque_converter_ratio * self.alpha_wheel
         self.alpha_engine = self.alpha_d_shaft * self.torque_converter_ratio * P.diff 
-        "ratio of the final drive"
+        "ratio of the final drive"""
         
         #self.alpha_engine = self.alpha_wheel * P.gear * torque_converter_ratio * P.diff
         self.torque_d_shaft = (self.clucht_torque - P.I_clutch * self.alpha_egine) * self.gear ## Gillespi p.26
         self.engine2wheel_torque = (self.torque_d_shaft - P.I_d_shaft * self.alpha_d_shaft) * self.gear
     
-        
+        """
         # ---------Tire slip longitudinal-----
         
         # TODO: make matricial 
         self.wheel_wspeed = self.rpm * self.gear * self.torque_converter_ratio_inter  # Wheel speed angular
         # TODO: set max and min longitudinal accelaration
-        "acceleration in this time stemp"
+        "acceleration in this time stemp"""
             
 
-        # Resitances
+        """# Resitances
         #self.f_aerodyn = 0.5 * P.row * P.Cd * P.Front_area * self.speed**2              # Aerodynamics Resistance
         self.rolling_resist = (P.fr * P.m * P.g * np.cos(0.) - 0.5 * P.row * P.Cl * P.area * self.speed ** 2)                              # Rolling Resistance: whit air lift
         
         self.f_resist = self.f_aerodyn  + self.rolling_resist                             # Total Resistance
-        
+        """
         #--------------------Break Torque -------------------------#
         # TODO: calculate max_bake_torque and place as a imported parameter
         
@@ -133,13 +133,14 @@ class VehicleDynamics(object):
         #TODO: leave as torque on each wheel (without "/r_dyn")
         Fx_powertrain = np.zeros(4)
         # TODO: traction divided between axles
-        Fx_powertrain[1] = Fx_powertrain*0.2
-        Fx_powertrain[2] = Fx_powertrain*0.4
-        Fx_powertrain[3] = Fx_powertrain*0.2
-        Fx_powertrain[4] = Fx_powertrain*0.4
+        Fx_powertrain[0] = Fx_powertrain*0.2  #CREATE AS PARAM
+        Fx_powertrain[1] = Fx_powertrain*0.4
+        Fx_powertrain[2] = Fx_powertrain*0.2
+        Fx_powertrain[3] = Fx_powertrain*0.4
         
         return Fx_powertrain
-         
+    
+       
       
 ################################################################################################################################
         
@@ -376,7 +377,7 @@ class VehicleDynamics(object):
             F_z = P.F_z
         for i in range(4):
             # Longitudinal forces with Fz iteration eq 11-34
-            F_R_x[i] = P.mi_x[i] * np.sin(P.cx * np.arctan(P.bx *slip_x[i] /P.mi_x[i])) * fr_z_eff[i]
+            F_R_x[i] = P.mi_x[i] * np.sin(self.param.cx * np.arctan(P.bx *slip_x[i] /P.mi_x[i])) * fr_z_eff[i]
             F_R_y[i] = P.mi_y[i] * np.sin(P.cy * np.arctan(P.by *slip_x[i] /P.mi_y[i])) * fr_z_eff[i]
             fr_z_eff = F_R_z[i] * (1 - P.ez * (F_R_z[i]/ P.initial_F_R_z[i])**2)
             
@@ -465,10 +466,8 @@ class VehicleDynamics(object):
             
         
     def road():
-            return
-        
-'''            
-        
+        return
+
         
         
         
@@ -491,8 +490,7 @@ class VehicleDynamics(object):
         # # TODO: pitch with bar model
         
 ################################################################################################################################        
-        
-        
+             
 
 class ImportParam(object):
 
@@ -511,7 +509,6 @@ class ImportParam(object):
         self.gear_ratio = np.array(param['vehicle_model']['parameters']['gear_ratio'])
         self.gear_selection = np.array(param['vehicle_model']['parameters']['gear_selection'])
         self.min_rpm = param['vehicle_model']['parameters']['min_rpm'] 
-        
         self.diff = param['vehicle_model']['parameters']['diff']                       # Differential ratio
         self.diff_ni = param['vehicle_model']['parameters']['diff_ni']
         self.transmition_ni = param['vehicle_model']['parameters']['transmition_ni']
@@ -522,16 +519,26 @@ class ImportParam(object):
         #=====================================
         # Tire Data
         #=====================================
-        self.c = param['vehicle_model']['parameters']['c_tire']                                     # Tire Stiffiness [N/m]
+        self.cx = param['vehicle_model']['parameters']['c_tire_x']                                     # Tire Stiffiness [N/m]
+        self.cy = param['vehicle_model']['parameters']['c_tire_y']                                     # Tire Stiffiness [N/m]
         self.F_max = param['vehicle_model']['parameters']['f_max']                                  # Tire load
         
         #=====================================
         # Rolling Resistance Parameters
         #=====================================
         
-        self.Road_friction = param['vehicle_model']['parameters']['road_friction']   ##                              # Road Friction Coefficient
+        self.mi_x = param['vehicle_model']['parameters']['road_friction_x']   ##                              # Road Friction Coefficient
+        self.mi_y = param['vehicle_model']['parameters']['road_friction_y'] 
         self.m = param['vehicle_model']['parameters']['mass']      ##                                        # Vehicle Mass
-        self.g = param['vehicle_model']['parameters']['gravity']      ###                                       # Acceleration Due to Gravity
+        
+        # Tire parameters
+        self.bx = param['vehicle_model']['parameters']['bx']                                              # tire coeficient Bardini pag 268
+        self.by = param['vehicle_model']['parameters']['by']
+        self.cR = np.array(param['vehicle_model']['parameters']['cr'])       # Tire Stiffnes
+        self.K_lt = param['vehicle_model']['parameters']['k_lt']  # lateral compliance rate of tire, wheel, and suspension, per tire [m/N]  KLT
+        self.I_wheel = np.array(param['vehicle_model']['parameters']['i_wheel'])
+        self.r_stat = param['vehicle_model']['parameters']['r_stat']                               # Tire Radius Static [m]
+        self.r_dyn  = param['vehicle_model']['parameters']['r_dyn']    
         
         #=====================================
         # Air Resistance Parameters
@@ -541,28 +548,13 @@ class ImportParam(object):
         self.Front_area = param['vehicle_model']['parameters']['front_area']  ###                                  #Front Area of Car
         self.Air_density = param['vehicle_model']['parameters']['air_density']                                     # Air Dencity 
         
-        #=====================================
-        "Intertial Resistance Parameters need to be measured"
-        #=====================================
-        
-        self.Iw = param['vehicle_model']['parameters']['iw']                                    # Wheel Inertia [Kgm^2]
-        self.Ia = param['vehicle_model']['parameters']['ia']                                    # Axel Inertia [Kgm^2]
-        self.Id = param['vehicle_model']['parameters']['id']                                      # drive shaft Inertia [Kgm^2]
-                                      
-        self.Gd = param['vehicle_model']['parameters']['gd']                                        # Differential Gear Ratio
-        self.Ig = param['vehicle_model']['parameters']['ig']                                     # Gear Box Inertia [Kgm^2]
-        self.b_1 = param['vehicle_model']['parameters']['b_1']                                       # Acceleration / Deaceleration Calib Coefficient 
-        self.brake_caliper = param['vehicle_model']['parameters']['brake_caliper']                           # Break Calib Coefficient
-        self.I_engine = param['vehicle_model']['parameters']['i_engine']                              # Engine Inertia [Kgm^2]
-        self.r_stat = param['vehicle_model']['parameters']['r_stat']                               # Tire Radius Static [m]
-        self.r_dyn  = param['vehicle_model']['parameters']['r_dyn']                               # Tire Radius Dynamic [m]
-       
-        
         self.cg_height = param['vehicle_model']['parameters']['cg_height']                              # center of gravity height of total mass [m]
         self.cg_x = param['vehicle_model']['parameters']['cg_x']                                 #  cg_x [m]
         self.cg_y = param['vehicle_model']['parameters']['cg_y']                                     # [m]
         self.track_width = param['vehicle_model']['parameters']['track_width']                              # [m]
         self.wheel_base = param['vehicle_model']['parameters']['wheel_base']                           # [m]
+        
+        self.brake_caliper = param['vehicle_model']['parameters']['brake_caliper']                           # Break Calib Coefficient
         
         # axes distances
         self.lv = param['vehicle_model']['parameters']['lv']                                  # x-distance from Vehicle CoG to the front hub [m]
@@ -572,8 +564,7 @@ class ImportParam(object):
         self.sl = param['vehicle_model']['parameters']['sl']                                      # Half track width front [m]
         self.sr = param['vehicle_model']['parameters']['sr']                                       # Half track width rear  [m]
         
-        #self.weight_rear = self.m * self.CG_x / self.wb  
-        #self.weight_front = self.m - self.weightrear 
+
         
         self.final_ratio = self.diff * self.gear_ratio     # final ratio             
         
@@ -585,11 +576,11 @@ class ImportParam(object):
         self.l = param['vehicle_model']['parameters']['length']  # vehicle length [m]
         self.w = param['vehicle_model']['parameters']['width']  # vehicle width [m]
     
-        # # steering constraints
-        # self.steering.min = -0.910  # minimum steering angle [rad]
-        # self.steering.max = 0.910  # maximum steering angle [rad]
-        # self.steering.v_min = -0.4  # minimum steering velocity [rad/s]
-        # self.steering.v_max = 0.4  # maximum steering velocity [rad/s]
+        # steering constraints
+        self.steering_min = param['vehicle_model']['parameters']['steering_min']  # minimum steering angle [rad]
+        self.steering_max = param['vehicle_model']['parameters']['steering_max']  # maximum steering angle [rad]
+        self.steering_v_min = param['vehicle_model']['parameters']['steering_v_min']  # minimum steering velocity [rad/s]
+        self.steering_v_max = param['vehicle_model']['parameters']['steering_v_max']  # maximum steering velocity [rad/s]
     
         # # longitudinal constraints
         # self.longitudinal.v_min = -13.9  # minimum velocity [m/s]
@@ -602,7 +593,18 @@ class ImportParam(object):
         self.unsprung_mass = np.array(param['vehicle_model']['parameters']['unsprung_mass']) # unsprung mass vector [kg]  UMASSF
         
     
-        # moments of inertia of sprung mass
+        
+        #=====================================
+        "Intertial Resistance Parameters need to be measured"
+        #=====================================
+        
+        self.Iw = param['vehicle_model']['parameters']['iw']                                    # Wheel Inertia [Kgm^2]
+        self.Ia = param['vehicle_model']['parameters']['ia']                                    # Axel Inertia [Kgm^2]
+        self.Id = param['vehicle_model']['parameters']['id']                                      # drive shaft Inertia [Kgm^2]
+        self.Gd = param['vehicle_model']['parameters']['gd']                                        # Differential Gear Ratio
+        self.Ig = param['vehicle_model']['parameters']['ig']
+        self.I_engine = param['vehicle_model']['parameters']['i_engine']                              # Engine Inertia [Kgm^2]
+        
         self.I_Phi_s = param['vehicle_model']['parameters']['i_phi_s'] # moment of inertia for sprung mass in roll [kg m^2]  IXS
         self.I_y_s =  param['vehicle_model']['parameters']['i_y_s'] # moment of inertia for sprung mass in pitch [kg m^2]  IYS
         self.I_z = param['vehicle_model']['parameters']['i_z']  # moment of inertia for sprung mass in yaw [kg m^2]  IZZ
@@ -633,9 +635,5 @@ class ImportParam(object):
         self.I_ur = param['vehicle_model']['parameters']['i_ur']   # moment of inertia for unsprung mass about x-axis (rear) [kg m^2]  IXUR
         self.I_y_w = param['vehicle_model']['parameters']['i_y_w']  # wheel inertia, from internet forum for 235/65 R 17 [kg m^2]
         
-        # Tire parameters
-        self.cR = np.array(param['vehicle_model']['parameters']['cr'])       # Tire Stiffnes
-        self.K_lt = param['vehicle_model']['parameters']['k_lt']  # lateral compliance rate of tire, wheel, and suspension, per tire [m/N]  KLT
-        self.R_w = param['vehicle_model']['parameters']['r_w']  # effective wheel/stire radius  chosen as tire rolling radius RR  taken from ADAMS documentation [m]
-        self.I_wheel = np.array(param['vehicle_model']['parameters']['i_wheel'])
-
+        self.speed_ratio_TC = np.array(param['vehicle_model']['parameters']['speed_ratio_TC'])
+        self.torque_converter_ratio = np.array(param['vehicle_model']['parameters']['torque_converter_ratio'])
