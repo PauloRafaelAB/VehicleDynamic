@@ -489,3 +489,148 @@ class VehicleDynamics(object):
         
         
 
+class ImportParam(object):
+
+    def __init__(self, path = 'config.yaml'):
+        
+        with open(path, 'r') as file:
+          param = yaml.safe_load(file)
+    
+        
+        #=====================================
+        # Engine Coeficients
+        #=====================================
+        
+        self.rpm_table = np.array(param['vehicle_model']['parameters']['rpm_table'])
+        self.torque_max = np.array(param['vehicle_model']['parameters']['torque_max'])
+        self.gear_ratio = np.array(param['vehicle_model']['parameters']['gear_ratio'])
+        self.gear_selection = np.array(param['vehicle_model']['parameters']['gear_selection'])
+        self.min_rpm = param['vehicle_model']['parameters']['min_rpm'] 
+        
+        self.diff = param['vehicle_model']['parameters']['diff']                       # Differential ratio
+        self.diff_ni = param['vehicle_model']['parameters']['diff_ni']
+        self.transmition_ni = param['vehicle_model']['parameters']['transmition_ni']
+        self.I_d_shaft = param['vehicle_model']['parameters']['i_d_shaft']                    # calculate
+        self.I_clutch = param['vehicle_model']['parameters']['i_clutch']
+      
+      
+        #=====================================
+        # Tire Data
+        #=====================================
+        self.c = param['vehicle_model']['parameters']['c_tire']                                     # Tire Stiffiness [N/m]
+        self.F_max = param['vehicle_model']['parameters']['f_max']                                  # Tire load
+        
+        #=====================================
+        # Rolling Resistance Parameters
+        #=====================================
+        
+        self.Road_friction = param['vehicle_model']['parameters']['road_friction']   ##                              # Road Friction Coefficient
+        self.m = param['vehicle_model']['parameters']['mass']      ##                                        # Vehicle Mass
+        self.g = param['vehicle_model']['parameters']['gravity']      ###                                       # Acceleration Due to Gravity
+        
+        #=====================================
+        # Air Resistance Parameters
+        #=====================================
+        
+        self.Cd = param['vehicle_model']['parameters']['cd']                                       #Air Drag Coefficient
+        self.Front_area = param['vehicle_model']['parameters']['front_area']  ###                                  #Front Area of Car
+        self.Air_density = param['vehicle_model']['parameters']['air_density']                                     # Air Dencity 
+        
+        #=====================================
+        "Intertial Resistance Parameters need to be measured"
+        #=====================================
+        
+        self.Iw = param['vehicle_model']['parameters']['iw']                                    # Wheel Inertia [Kgm^2]
+        self.Ia = param['vehicle_model']['parameters']['ia']                                    # Axel Inertia [Kgm^2]
+        self.Id = param['vehicle_model']['parameters']['id']                                      # drive shaft Inertia [Kgm^2]
+                                      
+        self.Gd = param['vehicle_model']['parameters']['gd']                                        # Differential Gear Ratio
+        self.Ig = param['vehicle_model']['parameters']['ig']                                     # Gear Box Inertia [Kgm^2]
+        self.b_1 = param['vehicle_model']['parameters']['b_1']                                       # Acceleration / Deaceleration Calib Coefficient 
+        self.brake_caliper = param['vehicle_model']['parameters']['brake_caliper']                           # Break Calib Coefficient
+        self.I_engine = param['vehicle_model']['parameters']['i_engine']                              # Engine Inertia [Kgm^2]
+        self.r_stat = param['vehicle_model']['parameters']['r_stat']                               # Tire Radius Static [m]
+        self.r_dyn  = param['vehicle_model']['parameters']['r_dyn']                               # Tire Radius Dynamic [m]
+       
+        
+        self.cg_height = param['vehicle_model']['parameters']['cg_height']                              # center of gravity height of total mass [m]
+        self.cg_x = param['vehicle_model']['parameters']['cg_x']                                 #  cg_x [m]
+        self.cg_y = param['vehicle_model']['parameters']['cg_y']                                     # [m]
+        self.track_width = param['vehicle_model']['parameters']['track_width']                              # [m]
+        self.wheel_base = param['vehicle_model']['parameters']['wheel_base']                           # [m]
+        
+        # axes distances
+        self.lv = param['vehicle_model']['parameters']['lv']                                  # x-distance from Vehicle CoG to the front hub [m]
+        self.lh = param['vehicle_model']['parameters']['lh']                                       # x-distance from Vehicle Cog to the rear hub [m]
+        
+        # Half track
+        self.sl = param['vehicle_model']['parameters']['sl']                                      # Half track width front [m]
+        self.sr = param['vehicle_model']['parameters']['sr']                                       # Half track width rear  [m]
+        
+        #self.weight_rear = self.m * self.CG_x / self.wb  
+        #self.weight_front = self.m - self.weightrear 
+        
+        self.final_ratio = self.diff * self.gear_ratio     # final ratio             
+        
+        
+        "https://gitlab.lrz.de/tum-cps/commonroad-vehicle-models/-/blob/master/PYTHON/vehiclemodels/vehicle_parameters.py "
+
+        
+        # vehicle body dimensions
+        self.l = param['vehicle_model']['parameters']['length']  # vehicle length [m]
+        self.w = param['vehicle_model']['parameters']['width']  # vehicle width [m]
+    
+        # # steering constraints
+        # self.steering.min = -0.910  # minimum steering angle [rad]
+        # self.steering.max = 0.910  # maximum steering angle [rad]
+        # self.steering.v_min = -0.4  # minimum steering velocity [rad/s]
+        # self.steering.v_max = 0.4  # maximum steering velocity [rad/s]
+    
+        # # longitudinal constraints
+        # self.longitudinal.v_min = -13.9  # minimum velocity [m/s]
+        # self.longitudinal.v_max = 45.8  # minimum velocity [m/s]
+        # self.longitudinal.v_switch = 4.755  # switching velocity [m/s]
+        # self.longitudinal.a_max = 11.5  # maximum absolute acceleration [m/s^2]
+    
+        # masses
+        self.m_s = np.array(param['vehicle_model']['parameters']['m_s'])  # sprung mass [kg]  SMASS
+        self.unsprung_mass = np.array(param['vehicle_model']['parameters']['unsprung_mass']) # unsprung mass vector [kg]  UMASSF
+        
+    
+        # moments of inertia of sprung mass
+        self.I_Phi_s = param['vehicle_model']['parameters']['i_phi_s'] # moment of inertia for sprung mass in roll [kg m^2]  IXS
+        self.I_y_s =  param['vehicle_model']['parameters']['i_y_s'] # moment of inertia for sprung mass in pitch [kg m^2]  IYS
+        self.I_z = param['vehicle_model']['parameters']['i_z']  # moment of inertia for sprung mass in yaw [kg m^2]  IZZ
+        self.I_xz_s = param['vehicle_model']['parameters']['i_xz_s']   # moment of inertia cross product [kg m^2]  IXZ
+    
+        # suspension parameters
+        self.spring_stiff = np.array(param['vehicle_model']['parameters']['spring_stiff'])      # suspension spring rate (front i = 1 or 3)  (rear = 1 = 2,4) [N/m]  KSF 
+        self.f_dumper = np.array(param['vehicle_model']['parameters']['f_dumper'])         # suspension damping rate (front i = 1 or 3)  (rear = 1 = 2,4)[N s/m]  KSDF
+        self.anti_roll_stiffness = param['vehicle_model']['parameters']['anti_roll_stiffness'] # Anti roll bar stiffness [Nm/rad]
+    
+        # geometric parameters
+        self.T_f = param['vehicle_model']['parameters']['t_f']  # track width front [m]  TRWF
+        self.T_r = param['vehicle_model']['parameters']['t_r'] # track width rear [m]  TRWB
+        self.K_ras = param['vehicle_model']['parameters']['k_ras']   # lateral spring rate at compliant compliant pin joint between M_s and M_u [N/m]  KRAS
+    
+        self.K_tsf = param['vehicle_model']['parameters']['k_tsf']     # auxiliary torsion roll stiffness per axle (normally negative) (front) [N m/rad]  KTSF
+        self.K_tsr = param['vehicle_model']['parameters']['k_tsr']        # auxiliary torsion roll stiffness per axle (normally negative) (rear) [N m/rad]  KTSR
+        self.K_rad = param['vehicle_model']['parameters']['k_rad']       # damping rate at compliant compliant pin joint between M_s and M_u [N s/m]  KRADP
+        self.K_zt = param['vehicle_model']['parameters']['k_zt']        # vertical spring rate of tire [N/m]  TSPRINGR
+    
+        self.h_cg = param['vehicle_model']['parameters']['h_cg']
+        self.h_raf = param['vehicle_model']['parameters']['h_raf']  # height of roll axis above ground (front) [m]  HRAF
+        self.h_rar = param['vehicle_model']['parameters']['h_rar']  # height of roll axis above ground (rear) [m]  HRAR
+    
+        self.h_s = param['vehicle_model']['parameters']['h_s']  # M_s center of gravity above ground [m]  HS
+    
+        self.I_uf = param['vehicle_model']['parameters']['i_uf']        # moment of inertia for unsprung mass about x-axis (front) [kg m^2]  IXUF
+        self.I_ur = param['vehicle_model']['parameters']['i_ur']   # moment of inertia for unsprung mass about x-axis (rear) [kg m^2]  IXUR
+        self.I_y_w = param['vehicle_model']['parameters']['i_y_w']  # wheel inertia, from internet forum for 235/65 R 17 [kg m^2]
+        
+        # Tire parameters
+        self.cR = np.array(param['vehicle_model']['parameters']['cr'])       # Tire Stiffnes
+        self.K_lt = param['vehicle_model']['parameters']['k_lt']  # lateral compliance rate of tire, wheel, and suspension, per tire [m/N]  KLT
+        self.R_w = param['vehicle_model']['parameters']['r_w']  # effective wheel/stire radius  chosen as tire rolling radius RR  taken from ADAMS documentation [m]
+        self.I_wheel = np.array(param['vehicle_model']['parameters']['i_wheel'])
+
