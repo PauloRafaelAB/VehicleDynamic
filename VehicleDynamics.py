@@ -7,11 +7,10 @@ Vehicle Dynamic Model
 
 """
 
-from BMW_M8 import Parameters_bmw_m8 as P
 from scipy.interpolate import interp1d
 from scipy.integrate import odeint
 import numpy as np
-
+import yaml
 
 class VehicleDynamics(object):
     # ^class name  #^ inherits from object
@@ -21,63 +20,44 @@ class VehicleDynamics(object):
     of brake, steer and thorttle positons.
     """
 
-    def __init__(self, min_rpm=1500., initial_vel=0., acc_x=0., position_0=[0, 0, 0], throttle=0.0, delta=0.0, brake=0.0, gear=0, alpha_engine =0, time_step =0):
-        # ^ The first variable is the class instance in methods.
-        # ^ double underscore (dunder) methods are usually special.  This one
-        #  gets called immediately after a new instance is created.
-
-        # TODO: implement method that import BMW_M8 as P
-        self.parameters = P             
-        self.rpm = min_rpm              
-        self.speed = initial_vel        
-        self.acc_x = acc_x              
-        self.position = position_0
-        self.steer = delta
-        self.throttle = throttle
-        self.brake = brake                 # Des Brake torque
-        self.gear = gear                   # gear selector
-        self.alpha_engine = alpha_engine   # Angular acc engine
-        
-        # TODO: check time_step use
-        self.time_step = time_step                         # seconds
-
-
-    ### Pre defined vector made by myself
-    # input vector
-
-    u = np.zeros(4)
-    #TODO: Witch do I use? (vector or value)
-    delta = np.zeros(100)
-    for i in range(len(delta)):
-        delta_dot = delta[i+1]-delta[i]                 # Steering angle ratio
-    delta_last = 0                                      # Used in steering angle calculation
-    z2dot = np.zeros(4)                                 # Acceleration Z direction
+    def __init__(self, initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 0, freq=100, param_path = "config.yaml"):
     
-    throttle = np.linspace(0, 1, 100)
-    brake = np.zeros(100)
-    G = np.zeros(100)
-    time_step = 0.01
-    
-    
-    u[0] = delta
-    u[1] = throttle
-    u[2] = brake
-    u[3] = G
-   
-   
-    def powertrain(self, d_engine_torque, d_brake_torque, time_step = 0.01):
-
-        # This method has arguments.  You would call it like this:  instance.method(1, 2)
-        
-        torque_interpolation = interp1d(P.rpm_table, P.torque_max)
-        torque_avaible = torque_interpolation(d_engine_torque)
-
-        # ---------- Max Torque Condition------
-        if d_engine_torque > torque_avaible:
-            d_engine_torque = torque_avaible
+        if param_path != "":
+            self.param = ImportParam(param_path) # Import all the Parameters 
             
-        self.throttle = d_engine_torque/torque_avaible   # Set throttle position
-        self.throttle_1 = self.thorttle * 10 //1 
+        self.speed = initial_speed        
+        self.position = state_0
+        self.time_step = 1/freq
+        self.positionx=1
+        self.positiony=2
+
+        self.rpm = self.param.min_rpm
+        self.gear = initial_gear                 # gear selector
+
+        self.throttle = 0.0
+        self.brake = 0.0                 # Des Brake torque
+        self.alpha_engine = 0.0   # Angular acc engine
+        
+        
+    def tick(self, gas_pedal, brake, steering):
+
+        self.powertrain(gas_pedal, brake,self.param.rpm_table,self.param.torque_max)Aerodynamics
+        return (position[0],position[1],position[2],roll,pitch,yaw,vx,vy,vz,pho1,pho2,pho3,pho4)
+
+    
+
+    def powertrain(self, throttle, brake, rpm_table, torque_max_table):
+        
+        torque_interpolation = interp1d(rpm_table, torque_max_table)
+        torque_available = torque_interpolation(self.rpm)
+        
+        req_torque = throttle*torque_available   # Set throttle position
+        
+        #compare engine rpm and TC rpm to define the available torque. 
+        
+        #self.throttle_1 = self.thorttle * 10 //10 WHAT IS THAT? 
+        
+
         
         # -----------Tranmission ratio----------
         # Gear is defined in the initialization
