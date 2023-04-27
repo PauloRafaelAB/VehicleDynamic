@@ -34,8 +34,8 @@ vehicle_dynamics = VehicleDynamics(initial_speed = 0., state_0 = [0., 0., 0., 0.
 
 for i in range(len(u[0])):
        
-    #states[:,i] = vehicle_dynamics.tick(throttle[i], brake[i], steering[i])
-    states[:,i] = vehicle_dynamics.debug_powertrain(throttle[i], brake[i], steering[i])
+    states[:,i] = vehicle_dynamics.tick(throttle[i], brake[i], steering[i],time[i])
+    #states[:,i] = vehicle_dynamics.debug_powertrain(throttle[i], brake[i], steering[i])
     # states is a vector of output 
 
 plt.plot(time, throttle, 'g^', time, states[7], 'g-')

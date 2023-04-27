@@ -15,72 +15,71 @@ vehicle_model:
       [11.94444444, 23.05555556, 34.16666667, 42.5, 50.83333333, 59.16666667, 67.5, 75.83333333],
       [12.22222222, 23.33333333, 34.44444444, 42.77777778, 51.11111111, 59.44444444, 67.77777778, 76.11111111],
       [12.5, 23.61111111, 34.72222222, 43.05555556, 51.38888889, 59.72222222, 68.05555556, 76.38888889]]
-    diff: 3.15                        # Differential ratio
+    diff: 3.15 # Differential ratio
     diff_ni: 0.98
     transmition_ni: 0.95
-    i_d_shaft: 1                      # calculate
-    i_clutch: 1
-    c_tire_x: 406884. ##                                     # Tire Stiffiness [N/m]
-    c_tire_y: 406884. ##                                     # Tire Stiffiness [N/m]
-    f_max: 5440. ###                                  # Tire load
-    road_friction_x: 0.015   ##                              # Road Friction Coefficient
-    road_friction_y: 0.015   ##                              # Road Friction Coefficient
-    bx: 1                                             # tire coeficient Bardini pag 268
-    by: 1
-    mass: 1980      ##                                        # Vehicle Mass
-    cd: 0.35                                       #Air Drag Coefficient
-    front_area: 2.057 ###                        #Front Area of Car
-    air_density: 1.2                             # Air Dencity  
-    iw: 0.953                                    # Wheel Inertia [Kgm^2]
-    ia: 0.135                                    # Axel Inertia [Kgm^2]
-    id: 0.0                                      # drive shaft Inertia [Kgm^2]                    
-    gd: 1                                        # Differential Gear Ratio
-    ig: 0.01                                     # Gear Box Inertia [Kgm^2]
-    brake_caliper: 1.5                           # Break Calib Coefficient
-    i_engine: 0.227                              # Engine Inertia [Kgm^2]
-    r_stat: 0.5334                               # Tire Radius Static [m]
-    r_dyn: 0.5330                                # Tire Radius Dynamic [m]
-    cg_height: 300.                              # center of gravity height of total mass [m]
-    cg_x: 12500                                  #  cg_x [m]
-    cg_y: 0.                                     # [m]
-    track_width: 0.                              # [m]
-    wheel_base: 2.6897                           # [m]
-    lv: 1.1853                                   # x-distance from Vehicle CoG to the front hub [m]
-    lh: .0                                       # x-distance from Vehicle Cog to the rear hub [m]
-    sl: .0                                       # Half track width front [m]
-    sr: .0                                       # Half track width rear  [m]       
-    length: 5  # vehicle length [m]
-    width: 2  # vehicle width [m]        
-    steering_min: -0.910  # minimum steering angle [rad]
-    steering_max: 0.910  # maximum steering angle [rad]
-    steering_v_min: -0.4  # minimum steering velocity [rad/s]
-    steering_v_max: 0.4  # maximum steering velocity [rad/s]    
-    m_s: [350.,400.,350.,400.]  # sprung mass [kg]  SMASS
-    unsprung_mass: [70.,70.,70.,70.] # unsprung mass vector [kg]  UMASSF
-    i_phi_s: 0 # moment of inertia for sprung mass in roll [kg m^2]  IXS
-    i_y_s:  0 # moment of inertia for sprung mass in pitch [kg m^2]  IYS
-    i_z: 0  # moment of inertia for sprung mass in yaw [kg m^2]  IZZ
-    i_xz_s: 0   # moment of inertia cross product [kg m^2]  IXZ
-    spring_stiff: [34900, 32600., 34900, 32600.]      # suspension spring rate (front i = 1 or 3)  (rear = 1 = 2,4) [N/m]  KSF 
-    f_dumper: [4360., 3870.,4360., 3870]         # suspension damping rate (front i = 1 or 3)  (rear = 1 = 2,4)[N s/m]  KSDF
-    anti_roll_stiffness: 2882 # Anti roll bar stiffness [Nm/rad]
-    t_f: 0  # track width front [m]  TRWF
-    t_r: 0 # track width rear [m]  TRWB
-    k_ras: 0   # lateral spring rate at compliant compliant pin joint between M_s and M_u [N/m]  KRAS
-    k_tsf: 0     # auxiliary torsion roll stiffness per axle (normally negative) (front) [N m/rad]  KTSF
-    k_tsr: 0        # auxiliary torsion roll stiffness per axle (normally negative) (rear) [N m/rad]  KTSR
-    k_rad: 0       # damping rate at compliant compliant pin joint between M_s and M_u [N s/m]  KRADP
-    k_zt: 0        # vertical spring rate of tire [N/m]  TSPRINGR
-    h_cg: 0
-    h_raf: 0  # height of roll axis above ground (front) [m]  HRAF
-    h_rar: 0  # height of roll axis above ground (rear) [m]  HRAR
-    h_s: 0  # M_s center of gravity above ground [m]  HS
-    i_uf: 0        # moment of inertia for unsprung mass about x-axis (front) [kg m^2]  IXUF
-    i_ur: 0   # moment of inertia for unsprung mass about x-axis (rear) [kg m^2]  IXUR
-    i_y_w: 1.7  # wheel inertia, from internet forum for 235/65 R 17 [kg m^2]
-    cr: [999900, 999900., 999900, 999900.]        # Tire Stiffnes
-    k_lt: 0  # lateral compliance rate of tire, wheel, and suspension, per tire [m/N]  KLT
-    r_w: 0.344  # effective wheel/stire radius  chosen as tire rolling radius RR  taken from ADAMS documentation [m]
-    i_wheel: [70.,55.,70.,55.]
     speed_ratio_TC: [0,0.9,1]
-    torque_converter_ratio: [2.3, 1,1]
+    torque_converter_ratio: [2.3, 1, 1]
+    engine_inertia: 2.0 # rotational needs caculation
+    max_brake_torque: 1000. # [n/m]
+    b_bias: 0.4
+    #                               Tire Data
+    cr: [999900, 999900., 999900, 999900.]        
+    # Tire Stiffnes		
+    i_wheel: 70. # sum of all 4 wheel inertia
+    wheel_mass: [20.,25.,20.,25.]
+    magic_formula_d : 1. # Magic formula coefficient
+    magic_formula_e : 1. # Magic formula coefficient
+    magic_formula_c : 1. # Magic formula coefficient
+    magic_formula_b : 1. # Magic formula coefficient
+    r_stat: 0.5334 # Tire Radius Static [m]
+    r_dyn: [0.5330,0.5330,0.5330,0.5330]  # Tire Radius Dynamic [m]	
+    #                          	Resistance
+    cd: 0.35  #Air Drag Coefficient
+    row: 1.
+    front_area: 2.057 #Front Area of Car
+    air_density: 1.2  # Air Dencity 
+    # 				Steering contrains
+    steering_min: -0.910 # minimum steering angle [rad]
+    steering_max: 0.910 # maximum steering angle [rad]
+    steering_v_min: -0.4 # minimum steering velocity [rad/s]
+    steering_v_max: 0.4  # maximum steering velocity [rad/s]    
+    # 					Masses
+    mass: 1980 # Vehicle Mass
+    m_s: [350.,400.,350.,400.]  # sprung mass [kg]
+    unsprung_mass: [70.,70.,70.,70.] # unsprung mass vector [kg]  
+    # 					inertias
+    i_d_shaft: 1     # Drive shaft inertia
+    i_clutch: 1 # clucth inertia	
+    iw: [0.953,0.953,0.953,0.953]  # Wheel Inertia on each wheel [Kgm^2]
+    ia: 0.135  # Axel Inertia [Kgm^2]
+    id: 0.0    # drive shaft Inertia [Kgm^2]                    
+    gd: 1      # Differential Gear Ratio
+    ig: 0.01   # Gear Box Inertia [Kgm^2]
+    i_engine: 0.227  # Engine Inertia [Kgm^2]
+    i_phi_s: 0  # moment of inertia for sprung mass in roll [kg m^2]  
+    i_y_s: 100  # moment of inertia for sprung mass in pitch [kg m^2] 
+    i_z: 100   # moment of inertia for sprung mass in yaw [kg m^2]  
+    i_xz_s: 0  # moment of inertia cross product [kg m^2]
+    # 					suspension parameters
+    spring_stiff: [34900, 32600., 34900, 32600.]      # suspension spring rate (front i = 1 or 3)  (rear i= 2,4) [N/m]   
+    dumper: [4360., 3870.,4360., 3870]  # suspension damping rate (front i = 1 or 3)  (rear = 1 = 2,4)[N s/m]  
+    anti_roll_stiffness: 2882. # Anti roll bar stiffness [Nm/rad]
+    
+
+    # 					geometric parameters
+    cg_height: 300.  # center of gravity height of total mass [m]
+    cg_x: 12500   # cg_x [m]
+    cg_y: 0.   # [m]
+    track_width: 1.5     # [m]
+    wheel_base: 2.6897 # [m]
+    lv: 1.1853 # x-distance from Vehicle CoG to the front chassis point [m]
+    lh: 1.1    # x-distance from Vehicle Cog to the rear chassis point [m]
+    sl: .6    # y-distance from Vehicle CoG to the left chassis point [m]
+    sr: .6    # y-distance from Vehicle CoG to the right chassis point  [m]
+    sz: 0.20  # z-distance from Vehicle CoG to the chassis point [m]
+    hub_fl: [1.,-0.7,-0.2]
+    hub_rl: [-1.2.,0.7,-0.2]
+    hub_fr: [1.,-0.7,-0.2]
+    hub_rr: [-1.2,0.7,-0.2]
+     
