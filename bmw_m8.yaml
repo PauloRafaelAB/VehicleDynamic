@@ -24,14 +24,14 @@ vehicle_model:
     max_brake_torque: 1000. # [n/m]
     b_bias: 0.4
     #                               Tire Data
-    cr: [999900, 999900., 999900, 999900.]        
+    cr: [99900, 99900., 99900, 99900.]        
     # Tire Stiffnes		
     i_wheel: 70. # sum of all 4 wheel inertia
     wheel_mass: [20.,25.,20.,25.]
     magic_formula_d : 1. # Magic formula coefficient
-    magic_formula_e : 1. # Magic formula coefficient
-    magic_formula_c : 1. # Magic formula coefficient
-    magic_formula_b : 1. # Magic formula coefficient
+    magic_formula_e : 0.97 # Magic formula coefficient
+    magic_formula_c : 1.9 # Magic formula coefficient
+    magic_formula_b : 10. # Magic formula coefficient
     r_stat: 0.5334 # Tire Radius Static [m]
     r_dyn: [0.5330,0.5330,0.5330,0.5330]  # Tire Radius Dynamic [m]	
     #                          	Resistance
@@ -78,8 +78,8 @@ vehicle_model:
     sl: .6    # y-distance from Vehicle CoG to the left chassis point [m]
     sr: .6    # y-distance from Vehicle CoG to the right chassis point  [m]
     sz: 0.20  # z-distance from Vehicle CoG to the chassis point [m]
-    hub_fl: [1.,-0.7,-0.2]
-    hub_rl: [-1.2.,0.7,-0.2]
-    hub_fr: [1.,-0.7,-0.2]
-    hub_rr: [-1.2,0.7,-0.2]
+    hub_fl: [1.3,-0.893, 0.33]
+    hub_rl: [-1.5,0.893,-0.33]
+    hub_fr: [1.3,-0.893,-0.33]
+    hub_rr: [-1.5,0.893,-0.33]
      

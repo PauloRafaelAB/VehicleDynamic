@@ -23,7 +23,7 @@ time = np.linspace(0, maxi, points)*time_step
 ### initialize manuever -> gas pedal, brake pedal and steering wheel angle 
 u = np.zeros((4,points)) #
 steering = np.zeros(points)
-throttle = np.linspace(0, 1, points)
+throttle = np.linspace(0., 1, points)
 brake = np.zeros(points)
 u[1] = throttle
 
@@ -36,7 +36,7 @@ vehicle_dynamics = VehicleDynamics(initial_speed = 0., state_0 = [0., 0., 0., 0.
 for i in range(len(u[0])):
        
     states[:,i] = vehicle_dynamics.tick(throttle[i], brake[i], steering[i],time[i])
-    #states[:,i] = vehicle_dynamics.debug_powertrain(throttle[i], brake[i], steering[i])
+    # states[:,i] = vehicle_dynamics.debug_powertrain(throttle[i], brake[i],time[i])
     # states is a vector of output 
 
 # plt.plot(time, throttle,, 'b',label='X vel', time, states[6], 'g-',label='X vel',time, states[9],'r', label='Acc x')
