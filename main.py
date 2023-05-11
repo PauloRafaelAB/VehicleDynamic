@@ -13,9 +13,9 @@ from scipy.interpolate import interp1d
 
 from VehicleDynamics import VehicleDynamics
 
-points = 100
+points = 10
 frequency= 100
-maxi = 100
+maxi = 10
 time_step = 1/frequency
 time = np.linspace(0, maxi, points)*time_step
 
