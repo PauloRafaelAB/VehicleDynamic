@@ -13,9 +13,9 @@ from scipy.interpolate import interp1d
 
 from VehicleDynamics import VehicleDynamics
 
-points = 10
+points = 50
 frequency= 100
-maxi = 10
+maxi = 1000
 time_step = 1/frequency
 time = np.linspace(0, maxi, points)*time_step
 
@@ -41,11 +41,12 @@ for i in range(len(u[0])):
 
 # plt.plot(time, throttle,, 'b',label='X vel', time, states[6], 'g-',label='X vel',time, states[9],'r', label='Acc x')
 plt.plot(time, throttle, 'b',label='throttle')
-plt.plot(time, states[0], 'vk',label='position')
+plt.plot(time, states[0], '4k',label='position')
 plt.plot(time, states[3], '1r',label='vel x')
-plt.plot(time, states[6], 'dy',label='angular pos')
+plt.plot(time, states[6], '2y',label='angular pos')
 plt.plot(time, states[9], '--',label='ang vel')
-plt.plot(time, states[12], 'xm',label='x acc')
+plt.plot(time, states[13], '3m',label='x acc')
+plt.xlabel('time (s)')
 plt.title('Logitudinal dynamic')
 plt.legend()
 # plt.plot(time, throttle, 'k', time, states[0], '-',time, states[3],'^')
