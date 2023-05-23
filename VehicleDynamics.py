@@ -9,6 +9,7 @@ Vehicle Dynamic Model
 """
 
 from scipy.interpolate import interp1d
+from numpy.linalg import inv
 import numpy as np
 import yaml
 
@@ -74,7 +75,7 @@ class VehicleDynamics(object):
         
         # Creating vector for chassis method 
         self.sum_f_wheel = np.zeros(3, dtype=float) # Sum of wheel forces
-        self.acc = np.zeros((3),dtype=float) # acceleration
+        #self.acc = np.zeros((3),dtype=float) # acceleration
         self.crossproduct_r_f = np.zeros((4,3), dtype=float)
         
         # Transformation matrix vehicle coord sys(Kv) into inertia sys(Ke) - E_T_V -- Bardini pag 260 eq. 11.3
@@ -326,9 +327,9 @@ class VehicleDynamics(object):
         # Bardini pag. 265 eq. 11-21  
         #TODO check signal
         #TODO adiinar zs dot
-        self.f_zr.wheel_load_z =  self.param.eq_stiff*(self.displacement.za - self.displacement.zs + 
+        self.f_zr.wheel_load_z =  self.param.eq_stiff*(-self.displacement.za - self.displacement.zs + 
                                                                   self.displacement.l_stat) + self.param.dumper * self.displacement.za_dot * np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([[0],[0],[1]]))[0]
-        print('wheel_load_z',self.f_zr.wheel_load_z)
+        
         ### NO MEU PONTO DE VISTA AQUI VOCE CALCULARIA COMO AS FORCAS QUE AGEM NO CG ATUAM NOS PO
         #self.f_za.spring_force[i] = (self.param.eq_stiff[i] * (self.displacement.za[i]-self.displacement.zs[i]+ self.displacement.l_stat[i]) *  np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([0.,0.,1]))[0] 
         # Bardini pag. 266 eq. 11-22
@@ -349,8 +350,7 @@ class VehicleDynamics(object):
         for i in range(4):
             self.x_rf.fx[i] = self.f_zr.wheel_load_z[i] * self.param.d * np.sin(self.param.c * np.arctan(self.param.b*self.slip_x - self.param.e * (self.param.b*self.slip_x - np.arctan(self.param.b *self.slip_x))))
             self.x_rf.fy[i] = self.f_zr.wheel_load_z[i] * self.param.d * np.sin(self.param.c * np.arctan(self.param.b*self.slip_y - self.param.e * (self.param.b*self.slip_y - np.arctan(self.param.b *self.slip_y))))
-            #print('self.x_rf.fx[',i,']',self.x_rf.fx[i])
-           
+      
         
             self.compiled_wheel_forces[i] = np.array([self.x_rf.fx[i], self.x_rf.fy[i], self.f_zr.wheel_load_z[i]])
             # print('self.compiled_wheel_forces',self.compiled_wheel_forces,type(self.compiled_wheel_forces),self.compiled_wheel_forces.shape)
@@ -383,18 +383,17 @@ class VehicleDynamics(object):
             # Equation 11-46 >> 11-12, Pag. 273
             # TODO: check gavity diretion
             
-            self.acc[0] = (self.sum_f_wheel[0]  - self.drag * self.x_a.vx **2
+            self.x_a.acc[0] = (self.sum_f_wheel[0]  - self.drag * self.x_a.vx **2
                            )/self.param.m + self.x_a.wz * self.x_a.vy - self.x_a.wy * self.x_a.vz
-            print('self.acc',self.acc)
-            self.acc[1] = (self.sum_f_wheel[1] -self.x_a.vy **2
+            self.x_a.acc[1] = (self.sum_f_wheel[1] -self.x_a.vy **2
                            )/self.param.m + self.x_a.wx * self.x_a.vz - self.x_a.wz * self.x_a.vx
-            self.acc[2] = (self.sum_f_wheel[2] - self.param.m * self.gravity
+            self.x_a.acc[2] = (self.sum_f_wheel[2] - self.param.m * self.gravity
                            )/self.param.m + self.x_a.wy * self.x_a.vx - self.x_a.wx * self.x_a.vy
             
             # vehicle velocity calculation
-            self.x_a.vx = self.x_a.vx + self.acc[0]* self.time_step 
-            self.x_a.vy = self.x_a.vy + self.acc[1]* self.time_step 
-            self.x_a.vz = self.x_a.vz + self.acc[2]* self.time_step
+            self.x_a.vx = self.x_a.vx + self.x_a.acc[0]* self.time_step 
+            self.x_a.vy = self.x_a.vy + self.x_a.acc[1]* self.time_step 
+            self.x_a.vz = self.x_a.vz + self.x_a.acc[2]* self.time_step
             
             
             #TODO:Check rolling resistance            
@@ -409,38 +408,54 @@ class VehicleDynamics(object):
                 self.crossproduct_r_f[i][1] = self.position_chassi_force[i][2] * self.strut2chassi_xyz[i][0] -self.position_chassi_force[i][0] * self.strut2chassi_xyz[i][2]
                 self.crossproduct_r_f[i][2] = self.position_chassi_force[i][0] * self.strut2chassi_xyz[i][1] -self.position_chassi_force[i][1] * self.strut2chassi_xyz[i][0]
 
-            # print('position_chassi_force', )
+            
             # TODO Check eq 11 - 47
             self.sum_crossproduct_r_f = np.sum(self.crossproduct_r_f,axis=0)
+            print('sum_crossproduct',self.sum_crossproduct_r_f)
+            #TODO make the return of acc angular be type (3,0)
             
-            #print('sum cros',self.sum_crossproduct_r_f)
-            self.acc_angular_v = (self.sum_crossproduct_r_f - np.cross(self.angular_rates,(np.matmul(self.polar_inertia_v,self.angular_rates))))*self.polar_inertia_v  
-            # print('angular_rates',self.angular_rates)
+            self.x_a.acc_angular_v = np.matmul((self.sum_crossproduct_r_f - np.cross(self.angular_rates,(np.matmul(self.polar_inertia_v,self.angular_rates)))),inv(self.polar_inertia_v))
+            
+            
+            # print('sum_crossproduct',self.sum_crossproduct_r_f)
+            # print('angular_rates', self.angular_rates)
+            # print('polar inertia',self.polar_inertia_v)
+            
+            print('self.x_a.acc_angular_v',self.x_a.acc_angular_v,type(self.x_a.acc_angular_v))
             #TODO: add multiplication of tranpose polar inertia to eq above>>   * self.polar_inertia_v.T)
             
             # Angular velocity of the chassis
-            self.wx = self.x_a.wx + self.acc_angular_v[0] * self.time_step
-            self.wy = self.x_a.wy + self.acc_angular_v[1] * self.time_step
-            self.wz = self.x_a.wz + self.acc_angular_v[2] * self.time_step
-              
+            self.x_a.wx = self.x_a.wx + self.x_a.acc_angular_v[0] * self.time_step
+            self.x_a.wy = self.x_a.wy + self.x_a.acc_angular_v[1] * self.time_step
+        
+            self.x_a.wz = self.x_a.wz + self.x_a.acc_angular_v[2] * self.time_step
+        
+            print('                      ')
             # Angular position
             self.x_a.phi_v =    self.x_a.wx * self.time_step + self.x_a.phi_v
             self.x_a.theta_v =  self.x_a.wy * self.time_step + self.x_a.theta_v
             self.x_a.psi_v =    self.x_a.wz * self.time_step + self.x_a.psi_v
             
             #TODO: updated transformation to vehicle system
-            self.vehicle_fixed2inertial_system = np.array([[np.cos(self.x_a.theta_v) * np.cos(self.x_a.psi_v), np.sin(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.cos(self.x_a.psi_v) - np.cos(self.x_a.phi_v) * np.sin(self.x_a.psi_v),     np.cos(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.cos(self.x_a.psi_v) + np.sin(self.x_a.phi_v) * np.sin(self.x_a.psi_v)],
-                                                  [np.cos(self.x_a.theta_v) * np.sin(self.x_a.psi_v), np.sin(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.sin(self.x_a.psi_v) + np.cos(self.x_a.phi_v) * np.sin(self.x_a.psi_v),     np.cos(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.sin(self.x_a.psi_v) - np.sin(self.x_a.phi_v) * np.cos(self.x_a.psi_v)],
-                                                  [-np.sin(self.x_a.theta_v),                         np.sin(self.x_a.phi_v) * np.cos(self.x_a.theta_v),                                                      np.cos(self.x_a.phi_v) * np.cos(self.x_a.theta_v)]])
+            
+            # self.vehicle_fixed2inertial_system = np.array([[np.cos(self.x_a.theta_v) * np.cos(self.x_a.psi_v), np.sin(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.cos(self.x_a.psi_v) - np.cos(self.x_a.phi_v) * np.sin(self.x_a.psi_v),     np.cos(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.cos(self.x_a.psi_v) + np.sin(self.x_a.phi_v) * np.sin(self.x_a.psi_v)],
+            #                                       [np.cos(self.x_a.theta_v) * np.sin(self.x_a.psi_v), np.sin(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.sin(self.x_a.psi_v) + np.cos(self.x_a.phi_v) * np.sin(self.x_a.psi_v),     np.cos(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.sin(self.x_a.psi_v) - np.sin(self.x_a.phi_v) * np.cos(self.x_a.psi_v)],
+            #                                       [-np.sin(self.x_a.theta_v),                         np.sin(self.x_a.phi_v) * np.cos(self.x_a.theta_v),                                                      np.cos(self.x_a.phi_v) * np.cos(self.x_a.theta_v)]])
+            
             # bardini pag 260 -- use vector of torque x euler angle rate
             
             # vehicle position calculation
             movement_vehicle =  (self.x_a.vx * self.time_step, self.x_a.vy * self.time_step, self.x_a.vz * self.time_step) 
-           
+            
             #TODO check mat mul ordem
-            [self.x_a.x,self.x_a.y,self.x_a.z] = [self.x_a.x,self.x_a.y,self.x_a.z] + np.matmul(movement_vehicle,self.vehicle_fixed2inertial_system)
-              
+            [self.x_a.x,self.x_a.y,self.x_a.z] = [self.x_a.x,self.x_a.y,self.x_a.z] +np.matmul(movement_vehicle,self.vehicle_fixed2inertial_system) 
+          
+            
+            
             # TODO new displacements need taking euler angles into account
+                   
+            print('self.x_a.theta_v',self.x_a.theta_v)
+            print('psi_v',self.x_a.psi_v)
             self.displacement.za[0]= self.x_a.z - self.param.lv* np.sin(self.x_a.theta_v)+ self.param.sl*np.sin(self.x_a.psi_v)
             self.displacement.za[1]= self.x_a.z + self.param.lh* np.sin(self.x_a.theta_v)+ self.param.sl*np.sin(self.x_a.psi_v)
             self.displacement.za[2]= self.x_a.z - self.param.lv* np.sin(self.x_a.theta_v)- self.param.sr*np.sin(self.x_a.psi_v)
@@ -459,7 +474,7 @@ class VehicleDynamics(object):
         self.wheel_slip()
         self.tire_model()
         self.chassis() 
-        
+
         return [self.x_a.x,self.x_a.y,self.x_a.z,self.x_a.phi_v,self.x_a.theta_v,self.x_a.psi_v,self.x_a.vx,self.x_a.vy,self.x_a.vz,self.x_a.wx,self.x_a.wy,self.x_a.wz,self.x_a.acc[0],self.x_a.acc[1],self.x_a.acc[2]]
         
 ################################################################################################################################        

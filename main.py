@@ -13,9 +13,9 @@ from scipy.interpolate import interp1d
 
 from VehicleDynamics import VehicleDynamics
 
-points = 50
+points = 100
 frequency= 100
-maxi = 1000
+maxi = 10000
 time_step = 1/frequency
 time = np.linspace(0, maxi, points)*time_step
 
@@ -35,17 +35,18 @@ vehicle_dynamics = VehicleDynamics(initial_speed = 0., state_0 = [0., 0., 0., 0.
 
 for i in range(len(u[0])):
        
+
     states[:,i] = vehicle_dynamics.tick(throttle[i], brake[i], steering[i],time[i])
     # states[:,i] = vehicle_dynamics.debug_powertrain(throttle[i], brake[i],time[i])
     # states is a vector of output 
 
-# plt.plot(time, throttle,, 'b',label='X vel', time, states[6], 'g-',label='X vel',time, states[9],'r', label='Acc x')
+# plt.plot(time, throttle, 'b',label='X vel', time, states[6], 'g-',label='X vel',time, states[9],'r', label='Acc x')
 plt.plot(time, throttle, 'b',label='throttle')
 plt.plot(time, states[0], '4k',label='position')
-plt.plot(time, states[3], '1r',label='vel x')
-plt.plot(time, states[6], '2y',label='angular pos')
+plt.plot(time, states[3], '1r',label='ang pos')
+plt.plot(time, states[6], '2y',label='vx')
 plt.plot(time, states[9], '--',label='ang vel')
-plt.plot(time, states[13], '3m',label='x acc')
+plt.plot(time, states[12], '3m',label='x acc')
 plt.xlabel('time (s)')
 plt.title('Logitudinal dynamic')
 plt.legend()
