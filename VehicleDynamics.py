@@ -105,6 +105,7 @@ class VehicleDynamics(object):
         # WOULD_IT_NOT_LEAD_TO_JUMPING_GEARS_REQUIRES_IMPROVEMENT___________________________________________________________________      
         #-----------Tranmission ratio----------
         # Comparing engine rpm and torque converter rpm to define the available torque. 
+        
         for i in range(len(self.param.gear_ratio)): # checking number of gears
             if self.x_a.acc[0] >= 0.0:
                 #if self.x_a.vx > self.param.gear_selection[int(self.throttle*10)][self.x_a.vx]:  
