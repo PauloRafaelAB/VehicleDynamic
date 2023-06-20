@@ -43,23 +43,23 @@ class VehicleDynamics(object):
         self.drag = 0.5*self.param.row * self.param.Cd * self.param.Front_area  # constant for air resistance
                        
         # State initiate with the position, orientation and speed provided by the arguments, acc = 0; 
-        self.x_a = StateVector(x=state_0[0],y=state_0[1],z=state_0[2], phi_v=state_0[3], theta_v=state_0[4], psi_v=state_0[5], vx =initial_speed, vy=0.,vz=0., wx=0., wy=0., wz=0.) # State_0
+        self.x_a = StateVector(x=state_0[0],y=state_0[1],z=state_0[2], psi=state_0[3], theta=state_0[4], phi=state_0[5], vx =initial_speed, vy=0.,vz=0., wx=0., wy=0., wz=0.) # State_0
         
         #Wheel initiate stoped 
         self.x_rr = AngularWheelPosition(pho_r=np.zeros(4), pho_r_dot = np.zeros(4),pho_r_2dot =np.zeros(4))
         self.x_rf = TireForces(fx =np.array([0.,0.,0.,0.]), fy = np.array([0.,0.,0.,0.]),wheel_forces_transformed_force2vehicle_sys = np.zeros((4,3),dtype=float))
-        self.displacement = Displacement(l_stat=(self.param.m*self.param.wd*self.gravity)/self.param.eq_stiff, za= np.array([0.,0.,0.,0.]), za_dot=[0.,0.,0.,0.], zr_dot=np.array([0.,0.,0.,0.]),zr_2dot=np.array([0.,0.,0.,0.]))
+        self.displacement = Displacement(l_stat=(self.param.m*self.param.wd*self.gravity)/self.param.eq_stiff, za= np.array([0.,0.,0.,0.]), za_dot=np.array([0.,0.,0.,0.]), zr_dot=np.array([0.,0.,0.,0.]),zr_2dot=np.array([0.,0.,0.,0.]))
         self.f_za = StrutForce(f_za = self.param.m*self.gravity*self.param.wd, f_za_dot = np.array([0.,0.,0.,0.]),spring_force = (self.param.m_s*self.gravity).reshape(-1,1), dumper_force = np.zeros((4,1),dtype=float))
         self.f_zr = WheelHubForce(f_zr_dot=np.array([0.,0.,0.,0.]), wheel_load_z = self.param.m*self.gravity*self.param.wd)
              
-        self.wheel_hub_velocity = np.zeros((4,3))  
+        self.wheel_hub_velocity = np.zeros((4,3))
         self.polar_inertia_v = np.array([[self.param.i_x_s, 0., 0.],
                                         [0., self.param.i_y_s, 0.],
                                         [0., 0., self.param.i_z]])
         
         
         #self.hub_distance = np.array([self.param.hub_fl, self.param.hub_rl,self.param.hub_fr,self.param.hub_rr])
-        self.position_chassi_force = np.array([[self.param.lv,self.param.sl,-self.param.sz], [self.param.lh,self.param.sl,-self.param.sz], [self.param.lv,-self.param.sr,-self.param.sz],[-self.param.lh,-self.param.sr,-self.param.sz]])
+        self.position_chassi_force = np.array([[self.param.lv,self.param.sl,-self.param.sz], [-self.param.lh,self.param.sl,-self.param.sz], [self.param.lv,-self.param.sr,-self.param.sz],[-self.param.lh,-self.param.sr,-self.param.sz]])
                 
         self.polar_inertia_v = np.array([[self.param.i_x_s, 0., 0.],
                                         [0., self.param.i_y_s, 0.],
@@ -71,7 +71,7 @@ class VehicleDynamics(object):
         self.compiled_wheel_forces = np.zeros((4,3),dtype= float)
         
         # Static displacement of the springs and tire
-        self.displacement.l_stat = self.param.m*self.param.wd *self.gravity / self.param.eq_stiff
+        # self.displacement.l_stat = self.param.m*self.param.wd *self.gravity / self.param.eq_stiff
         
         # Creating vector for chassis method 
         self.sum_f_wheel = np.zeros(3, dtype=float) # Sum of wheel forces
@@ -79,9 +79,9 @@ class VehicleDynamics(object):
         self.crossproduct_r_f = np.zeros((4,3), dtype=float)
         
         # Transformation matrix vehicle coord sys(Kv) into inertia sys(Ke) - E_T_V -- Bardini pag 260 eq. 11.3
-        self.vehicle_fixed2inertial_system = np.array([[np.cos(self.x_a.theta_v) * np.cos(self.x_a.psi_v),          np.sin(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.cos(self.x_a.psi_v) - np.cos(self.x_a.phi_v) * np.sin(self.x_a.psi_v),         np.cos(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.cos(self.x_a.psi_v) + np.sin(self.x_a.phi_v) * np.sin(self.x_a.psi_v)],
-                                              [np.cos(self.x_a.theta_v) * np.sin(self.x_a.psi_v),                   np.sin(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.sin(self.x_a.psi_v) + np.cos(self.x_a.phi_v) * np.cos(self.x_a.psi_v),         np.cos(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.sin(self.x_a.psi_v) - np.sin(self.x_a.phi_v) * np.cos(self.x_a.psi_v)],
-                                              [-np.sin(self.x_a.theta_v),                                           np.sin(self.x_a.phi_v) * np.cos(self.x_a.theta_v),                                                                                             np.cos(self.x_a.phi_v) * np.cos(self.x_a.theta_v)]])     #  Bardini pag 260
+        self.vehicle_fixed2inertial_system = np.array([[np.cos(self.x_a.theta) * np.cos(self.x_a.phi),          np.sin(self.x_a.psi) * np.sin(self.x_a.theta) * np.cos(self.x_a.phi) - np.cos(self.x_a.psi) * np.sin(self.x_a.phi),         np.cos(self.x_a.psi) * np.sin(self.x_a.theta) * np.cos(self.x_a.phi) + np.sin(self.x_a.psi) * np.sin(self.x_a.phi)],
+                                              [np.cos(self.x_a.theta) * np.sin(self.x_a.phi),                   np.sin(self.x_a.psi) * np.sin(self.x_a.theta) * np.sin(self.x_a.phi) + np.cos(self.x_a.psi) * np.cos(self.x_a.phi),         np.cos(self.x_a.psi) * np.sin(self.x_a.theta) * np.sin(self.x_a.phi) - np.sin(self.x_a.psi) * np.cos(self.x_a.phi)],
+                                              [-np.sin(self.x_a.theta),                                           np.sin(self.x_a.psi) * np.cos(self.x_a.theta),                                                                                             np.cos(self.x_a.psi) * np.cos(self.x_a.theta)]])     #  Bardini pag 260
         # transformation from Ke to Kv. 
         self.transpose_vehicle_fixed2inertial_system = np.transpose(self.vehicle_fixed2inertial_system)
         self.wheel_vel_fix_coord_sys = np.zeros((4,3),dtype=float)
@@ -104,31 +104,31 @@ class VehicleDynamics(object):
         
         # WOULD_IT_NOT_LEAD_TO_JUMPING_GEARS_REQUIRES_IMPROVEMENT___________________________________________________________________      
         #-----------Tranmission ratio----------
-        # Comparing engine rpm and torque converter rpm to define the available torque. 
-        
+            
+        # self.gear = self.param.gear_ratio[gear - 1]
+        # print('gear',self.gear)
         for i in range(len(self.param.gear_ratio)): # checking number of gears
+         
             if self.x_a.acc[0] >= 0.0:
-                #if self.x_a.vx > self.param.gear_selection[int(self.throttle*10)][self.x_a.vx]:  
-                if self.x_a.vx > self.param.gear_selection[int(self.throttle*10)][int(self.x_a.vx)]:
+                if self.x_a.vx > self.param.gear_selection[int(self.throttle*10)][i]:
                     if i >6:
                         i=6
                         self.gear = self.param.gear_ratio[i+1]
             # Using an offset of upshift
             if self.x_a.acc[0] <0:
-                if  (self.x_a.vx * 0.8) < self.param.gear_selection[int(self.throttle*10)][int(self.x_a.vx)]:
+                if  (self.x_a.vx * 0.8) < self.param.gear_selection[int(self.throttle*10)][i]:
                     self.gear = self.param.gear_ratio[i]
+            
             else:
                 self.gear = self.param.gear_ratio[0]    # neutral    
-        #_____________________________________________________________________________________________________________________________
+        # _____________________________________________________________________________________________________________________________
         
-
-        # print(self.x_a.vx)
         #self.wheel_rpm = 30 * self.x_a.vx/( self.param.r_dyn * np.pi) #RADSEC2RPM = 30/np.pi
         # replaced by self.wheel_w_vel
         
         # self.tcrpm = self.gear * self.wheel_w_vel[0] * self.torque_converter_ratio_inter
         # self.driveshaft_rpm = self.param.final_ratio * self.wheel_w_vel[0]
-        # speed_ratio = self.driveshaft_rpm/self.rpm 
+        # speed_ratio = self.driveshaft_rpm/self.rpm
         # if speed_ratio > 0.98:
         #     speed_ratio = 1.0
         # torque_convertion = self.torque_converter_ratio_inter(speed_ratio)
@@ -141,8 +141,7 @@ class VehicleDynamics(object):
                                 self.param.transmition_ni) - ((self.param.engine_inertia + self.param.ia + self.param.ig
                                                                ) * self.gear ** 2 + self.param.id * self.final_ratio ** 2 + 
                                                                self.param.i_wheel) * self.x_a.acc[0]
-      
-                                                               
+                            
         #--------------------Break Torque -------------------------
         # using brake pedal as input, the brake torque can be calculated by 
         self.brake_torque = self.brake * self.param.max_brake_torque
@@ -195,12 +194,12 @@ class VehicleDynamics(object):
         #Where are you including the steering bar ratio? 
         # Matrix E_T_R (wheel angles) is calculate at steering fuction      
         # Bardini pag 261 eq. 11-6 (TR1, TR3)
-        self.wheel_angle_front =  [[np.cos(self.x_a.phi_v + self.delta),        -np.sin(self.x_a.phi_v + self.delta),      0],
-                                   [np.sin(self.x_a.phi_v + self.delta),         np.cos(self.x_a.phi_v + self.delta),      0],
+        self.wheel_angle_front =  [[np.cos(self.x_a.psi + self.delta),        -np.sin(self.x_a.psi + self.delta),      0],
+                                   [np.sin(self.x_a.psi + self.delta),         np.cos(self.x_a.psi + self.delta),      0],
                                    [                    0,                             0,      1]] 
         # Eq.11-6    Schramm and Bardini Pag 261 (TR2, TR4)
-        self.wheel_angle_rear =  [[np.cos(self.x_a.phi_v),     - np.sin(self.x_a.phi_v),       0],
-                                  [np.sin(self.x_a.phi_v),       np.cos(self.x_a.phi_v),       0],
+        self.wheel_angle_rear =  [[np.cos(self.x_a.psi),     - np.sin(self.x_a.psi),       0],
+                                  [np.sin(self.x_a.psi),       np.cos(self.x_a.psi),       0],
                                   [            0,                                     0,       1]] 
             
         "says rotational transformation to Kv is necessary (VTR_front_axel)>> def vehiclefixed2inertial_system"
@@ -236,9 +235,9 @@ class VehicleDynamics(object):
     def rotationalmatrix(self):
         " "
         # For the angular velocity of the chassis we have:   Bardini Pag. 261 Eq. 11.5
-        rotationalmatrix = [[                          -np.sin(self.x_a.theta_v),                        0,             1],
-                            [ np.cos(self.x_a.theta_v) * np.sin(self.x_a.psi_v),    np.cos(self.x_a.psi_v),             0],
-                            [ np.cos(self.x_a.theta_v) * np.cos(self.x_a.psi_v),  - np.sin(self.x_a.psi_v),             0]]
+        rotationalmatrix = [[                          -np.sin(self.x_a.theta),                        0,             1],
+                            [ np.cos(self.x_a.theta) * np.sin(self.x_a.phi),    np.cos(self.x_a.phi),             0],
+                            [ np.cos(self.x_a.theta) * np.cos(self.x_a.phi),  - np.sin(self.x_a.phi),             0]]
         
         # phi_dot,theta_dot, psi_dot -- Bardini Pag. 261 Eq. 11.4
         self.chassis_w_velocity = [[ self.x_a.wx],
@@ -253,14 +252,14 @@ class VehicleDynamics(object):
     
     def wheel_fix_coord_sys(self): #delta
         # Wheel fixed coordinate(KR) rotation relativ to Kv(vehicle system) Bardni pag. 260 eq. 11-9
-       self.VTR_front_axel = np.array([[                                                 np.cos(self.delta) * np.cos(self.x_a.theta_v),                                                -np.sin(self.delta) * np.cos(self.x_a.theta_v),                          -np.sin(self.x_a.theta_v)],
-                                       [ np.sin(self.x_a.psi_v) * np.sin(self.x_a.theta_v) * np.cos(self.delta) + np.cos(self.x_a.psi_v) * np.sin(self.delta),     -np.sin(self.x_a.psi_v) * np.sin(self.x_a.theta_v) * np.sin(self.delta) + np.cos(self.x_a.psi_v) * np.cos(self.delta),            np.sin(self.x_a.psi_v)* np.cos(self.x_a.theta_v)],
-                                       [ np.cos(self.x_a.psi_v) * np.sin(self.x_a.theta_v) * np.cos(self.delta) - np.sin(self.x_a.psi_v) * np.sin(self.delta),     -np.cos(self.x_a.psi_v) * np.sin(self.x_a.theta_v) * np.sin(self.delta) - np.sin(self.x_a.psi_v) * np.cos(self.delta),            np.cos(self.x_a.psi_v)* np.cos(self.x_a.theta_v)]])
+       self.VTR_front_axel = np.array([[                                                 np.cos(self.delta) * np.cos(self.x_a.theta),                                                -np.sin(self.delta) * np.cos(self.x_a.theta),                          -np.sin(self.x_a.theta)],
+                                       [ np.sin(self.x_a.phi) * np.sin(self.x_a.theta) * np.cos(self.delta) + np.cos(self.x_a.phi) * np.sin(self.delta),     -np.sin(self.x_a.phi) * np.sin(self.x_a.theta) * np.sin(self.delta) + np.cos(self.x_a.phi) * np.cos(self.delta),            np.sin(self.x_a.phi)* np.cos(self.x_a.theta)],
+                                       [ np.cos(self.x_a.phi) * np.sin(self.x_a.theta) * np.cos(self.delta) - np.sin(self.x_a.phi) * np.sin(self.delta),     -np.cos(self.x_a.phi) * np.sin(self.x_a.theta) * np.sin(self.delta) - np.sin(self.x_a.phi) * np.cos(self.delta),            np.cos(self.x_a.phi)* np.cos(self.x_a.theta)]])
         
        # Bardni. Pag. 260 eq. 11-10
-       self.VTR_rear_axel = np.array([[                  np.cos(self.x_a.theta_v),                                  0,                                   -np.sin(self.x_a.theta_v)],
-                                      [ np.sin(self.x_a.psi_v) * np.sin(self.x_a.theta_v),     np.cos(self.x_a.psi_v),            np.sin(self.x_a.psi_v)* np.cos(self.x_a.theta_v)],
-                                      [ np.cos(self.x_a.psi_v) * np.sin(self.x_a.theta_v),   - np.sin(self.x_a.psi_v),            np.cos(self.x_a.psi_v)* np.cos(self.x_a.theta_v)]])
+       self.VTR_rear_axel = np.array([[                  np.cos(self.x_a.theta),                                  0,                                   -np.sin(self.x_a.theta)],
+                                      [ np.sin(self.x_a.phi) * np.sin(self.x_a.theta),     np.cos(self.x_a.phi),            np.sin(self.x_a.phi)* np.cos(self.x_a.theta)],
+                                      [ np.cos(self.x_a.phi) * np.sin(self.x_a.theta),   - np.sin(self.x_a.phi),            np.cos(self.x_a.phi)* np.cos(self.x_a.theta)]])
        
     def access_z_road(x,y):
        #TODO implament topography
@@ -327,18 +326,22 @@ class VehicleDynamics(object):
        
         # Bardini pag. 265 eq. 11-21  
         #TODO check signal
-        #TODO adiinar zs dot
-        self.f_zr.wheel_load_z =  self.param.eq_stiff*(-self.displacement.za - self.displacement.zs + 
-                                                                  self.displacement.l_stat) + self.param.dumper * self.displacement.za_dot * np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([[0],[0],[1]]))[0]
+        #TODO adicionar zs dot
+        
+        #TODO: doing changes in signals
+        self.f_zr.wheel_load_z = -(self.param.eq_stiff*(-self.displacement.za + self.displacement.zs + self.displacement.l_stat
+                                                        ) + self.param.dumper * np.absolute(self.displacement.za_dot-self.displacement.za_dot)) * np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([[0],[0],[1]]))[0]
         
         ### NO MEU PONTO DE VISTA AQUI VOCE CALCULARIA COMO AS FORCAS QUE AGEM NO CG ATUAM NOS PO
-        #self.f_za.spring_force[i] = (self.param.eq_stiff[i] * (self.displacement.za[i]-self.displacement.zs[i]+ self.displacement.l_stat[i]) *  np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([0.,0.,1]))[0] 
+        
+        # self.f_za.spring_force[i] = (self.param.eq_stiff[i] * (self.displacement.za[i]-self.displacement.zs[i]+ self.displacement.l_stat[i]) *  np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([0.,0.,1]))[0] 
         # Bardini pag. 266 eq. 11-22
-        #self.f_za.dumper_force[i] = (self.param.dumper[i] * (self.displacement.za_dot[i] - self.displacement.zr_dot[i]
+        # self.f_za.dumper_force[i] = (self.param.dumper[i] * (self.displacement.za_dot[i] - self.displacement.zr_dot[i]
                                                         #) + self.param.dumper[i]) * np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([[0],[0],[1]]))[0]
         
         # V_F_fi - Forces on tires action on the chassis at the pivot points Ai of the four wheel >> Bardini pag 263
-        for i in range(4):    
+        
+        for i in range(4):
             if self.f_zr.wheel_load_z[i] > 0: 
                 self.f_za.f_za[i] = self.f_zr.wheel_load_z[i]
             else:
@@ -412,17 +415,17 @@ class VehicleDynamics(object):
             
             # TODO Check eq 11 - 47
             self.sum_crossproduct_r_f = np.sum(self.crossproduct_r_f,axis=0)
-            print('sum_crossproduct',self.sum_crossproduct_r_f)
+            # print('sum_crossproduct',self.sum_crossproduct_r_f)
             #TODO make the return of acc angular be type (3,0)
             
             self.x_a.acc_angular_v = np.matmul((self.sum_crossproduct_r_f - np.cross(self.angular_rates,(np.matmul(self.polar_inertia_v,self.angular_rates)))),inv(self.polar_inertia_v))
             
             
-            # print('sum_crossproduct',self.sum_crossproduct_r_f)
+            print('sum_crossproduct',self.sum_crossproduct_r_f)
             # print('angular_rates', self.angular_rates)
             # print('polar inertia',self.polar_inertia_v)
             
-            print('self.x_a.acc_angular_v',self.x_a.acc_angular_v,type(self.x_a.acc_angular_v))
+            # print('self.x_a.acc_angular_v',self.x_a.acc_angular_v,type(self.x_a.acc_angular_v))
             #TODO: add multiplication of tranpose polar inertia to eq above>>   * self.polar_inertia_v.T)
             
             # Angular velocity of the chassis
@@ -433,15 +436,15 @@ class VehicleDynamics(object):
         
             print('                      ')
             # Angular position
-            self.x_a.phi_v =    self.x_a.wx * self.time_step + self.x_a.phi_v
-            self.x_a.theta_v =  self.x_a.wy * self.time_step + self.x_a.theta_v
-            self.x_a.psi_v =    self.x_a.wz * self.time_step + self.x_a.psi_v
+            self.x_a.psi =    self.x_a.wx * self.time_step + self.x_a.psi
+            self.x_a.theta =  self.x_a.wy * self.time_step + self.x_a.theta
+            self.x_a.phi =    self.x_a.wz * self.time_step + self.x_a.phi
             
             #TODO: updated transformation to vehicle system
             
-            # self.vehicle_fixed2inertial_system = np.array([[np.cos(self.x_a.theta_v) * np.cos(self.x_a.psi_v), np.sin(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.cos(self.x_a.psi_v) - np.cos(self.x_a.phi_v) * np.sin(self.x_a.psi_v),     np.cos(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.cos(self.x_a.psi_v) + np.sin(self.x_a.phi_v) * np.sin(self.x_a.psi_v)],
-            #                                       [np.cos(self.x_a.theta_v) * np.sin(self.x_a.psi_v), np.sin(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.sin(self.x_a.psi_v) + np.cos(self.x_a.phi_v) * np.sin(self.x_a.psi_v),     np.cos(self.x_a.phi_v) * np.sin(self.x_a.theta_v) * np.sin(self.x_a.psi_v) - np.sin(self.x_a.phi_v) * np.cos(self.x_a.psi_v)],
-            #                                       [-np.sin(self.x_a.theta_v),                         np.sin(self.x_a.phi_v) * np.cos(self.x_a.theta_v),                                                      np.cos(self.x_a.phi_v) * np.cos(self.x_a.theta_v)]])
+            # self.vehicle_fixed2inertial_system = np.array([[np.cos(self.x_a.theta) * np.cos(self.x_a.phi), np.sin(self.x_a.psi) * np.sin(self.x_a.theta) * np.cos(self.x_a.phi) - np.cos(self.x_a.psi) * np.sin(self.x_a.phi),     np.cos(self.x_a.psi) * np.sin(self.x_a.theta) * np.cos(self.x_a.phi) + np.sin(self.x_a.psi) * np.sin(self.x_a.phi)],
+            #                                       [np.cos(self.x_a.theta) * np.sin(self.x_a.phi), np.sin(self.x_a.psi) * np.sin(self.x_a.theta) * np.sin(self.x_a.phi) + np.cos(self.x_a.psi) * np.sin(self.x_a.phi),     np.cos(self.x_a.psi) * np.sin(self.x_a.theta) * np.sin(self.x_a.phi) - np.sin(self.x_a.psi) * np.cos(self.x_a.phi)],
+            #                                       [-np.sin(self.x_a.theta),                         np.sin(self.x_a.psi) * np.cos(self.x_a.theta),                                                      np.cos(self.x_a.psi) * np.cos(self.x_a.theta)]])
             
             # bardini pag 260 -- use vector of torque x euler angle rate
             
@@ -449,19 +452,15 @@ class VehicleDynamics(object):
             movement_vehicle =  (self.x_a.vx * self.time_step, self.x_a.vy * self.time_step, self.x_a.vz * self.time_step) 
             
             #TODO check mat mul ordem
-            [self.x_a.x,self.x_a.y,self.x_a.z] = [self.x_a.x,self.x_a.y,self.x_a.z] +np.matmul(movement_vehicle,self.vehicle_fixed2inertial_system) 
-          
-            
+            [self.x_a.x,self.x_a.y,self.x_a.z] = [self.x_a.x,self.x_a.y,self.x_a.z] + np.matmul(movement_vehicle, self.vehicle_fixed2inertial_system) 
+            print("x",self.x_a.x,"y",self.x_a.y,"z",self.x_a.z)
             
             # TODO new displacements need taking euler angles into account
-                   
-            print('self.x_a.theta_v',self.x_a.theta_v)
-            print('psi_v',self.x_a.psi_v)
-            self.displacement.za[0]= self.x_a.z - self.param.lv* np.sin(self.x_a.theta_v)+ self.param.sl*np.sin(self.x_a.psi_v)
-            self.displacement.za[1]= self.x_a.z + self.param.lh* np.sin(self.x_a.theta_v)+ self.param.sl*np.sin(self.x_a.psi_v)
-            self.displacement.za[2]= self.x_a.z - self.param.lv* np.sin(self.x_a.theta_v)- self.param.sr*np.sin(self.x_a.psi_v)
-            self.displacement.za[3]= self.x_a.z + self.param.lh* np.sin(self.x_a.theta_v)- self.param.sr*np.sin(self.x_a.psi_v)
-            
+
+            self.displacement.za[0]= self.x_a.z - self.param.lv* np.sin(self.x_a.theta)+ self.param.sl*np.sin(self.x_a.phi)
+            self.displacement.za[1]= self.x_a.z + self.param.lh* np.sin(self.x_a.theta)+ self.param.sl*np.sin(self.x_a.phi)
+            self.displacement.za[2]= self.x_a.z - self.param.lv* np.sin(self.x_a.theta)- self.param.sr*np.sin(self.x_a.phi)
+            self.displacement.za[3]= self.x_a.z + self.param.lh* np.sin(self.x_a.theta)- self.param.sr*np.sin(self.x_a.phi)
             
             return 
     
@@ -476,20 +475,20 @@ class VehicleDynamics(object):
         self.tire_model()
         self.chassis() 
 
-        return [self.x_a.x,self.x_a.y,self.x_a.z,self.x_a.phi_v,self.x_a.theta_v,self.x_a.psi_v,self.x_a.vx,self.x_a.vy,self.x_a.vz,self.x_a.wx,self.x_a.wy,self.x_a.wz,self.x_a.acc[0],self.x_a.acc[1],self.x_a.acc[2]]
+        return [self.x_a.x,self.x_a.y,self.x_a.z,self.x_a.psi,self.x_a.theta,self.x_a.phi,self.x_a.vx,self.x_a.vy,self.x_a.vz,self.x_a.wx,self.x_a.wy,self.x_a.wz,self.x_a.acc[0],self.x_a.acc[1],self.x_a.acc[2]]
         
 ################################################################################################################################        
 
 class StateVector(object):
-    def __init__(self, x=0., y=0., z=0., phi_v=0., theta_v=0., psi_v=0., vx=0., vy=0., vz=0.,wx=0., wy=0., wz=0., acc = [0.,0.,0.]):
+    def __init__(self, x=0., y=0., z=0., psi=0., theta=0., phi=0., vx=0., vy=0., vz=0.,wx=0., wy=0., wz=0., acc = [0.,0.,0.]):
         
         # Position and Euler angles
         self.x = x
         self.y = y 
         self.z = z 
-        self.phi_v = phi_v
-        self.theta_v = theta_v
-        self.psi_v = psi_v
+        self.psi = psi
+        self.theta = theta
+        self.phi = phi
         self.vx = vx
         self.vy = vy
         self.vz = vz
@@ -632,11 +631,7 @@ class ImportParam(object):
     
         #=====================================
         # geometric parameters
-        #=====================================
-        
-        self.cg_height = param['vehicle_model']['parameters']['cg_height']                   # center of gravity height of total mass [m]
-        self.cg_x = param['vehicle_model']['parameters']['cg_x']                             #  cg_x [m]
-        self.cg_y = param['vehicle_model']['parameters']['cg_y']                             # [m]
+        #===================================== 
         # axes distances
         self.lv = param['vehicle_model']['parameters']['lv']                                  # x-distance from Vehicle CoG to the front hub [m]
         self.lh = param['vehicle_model']['parameters']['lh']                                  # x-distance from Vehicle Cog to the rear hub [m]

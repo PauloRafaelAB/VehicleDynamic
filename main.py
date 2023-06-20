@@ -43,7 +43,7 @@ for i in range(len(u[0])):
 # plt.plot(time, throttle, 'b',label='X vel', time, states[6], 'g-',label='X vel',time, states[9],'r', label='Acc x')
 plt.plot(time, throttle, 'b',label='throttle')
 plt.plot(time, states[0], '4k',label='position')
-plt.plot(time, states[3], '1r',label='ang pos')
+plt.plot(time, states[3], '1r',label='pitch')
 plt.plot(time, states[6], '2y',label='vx')
 plt.plot(time, states[9], '--',label='ang vel')
 plt.plot(time, states[12], '3m',label='x acc')
