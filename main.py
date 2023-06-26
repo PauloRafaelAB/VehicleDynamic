@@ -29,9 +29,9 @@ u[1] = throttle
 
 
 ## TODO: Create a structure 
-states = np.zeros((15,points))
+states = np.zeros((16,points))
 
-vehicle_dynamics = VehicleDynamics(initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 0, freq=frequency, param_path = "bmw_m8.yaml")
+vehicle_dynamics = VehicleDynamics(initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 1, freq=frequency, param_path = "bmw_m8.yaml")
 
 for i in range(len(u[0])):
        
@@ -47,6 +47,7 @@ plt.plot(time, states[3], '1r',label='pitch')
 plt.plot(time, states[6], '2y',label='vx')
 plt.plot(time, states[9], '--',label='ang vel')
 plt.plot(time, states[12], '3m',label='x acc')
+plt.plot(time, states[15], '3b',label='gear')
 plt.xlabel('time (s)')
 plt.title('Logitudinal dynamic')
 plt.legend()

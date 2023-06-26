@@ -21,7 +21,7 @@ class VehicleDynamics(object):
     of brake, steer and thorttle positons.
     """
 
-    def __init__(self, initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 0, freq=100, param_path = ""):
+    def __init__(self, initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 1, freq=100, param_path = ""):
     
         if param_path != "":
             self.param = ImportParam(param_path) # Import all the Parameters 
@@ -51,7 +51,6 @@ class VehicleDynamics(object):
         self.displacement = Displacement(l_stat=(self.param.m*self.param.wd*self.gravity)/self.param.eq_stiff, za= np.array([0.,0.,0.,0.]), za_dot=np.array([0.,0.,0.,0.]), zr_dot=np.array([0.,0.,0.,0.]),zr_2dot=np.array([0.,0.,0.,0.]))
         self.f_za = StrutForce(f_za = self.param.m*self.gravity*self.param.wd, f_za_dot = np.array([0.,0.,0.,0.]),spring_force = (self.param.m_s*self.gravity).reshape(-1,1), dumper_force = np.zeros((4,1),dtype=float))
         self.f_zr = WheelHubForce(f_zr_dot=np.array([0.,0.,0.,0.]), wheel_load_z = self.param.m*self.gravity*self.param.wd)
-             
         self.wheel_hub_velocity = np.zeros((4,3))
         self.polar_inertia_v = np.array([[self.param.i_x_s, 0., 0.],
                                         [0., self.param.i_y_s, 0.],
@@ -107,7 +106,23 @@ class VehicleDynamics(object):
             
         # self.gear = self.param.gear_ratio[gear - 1]
         # print('gear',self.gear)
-        for i in range(len(self.param.gear_ratio)): # checking number of gears
+        ###################################CALCULAR RPMMMMMMMMMMM
+        
+        if self.x_a.vx > self.param.gear_selection[int(self.throttle*10)][self.gear]:
+            self.gear = self.gear + 1
+            if self.gear >= self.param.gear_ratio.size:
+                self.gear = self.param.gear_ratio.size-1
+        
+        # Using an offset of upshift
+        elif self.x_a.vx < 0.8*self.param.gear_selection[int(self.throttle*10)][self.gear]:
+            self.gear = self.gear - 1
+            if self.gear < 1:
+                self.gear = 1
+        
+                
+        
+        
+        '''for i in range(len(self.param.gear_ratio)): # checking number of gears
          
             if self.x_a.acc[0] >= 0.0:
                 if self.x_a.vx > self.param.gear_selection[int(self.throttle*10)][i]:
@@ -119,8 +134,9 @@ class VehicleDynamics(object):
                 if  (self.x_a.vx * 0.8) < self.param.gear_selection[int(self.throttle*10)][i]:
                     self.gear = self.param.gear_ratio[i]
             
+            ## Se o carro nao estiver com acc=0, accelerando nem desacelerando ele fica no neutro (Nunca vai acontecer)
             else:
-                self.gear = self.param.gear_ratio[0]    # neutral    
+                self.gear = self.param.gear_ratio[0]    # neutral   ''' 
         # _____________________________________________________________________________________________________________________________
         
         #self.wheel_rpm = 30 * self.x_a.vx/( self.param.r_dyn * np.pi) #RADSEC2RPM = 30/np.pi
@@ -134,20 +150,25 @@ class VehicleDynamics(object):
         # torque_convertion = self.torque_converter_ratio_inter(speed_ratio)
         
         # TODO: Engine torque to wheel, taking inercia into account (separated by gear)
-        self.final_ratio = self.gear * self.param.diff # check final gear calculation
+        self.final_ratio = self.param.gear_ratio[self.gear] * self.param.diff # check final gear calculation
         
+        print("Final ratio", self.final_ratio)
+        print ("Engine Torque", engine_torque)
         #TODO: check inertias and formulation
-        self.traction_torque = (engine_torque * self.final_ratio * self.param.diff_ni * 
-                                self.param.transmition_ni) - ((self.param.engine_inertia + self.param.ia + self.param.ig
-                                                               ) * self.gear ** 2 + self.param.id * self.final_ratio ** 2 + 
-                                                               self.param.i_wheel) * self.x_a.acc[0]
+        
+        ####ENGINE TORQUE IS INCORRECT 
+        traction_torque = (engine_torque * self.final_ratio * self.param.diff_ni * self.param.transmition_ni) 
+                                                                #- ((self.param.engine_inertia + self.param.ia + self.param.ig) * self.gear ** 2 
+                                                                  # + self.param.id * self.final_ratio ** 2 + self.param.i_wheel) * self.x_a.acc[0]
+                                                                  
+                                                                      ### REMOVED THE INERTIA
                             
         #--------------------Break Torque -------------------------
         # using brake pedal as input, the brake torque can be calculated by 
-        self.brake_torque = self.brake * self.param.max_brake_torque
+        brake_torque = self.brake * self.param.max_brake_torque
         
         #-------------------- Net Torque -------------------------
-        self.powertrain_net = self.traction_torque - self.brake_torque
+        self.powertrain_net = traction_torque - brake_torque
         
         # function traction divided between axles
         self.powertrain_net_torque = np.empty(4, dtype = float)
@@ -155,9 +176,11 @@ class VehicleDynamics(object):
         self.powertrain_net_torque[1] = self.powertrain_net*0.5* (1-self.param.b_bias)
         self.powertrain_net_torque[2] = self.powertrain_net*0.5* self.param.b_bias
         self.powertrain_net_torque[3] = self.powertrain_net*0.5* (1-self.param.b_bias)
-        self.powetrain_force = self.powertrain_net_torque/self.param.r_dyn
         
         
+        #self.powetrain_force = self.powertrain_net_torque/self.param.r_dyn # NAO ESTÀ SENDO USADO EM LUGAR NENHUM 
+        
+        print ("Powertrain Torque", self.powertrain_net_torque)
         """
         # TODO: Check Angular accelerations
         self.alpha_wheel = self.acc_x / self.param.r_dyn #(it s gone be used the one in the car) 
@@ -205,73 +228,8 @@ class VehicleDynamics(object):
         "says rotational transformation to Kv is necessary (VTR_front_axel)>> def vehiclefixed2inertial_system"
 
         #return self.wheel_angle_front, self.wheel_angle_rear
-    
-    def Wheel_angular(self):
-        ''' wheel velocities are used to calcule slip, than when can futher calculate ax,ay using the forces 
-        using the magic formula
-        '''
-        # NEWTON’s and EULER’s Equations of the Wheels: Solve  11-25 Bardini pag 266
         
-        self.x_rr.pho_r_2dot  =  (self.powertrain_net_torque  - self.param.r_dyn  * self.x_rf.fx ) /self.param.iw     
         
-        # Calculate the intregral of the wheel_acc to calculate slip_x
-        self.wheel_w_vel  = self.wheel_w_vel  + self.x_rr.pho_r_2dot * self.time_step # rad/s
-        # print('self.wheel_w_vel')
-        # print(self.wheel_w_vel)
-        #___________________________________________________________________________________________________________
-        
-        # for i in range(4):
-             # 11-26 Bardini pag 266. Where fx(tire_road force) is determined by magic formula
-            #self.displacement.zr_2dot[i] =  (self.f_zr.wheel_load_z[i] - self.f_za.f_za[i] - self.param.wheel_mass[i] * self.gravity) /self.param.wheel_mass[i]
-            # self.f_za.f_za[i] = self.f_za.spring_force[i] + self.f_za.dumper_force[i]
-            # self.displacement.zr_2dot[i] =  (wheel_load_z[i] - self.f_za.f_za[i] - self.param.wheel_mass[i] * self.gravity) /self.param.wheel_mass[i]
-            # self.displacement.zr_2dot[i] =  (self.f_zr.wheel_load_z[i] - self.f_za.f_za[i] - self.param.wheel_mass[i] * self.gravity) /self.param.wheel_mass[i] 
-            
-        # Calculate the wheel hub displament and velocity
-        #self.displacement.zr_dot = self.displacement.zr_dot + self.displacement.zr_2dot  * self.time_step
-        # self.displacement.zr = self.displacement.zr + self.displacement.zr_dot * self.time_step
-        
-
-    def rotationalmatrix(self):
-        " "
-        # For the angular velocity of the chassis we have:   Bardini Pag. 261 Eq. 11.5
-        rotationalmatrix = [[                          -np.sin(self.x_a.theta),                        0,             1],
-                            [ np.cos(self.x_a.theta) * np.sin(self.x_a.phi),    np.cos(self.x_a.phi),             0],
-                            [ np.cos(self.x_a.theta) * np.cos(self.x_a.phi),  - np.sin(self.x_a.phi),             0]]
-        
-        # phi_dot,theta_dot, psi_dot -- Bardini Pag. 261 Eq. 11.4
-        self.chassis_w_velocity = [[ self.x_a.wx],
-                                   [ self.x_a.wy],
-                                   [ self.x_a.wz]]
-                              
-        # Coordinate representation of the absolute velocity of point v with respect to coordinate system “E”, described in coordinates of coordinate system “v” bardni. Pag 260
-        self.angular_vel_2inercial_sys_in_vehicle_coord = np.dot(rotationalmatrix, self.chassis_w_velocity) #Bardini Pag. 261 Eq. 11.4    
-        return self.angular_vel_2inercial_sys_in_vehicle_coord, self.rotationalmatrix
-
-    
-    
-    def wheel_fix_coord_sys(self): #delta
-        # Wheel fixed coordinate(KR) rotation relativ to Kv(vehicle system) Bardni pag. 260 eq. 11-9
-       self.VTR_front_axel = np.array([[                                                 np.cos(self.delta) * np.cos(self.x_a.theta),                                                -np.sin(self.delta) * np.cos(self.x_a.theta),                          -np.sin(self.x_a.theta)],
-                                       [ np.sin(self.x_a.phi) * np.sin(self.x_a.theta) * np.cos(self.delta) + np.cos(self.x_a.phi) * np.sin(self.delta),     -np.sin(self.x_a.phi) * np.sin(self.x_a.theta) * np.sin(self.delta) + np.cos(self.x_a.phi) * np.cos(self.delta),            np.sin(self.x_a.phi)* np.cos(self.x_a.theta)],
-                                       [ np.cos(self.x_a.phi) * np.sin(self.x_a.theta) * np.cos(self.delta) - np.sin(self.x_a.phi) * np.sin(self.delta),     -np.cos(self.x_a.phi) * np.sin(self.x_a.theta) * np.sin(self.delta) - np.sin(self.x_a.phi) * np.cos(self.delta),            np.cos(self.x_a.phi)* np.cos(self.x_a.theta)]])
-        
-       # Bardni. Pag. 260 eq. 11-10
-       self.VTR_rear_axel = np.array([[                  np.cos(self.x_a.theta),                                  0,                                   -np.sin(self.x_a.theta)],
-                                      [ np.sin(self.x_a.phi) * np.sin(self.x_a.theta),     np.cos(self.x_a.phi),            np.sin(self.x_a.phi)* np.cos(self.x_a.theta)],
-                                      [ np.cos(self.x_a.phi) * np.sin(self.x_a.theta),   - np.sin(self.x_a.phi),            np.cos(self.x_a.phi)* np.cos(self.x_a.theta)]])
-       
-    def access_z_road(x,y):
-       #TODO implament topography
-        z = 0.
-        return z
-    
-    def road(self):
-        for k in range(4):
-        #     self.displacement.zs[k][2] = self.access_z_road(self.displacement.zs[k][0],self.displacement.zs[k][1])
-            self.displacement.zs[k]=0.
-        
-    
     def wheel_slip(self): #input: fz, mi, wheel_angle,vx,vy   output:fz,slix,slip_y
         '''initial states of tire load are mandatory [Wheel torque], [Wheel_Fz], slip_x, slip_angle]
             calculate the forces..
@@ -282,10 +240,14 @@ class VehicleDynamics(object):
         for i in range(4):
             
             # Slip calculation - Wheel slip is calculated by wheel fixed system
-            self.slip_x = abs((((self.param.r_dyn[i] * self.wheel_w_vel[i] - self.x_a.vx )/ max([self.param.r_dyn[i] * self.wheel_w_vel[i]+1e-16, 1e-16+self.x_a.vx]))))         # equation 11.30 Bardini
+            self.slip_x = (((self.param.r_dyn[i] * self.wheel_w_vel[i] - self.x_a.vx )/ max([self.param.r_dyn[i] * self.wheel_w_vel[i]+1e-16, 1e-16+self.x_a.vx])))         # equation 11.30 Bardini
+            ##### REMOVED THE ABS()
+            
+            
             # Lateral slip: define wheel_vy Equacao 11_28 >> converte to tire direction
             self.slip_y = - np.arctan( self.x_a.vy / max([self.param.r_dyn[i] * self.wheel_w_vel[i]+1e-16, 1e-16 + self.x_a.vx])) # equation 11.31 Bardini
         
+            print ("Slip X ", self.slip_x, "  Slip Y ", self.slip_y)
             #v = np.array([0,0,-self.displacement.za[i] + self.displacement.zs[i] - self.displacement.l_stat[i]]) #TODO check signal
             #self.wheel_hub_position[i] = self.position_chassi_force[i] + np.matmul(self.transpose_vehicle_fixed2inertial_system,v)        # eq 11-27
             # c = np.zeros(3)
@@ -318,47 +280,27 @@ class VehicleDynamics(object):
             # wheel_load_z[3] = - max(self.param.cr[3]*(self.displacement.zr[3]-self.displacement.zs[3]+lr_stat[3]) - F_sth, 0)
             # print('self.x_rf.wheel_forces_transformed_force2vehicle_sys[i]')
             # print(self.x_rf.wheel_forces_transformed_force2vehicle_sys[i],self.x_rf.wheel_forces_transformed_force2vehicle_sys[i].shape)
-            
-        return self.slip_x, self.slip_y
-     
-    def suspension(self): # previsious forces, ax,ay 
-        # Forces on the vehicle chassis at the pivot points Ai
-       
-        # Bardini pag. 265 eq. 11-21  
-        #TODO check signal
-        #TODO adicionar zs dot
-        
-        #TODO: doing changes in signals
-        self.f_zr.wheel_load_z = -(self.param.eq_stiff*(-self.displacement.za + self.displacement.zs + self.displacement.l_stat
-                                                        ) + self.param.dumper * np.absolute(self.displacement.za_dot-self.displacement.za_dot)) * np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([[0],[0],[1]]))[0]
-        
-        ### NO MEU PONTO DE VISTA AQUI VOCE CALCULARIA COMO AS FORCAS QUE AGEM NO CG ATUAM NOS PO
-        
-        # self.f_za.spring_force[i] = (self.param.eq_stiff[i] * (self.displacement.za[i]-self.displacement.zs[i]+ self.displacement.l_stat[i]) *  np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([0.,0.,1]))[0] 
-        # Bardini pag. 266 eq. 11-22
-        # self.f_za.dumper_force[i] = (self.param.dumper[i] * (self.displacement.za_dot[i] - self.displacement.zr_dot[i]
-                                                        #) + self.param.dumper[i]) * np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([[0],[0],[1]]))[0]
-        
-        # V_F_fi - Forces on tires action on the chassis at the pivot points Ai of the four wheel >> Bardini pag 263
-        
-        for i in range(4):
-            if self.f_zr.wheel_load_z[i] > 0: 
-                self.f_za.f_za[i] = self.f_zr.wheel_load_z[i]
-            else:
-                self.f_za.f_za[i] = self.param.m*self.gravity*self.param.wd[i]
-                #chassi_converted_force[i] = np.cross(self.position_chassi_force,self.strut2chassi_xyz[i]) # check calculus: f.za is z direction
-            #TODO: check transpose_vehicle_fixed2inertial_system operation  
+
     
     def tire_model(self): # fz, slip
+    
+    
+    ######## X IS BIGGER THAN Z ?????????????
+    
+    ## Input slip, fz - fx_car, fy_car
         
+        self.x_rf.fx = self.f_zr.wheel_load_z * self.param.d * np.sin(self.param.c * np.arctan(self.param.b*self.slip_x - self.param.e * (self.param.b*self.slip_x - np.arctan(self.param.b *self.slip_x))))
+        self.x_rf.fy = self.f_zr.wheel_load_z * self.param.d * np.sin(self.param.c * np.arctan(self.param.b*self.slip_y - self.param.e * (self.param.b*self.slip_y - np.arctan(self.param.b *self.slip_y))))
+  
         for i in range(4):
-            self.x_rf.fx[i] = self.f_zr.wheel_load_z[i] * self.param.d * np.sin(self.param.c * np.arctan(self.param.b*self.slip_x - self.param.e * (self.param.b*self.slip_x - np.arctan(self.param.b *self.slip_x))))
-            self.x_rf.fy[i] = self.f_zr.wheel_load_z[i] * self.param.d * np.sin(self.param.c * np.arctan(self.param.b*self.slip_y - self.param.e * (self.param.b*self.slip_y - np.arctan(self.param.b *self.slip_y))))
+            #whell load é negativo, mas fx deve ser positivo
+            #self.x_rf.fx[i] = self.f_zr.wheel_load_z[i] * self.param.d * np.sin(self.param.c * np.arctan(self.param.b*self.slip_x - self.param.e * (self.param.b*self.slip_x - np.arctan(self.param.b *self.slip_x))))
+            #self.x_rf.fy[i] = self.f_zr.wheel_load_z[i] * self.param.d * np.sin(self.param.c * np.arctan(self.param.b*self.slip_y - self.param.e * (self.param.b*self.slip_y - np.arctan(self.param.b *self.slip_y))))
       
         
             self.compiled_wheel_forces[i] = np.array([self.x_rf.fx[i], self.x_rf.fy[i], self.f_zr.wheel_load_z[i]])
             # print('self.compiled_wheel_forces',self.compiled_wheel_forces,type(self.compiled_wheel_forces),self.compiled_wheel_forces.shape)
-            reshape_compiled_wheel_forces = np.reshape(self.compiled_wheel_forces[i],(3))
+            '''reshape_compiled_wheel_forces = np.reshape(self.compiled_wheel_forces[i],(3))
 
             if i % 2 == 0:
                 #TODO: check matrix operation 3x3 3x4>> define wheel_forces_transfomed matrix
@@ -368,8 +310,120 @@ class VehicleDynamics(object):
                 self.x_rf.wheel_forces_transformed_force2vehicle_sys[i] =  np.matmul(self.VTR_rear_axel,reshape_compiled_wheel_forces)
             
             # forces on the vehicle chassis (Ai) >> Bardini pag 236  >> horizontal forces pag 264 self.f_za.f_za
-            self.strut2chassi_xyz[i] = [self.x_rf.fx[i], self.x_rf.fy[i], self.f_za.f_za[i]] # Fi , may be transpose 
+            self.strut2chassi_xyz[i] = [self.x_rf.fx[i], self.x_rf.fy[i], self.f_za.f_za[i]] # Fi , may be transpose '''
+        
+        print("Compiled wheel forces ", self.compiled_wheel_forces)
+        
+        
+        
+    
+    def Wheel_angular(self):
+        ''' wheel velocities are used to calcule slip, than when can futher calculate ax,ay using the forces 
+        using the magic formula
+        '''
+        # NEWTON’s and EULER’s Equations of the Wheels: Solve  11-25 Bardini pag 266
+        
+        ## Torque, fx_car, fy_car, Inertias wheel,  output wheel Wv, dot_wv
+        
+        self.x_rr.pho_r_2dot  =  (self.powertrain_net_torque  - self.param.r_dyn  * self.x_rf.fx ) /self.param.iw
+        print("FX_________",self.x_rf.fx)
+        
+        # Calculate the intregral of the wheel_acc to calculate slip_x
+        self.wheel_w_vel  = self.wheel_w_vel  + self.x_rr.pho_r_2dot * self.time_step # rad/s
+        #print("self.wheel_w_vel", self.wheel_w_vel)
+        # print(self.wheel_w_vel)
+        #___________________________________________________________________________________________________________
+        
+        # for i in range(4):
+             # 11-26 Bardini pag 266. Where fx(tire_road force) is determined by magic formula
+            #self.displacement.zr_2dot[i] =  (self.f_zr.wheel_load_z[i] - self.f_za.f_za[i] - self.param.wheel_mass[i] * self.gravity) /self.param.wheel_mass[i]
+            # self.f_za.f_za[i] = self.f_za.spring_force[i] + self.f_za.dumper_force[i]
+            # self.displacement.zr_2dot[i] =  (wheel_load_z[i] - self.f_za.f_za[i] - self.param.wheel_mass[i] * self.gravity) /self.param.wheel_mass[i]
+            # self.displacement.zr_2dot[i] =  (self.f_zr.wheel_load_z[i] - self.f_za.f_za[i] - self.param.wheel_mass[i] * self.gravity) /self.param.wheel_mass[i] 
+            
+        # Calculate the wheel hub displament and velocity
+        #self.displacement.zr_dot = self.displacement.zr_dot + self.displacement.zr_2dot  * self.time_step
+        # self.displacement.zr = self.displacement.zr + self.displacement.zr_dot * self.time_step
+        
 
+    def rotationalmatrix(self): ## ONDE ESTÁ ATUALIZANDO OS ANGULOS?-------------------------------------------------------------
+        " "
+        # For the angular velocity of the chassis we have:   Bardini Pag. 261 Eq. 11.5
+        rotationalmatrix = [[                          -np.sin(self.x_a.theta),                        0,             1],
+                            [ np.cos(self.x_a.theta) * np.sin(self.x_a.phi),    np.cos(self.x_a.phi),             0],
+                            [ np.cos(self.x_a.theta) * np.cos(self.x_a.phi),  - np.sin(self.x_a.phi),             0]]
+        
+        # phi_dot,theta_dot, psi_dot -- Bardini Pag. 261 Eq. 11.4
+        self.chassis_w_velocity = [[ self.x_a.wx],
+                                   [ self.x_a.wy],
+                                   [ self.x_a.wz]]
+                              
+        # Coordinate representation of the absolute velocity of point v with respect to coordinate system “E”, described in coordinates of coordinate system “v” bardni. Pag 260
+        self.angular_vel_2inercial_sys_in_vehicle_coord = np.dot(rotationalmatrix, self.chassis_w_velocity) #Bardini Pag. 261 Eq. 11.4    
+        return self.angular_vel_2inercial_sys_in_vehicle_coord, self.rotationalmatrix
+
+    
+    
+    def wheel_fix_coord_sys(self): #delta 
+        # Wheel fixed coordinate(KR) rotation relativ to Kv(vehicle system) Bardni pag. 260 eq. 11-9
+       self.VTR_front_axel = np.array([[                                                 np.cos(self.delta) * np.cos(self.x_a.theta),                                                -np.sin(self.delta) * np.cos(self.x_a.theta),                          -np.sin(self.x_a.theta)],
+                                       [ np.sin(self.x_a.phi) * np.sin(self.x_a.theta) * np.cos(self.delta) + np.cos(self.x_a.phi) * np.sin(self.delta),     -np.sin(self.x_a.phi) * np.sin(self.x_a.theta) * np.sin(self.delta) + np.cos(self.x_a.phi) * np.cos(self.delta),            np.sin(self.x_a.phi)* np.cos(self.x_a.theta)],
+                                       [ np.cos(self.x_a.phi) * np.sin(self.x_a.theta) * np.cos(self.delta) - np.sin(self.x_a.phi) * np.sin(self.delta),     -np.cos(self.x_a.phi) * np.sin(self.x_a.theta) * np.sin(self.delta) - np.sin(self.x_a.phi) * np.cos(self.delta),            np.cos(self.x_a.phi)* np.cos(self.x_a.theta)]])
+        
+       # Bardni. Pag. 260 eq. 11-10
+       self.VTR_rear_axel = np.array([[                  np.cos(self.x_a.theta),                                  0,                                   -np.sin(self.x_a.theta)],
+                                      [ np.sin(self.x_a.phi) * np.sin(self.x_a.theta),     np.cos(self.x_a.phi),            np.sin(self.x_a.phi)* np.cos(self.x_a.theta)],
+                                      [ np.cos(self.x_a.phi) * np.sin(self.x_a.theta),   - np.sin(self.x_a.phi),            np.cos(self.x_a.phi)* np.cos(self.x_a.theta)]])
+       
+    def access_z_road(x,y):
+       #TODO implement topography
+        z = 0.
+        return z
+    
+    def road(self):
+        for k in range(4):
+        #     self.displacement.zs[k][2] = self.access_z_road(self.displacement.zs[k][0],self.displacement.zs[k][1])
+            self.displacement.zs[k]=0.
+        
+     
+    def suspension(self): # previsious forces, ax,ay 
+        # Forces on the vehicle chassis at the pivot points Ai
+       
+        # Bardini pag. 265 eq. 11-21  
+        #TODO check signal
+        #TODO adicionar zs dot
+        
+        #TODO: doing changes in signals
+        
+        self.displacement.za = np.array([0,0,0,0]) # CONSIDERANDO QUE NAO HÁ TRANSFERENCIA DE CARGA
+        
+        self.f_zr.wheel_load_z = (self.param.eq_stiff*(-self.displacement.za + self.displacement.zs + self.displacement.l_stat
+                                                        ) + self.param.dumper * (self.displacement.za_dot-self.displacement.za_dot)) * np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([[0],[0],[1]]))[2]
+        
+        ### NO MEU PONTO DE VISTA AQUI VOCE CALCULARIA COMO AS FORCAS QUE AGEM NO CG ATUAM NOS PO
+        
+        # self.f_za.spring_force[i] = (self.param.eq_stiff[i] * (self.displacement.za[i]-self.displacement.zs[i]+ self.displacement.l_stat[i]) *  np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([0.,0.,1]))[0] 
+        # Bardini pag. 266 eq. 11-22
+        # self.f_za.dumper_force[i] = (self.param.dumper[i] * (self.displacement.za_dot[i] - self.displacement.zr_dot[i]
+        #) + self.param.dumper[i]) * np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([[0],[0],[1]]))[0]
+        
+        
+        print ("displacement.za",self.displacement.za)
+        print ("whell load z", self.f_zr.wheel_load_z)
+        # V_F_fi - Forces on tires action on the chassis at the pivot points Ai of the four wheel >> Bardini pag 263
+        
+        
+        ##### O QUE ISSO AQUI FAZ?
+        #for i in range(4):
+        #    if self.f_zr.wheel_load_z[i] > 0: 
+        #        self.f_za.f_za[i] = self.f_zr.wheel_load_z[i]
+        #    else:
+        #        self.f_za.f_za[i] = self.param.m*self.gravity*self.param.wd[i]
+        #        #chassi_converted_force[i] = np.cross(self.position_chassi_force,self.strut2chassi_xyz[i]) # check calculus: f.za is z direction
+        #    #TODO: check transpose_vehicle_fixed2inertial_system operation  
+    
+
+        
     
     def  chassis(self): # vertical_loads, ax, ay, t_step
             "Equations of motion Bardini, pag 272 ---- need initialize values"
@@ -467,15 +521,15 @@ class VehicleDynamics(object):
     def tick(self, gas_pedal, brake, steering, time):
         self.powertrain(gas_pedal, brake, self.param.rpm_table, self.param.torque_max) # 
         self.steering(steering)
-        self.wheel_fix_coord_sys()
-        self.road()
-        self.Wheel_angular()
-        self.suspension()
+        self.wheel_fix_coord_sys() # Include inside steering
         self.wheel_slip()
         self.tire_model()
+        self.Wheel_angular()
+        self.road()
+        self.suspension()
         self.chassis() 
 
-        return [self.x_a.x,self.x_a.y,self.x_a.z,self.x_a.psi,self.x_a.theta,self.x_a.phi,self.x_a.vx,self.x_a.vy,self.x_a.vz,self.x_a.wx,self.x_a.wy,self.x_a.wz,self.x_a.acc[0],self.x_a.acc[1],self.x_a.acc[2]]
+        return [self.x_a.x,self.x_a.y,self.x_a.z,self.x_a.psi,self.x_a.theta,self.x_a.phi,self.x_a.vx,self.x_a.vy,self.x_a.vz,self.x_a.wx,self.x_a.wy,self.x_a.wz,self.x_a.acc[0],self.x_a.acc[1],self.x_a.acc[2],self.rpm]  #self.x_rf.fx[2]
         
 ################################################################################################################################        
 
@@ -657,5 +711,5 @@ class ImportParam(object):
         self.wd1 = (self.lh/(self.lh+self.lv)) * self.sr/(self.sl +self.sr)
         self.wd2 = (self.lv/(self.lh+self.lv)) * self.sr/(self.sl +self.sr)
         self.wd3 = (self.lh/(self.lh+self.lv)) * self.sr/(self.sl +self.sl)
-        self.wd4 = (self.lh/(self.lh+self.lv)) * self.sr/(self.sl +self.sl)
+        self.wd4 = (self.lv/(self.lh+self.lv)) * self.sr/(self.sl +self.sl)
         self.wd = np.array([self.wd1,self.wd2,self.wd3,self.wd4])
