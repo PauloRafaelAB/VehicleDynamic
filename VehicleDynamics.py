@@ -38,7 +38,7 @@ class VehicleDynamics(object):
         self.throttle = 0.0                         # thorttle position (0< throttle <1)
         self.brake = 0.0                            # Brake pedal position (0< brake <1)
         #self.alpha_engine = 0.0                     # Angular acc engine
-        self.wheel_w_vel = np.array([0.,0.,0.,0.])
+        self.wheel_w_vel = np.zeros(4)
         self.torque_converter_ratio_inter = interp1d(self.param.speed_ratio_TC, self.param.torque_converter_ratio)
         self.drag = 0.5*self.param.row * self.param.Cd * self.param.Front_area  # constant for air resistance
                        
@@ -47,9 +47,9 @@ class VehicleDynamics(object):
         
         #Wheel initiate stoped 
         self.x_rr = AngularWheelPosition(pho_r=np.zeros(4), pho_r_dot = np.zeros(4),pho_r_2dot =np.zeros(4))
-        self.x_rf = TireForces(fx =np.array([0.,0.,0.,0.]), fy = np.array([0.,0.,0.,0.]),wheel_forces_transformed_force2vehicle_sys = np.zeros((4,3),dtype=float))
-        self.displacement = Displacement(l_stat=(self.param.m*self.param.wd*self.gravity)/self.param.eq_stiff, za= np.array([0.,0.,0.,0.]), za_dot=np.array([0.,0.,0.,0.]), zr_dot=np.array([0.,0.,0.,0.]),zr_2dot=np.array([0.,0.,0.,0.]))
-        self.f_za = StrutForce(f_za = self.param.m*self.gravity*self.param.wd, f_za_dot = np.array([0.,0.,0.,0.]),spring_force = (self.param.m_s*self.gravity).reshape(-1,1), dumper_force = np.zeros((4,1),dtype=float))
+        self.x_rf = TireForces(fx =np.zeros(4), fy = np.zeros(4),wheel_forces_transformed_force2vehicle_sys = np.zeros((4,3),dtype=float))
+        self.displacement = Displacement(l_stat=(self.param.m*self.param.wd*self.gravity)/self.param.eq_stiff, za= np.zeros(4), za_dot=np.zeros(4), zr_dot=np.zeros(4),zr_2dot=np.zeros(4))
+        self.f_za = StrutForce(f_za = self.param.m*self.gravity*self.param.wd, f_za_dot = np.zeros(4),spring_force = (self.param.m_s*self.gravity).reshape(-1,1), dumper_force = np.zeros((4,1),dtype=float))
         self.f_zr = WheelHubForce(f_zr_dot=np.array([0.,0.,0.,0.]), wheel_load_z = self.param.m*self.gravity*self.param.wd)
         self.wheel_hub_velocity = np.zeros((4,3))
         self.polar_inertia_v = np.array([[self.param.i_x_s, 0., 0.],
@@ -71,7 +71,7 @@ class VehicleDynamics(object):
         
         # Static displacement of the springs and tire
         # self.displacement.l_stat = self.param.m*self.param.wd *self.gravity / self.param.eq_stiff
-        
+       
         # Creating vector for chassis method 
         self.sum_f_wheel = np.zeros(3, dtype=float) # Sum of wheel forces
         #self.acc = np.zeros((3),dtype=float) # acceleration
@@ -528,6 +528,7 @@ class VehicleDynamics(object):
         self.road()
         self.suspension()
         self.chassis() 
+        print('                      ')
 
         return [self.x_a.x,self.x_a.y,self.x_a.z,self.x_a.psi,self.x_a.theta,self.x_a.phi,self.x_a.vx,self.x_a.vy,self.x_a.vz,self.x_a.wx,self.x_a.wy,self.x_a.wz,self.x_a.acc[0],self.x_a.acc[1],self.x_a.acc[2],self.rpm]  #self.x_rf.fx[2]
         
