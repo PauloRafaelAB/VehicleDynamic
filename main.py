@@ -13,8 +13,8 @@ from scipy.interpolate import interp1d
 
 from VehicleDynamics import VehicleDynamics
 
-frequency= 100
-maxi = 0.05
+frequency= 1000
+maxi = 5.
 time = np.linspace(0, maxi, int(maxi*frequency))
 
 
@@ -40,16 +40,16 @@ for i in range(len(u[0])):
     # states is a vector of output 
 
 # plt.plot(time, throttle, 'b',label='X vel', time, states[6], 'g-',label='X vel',time, states[9],'r', label='Acc x')
-plt.plot(time, throttle, 'b',label='throttle')
-#plt.plot(time, states[0], '4k',label='position')
-plt.plot(time, states[3], '4b',label='roll')
-#plt.plot(time, states[4], '4c',label='pitch')
-plt.plot(time, states[5], '1g',label='yaw')
+# plt.plot(time, throttle, 'b',label='throttle')
+# plt.plot(time, states[0], '4k',label='x position')
+# plt.plot(time, states[3], '4b',label='roll')
+# plt.plot(time, states[4], '4c',label='pitch')
+# plt.plot(time, states[5], '1g',label='yaw')
 
-#plt.plot(time, states[6], '2y',label='vx')
-#plt.plot(time, states[9], '--',label='ang vel')
-plt.plot(time, states[12], '3m',label='x acc')
-plt.plot(time, states[15], 'm',label='gear')
+plt.plot(time, states[6], '2y',label='vx')
+# plt.plot(time, states[10], '--',label='pitch rate')
+plt.plot(time, states[12], '3m',label='acc x')
+plt.plot(time, states[15], 'k',label='gear')
 plt.xlabel('time (s)')
 plt.title('Logitudinal dynamic')
 plt.legend()

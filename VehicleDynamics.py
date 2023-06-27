@@ -48,7 +48,7 @@ class VehicleDynamics(object):
         #Wheel initiate stoped 
         self.x_rr = AngularWheelPosition(pho_r=np.zeros(4), pho_r_dot = np.zeros(4),pho_r_2dot =np.zeros(4))
         self.x_rf = TireForces(fx =np.zeros(4), fy = np.zeros(4),wheel_forces_transformed_force2vehicle_sys = np.zeros((3,4),dtype=float))
-        self.displacement = Displacement(l_stat=(self.param.m*self.param.wd*self.gravity)/self.param.eq_stiff, za= np.zeros(4), za_dot=np.zeros(4), zr_dot=np.zeros(4),zr_2dot=np.zeros(4))
+        self.displacement = Displacement(l_stat=(self.param.m*self.param.wd*self.gravity)/self.param.eq_stiff, za = np.zeros(4), za_dot=np.zeros(4), zr_dot=np.zeros(4),zr_2dot=np.zeros(4))
         self.f_za = StrutForce(f_za = self.param.m*self.gravity*self.param.wd, f_za_dot = np.zeros(4),spring_force = (self.param.m_s*self.gravity).reshape(-1,1), dumper_force = np.zeros((4,1),dtype=float))
         self.f_zr = WheelHubForce(f_zr_dot=np.array([0.,0.,0.,0.]), wheel_load_z = self.param.m*self.gravity*self.param.wd)
         self.wheel_hub_velocity = np.zeros((4,3))
@@ -109,14 +109,12 @@ class VehicleDynamics(object):
         # WOULD_IT_NOT_LEAD_TO_JUMPING_GEARS_REQUIRES_IMPROVEMENT___________________________________________________________________      
         #-----------Tranmission ratio----------
             
-        
+        # Up or down shifting
         if self.x_a.vx > self.param.gear_selection[int(self.throttle*10)][self.gear]:
             self.gear = self.gear + 1
             if self.gear >= self.param.gear_ratio.size:
                 self.gear = self.param.gear_ratio.size-1
-        
-        # Using an offset of upshift
-        elif self.x_a.vx < 0.8*self.param.gear_selection[int(self.throttle*10)][self.gear]:
+        elif self.x_a.vx < 0.8*self.param.gear_selection[int(self.throttle*10)][self.gear-1]:
             self.gear = self.gear - 1
             if self.gear < 1:
                 self.gear = 1
@@ -252,15 +250,15 @@ class VehicleDynamics(object):
             
             # Slip calculation - Wheel slip is calculated by wheel fixed system
             
-            if self.param.r_dyn[i] * self.wheel_w_vel[i] == abs(self.x_a.vx):
-                self.slip_x[i] = 0.0
-            elif abs(self.param.r_dyn[i] * self.wheel_w_vel[i]) > abs(self.x_a.vx):
-                self.slip_x[i] = 1.0 - abs(self.x_a.vx/(self.param.r_dyn[i] * self.wheel_w_vel[i] + 1e-52))
-            else:
-                self.slip_x[i] = -1.0 + abs(self.param.r_dyn[i] * self.wheel_w_vel[i]/(self.x_a.vx + 1e-52))
+            # if self.param.r_dyn[i] * self.wheel_w_vel[i] == abs(self.x_a.vx):
+            #     self.slip_x[i] = .0
+            # elif abs(self.param.r_dyn[i] * self.wheel_w_vel[i]) > abs(self.x_a.vx):
+            #     self.slip_x[i] =  abs(self.x_a.vx/(self.param.r_dyn[i] * self.wheel_w_vel[i] + 1e-52))
+            # else:
+            #     self.slip_x[i] = - abs(self.param.r_dyn[i] * self.wheel_w_vel[i]/(self.x_a.vx + 1e-52))
                 
             
-            #self.slip_x[i] = (((self.param.r_dyn[i] * self.wheel_w_vel[i] - self.x_a.vx )/ max([abs(self.param.r_dyn[i] * self.wheel_w_vel[i]+1e-16), abs(1e-16+self.x_a.vx)])))         # equation 11.30 Bardini
+            self.slip_x[i] = (((self.param.r_dyn[i] * self.wheel_w_vel[i] - self.x_a.vx )/ max([abs(self.param.r_dyn[i] * self.wheel_w_vel[i]+1e-26), abs(1e-26+self.x_a.vx)])))         # equation 11.30 Bardini
             ##### REMOVED THE ABS()
             print('self.wheel_w_vel[i]',self.wheel_w_vel[i])
             print(self.x_a.vx,'vx')
@@ -326,9 +324,15 @@ class VehicleDynamics(object):
         '''
         # EULER’s Equations of the Wheels: Solve  11-25 Bardini pag 266
         ## Torque, fx_car, fy_car, Inertias wheel,  output wheel Wv, dot_wv
+        if self.powertrain_net_torque[0] > (self.x_rf.fx[0]/self.param.r_dyn[0]):
+            self.x_rr.pho_r_2dot  =  (self.powertrain_net_torque  - self.x_rf.fx/self.param.r_dyn ) /self.param.iw
+        else:
+            self.x_rr.pho_r_2dot = self.powertrain_net_torque / self.param.iw
         
-        self.x_rr.pho_r_2dot  =  (self.powertrain_net_torque  - self.x_rf.fx/self.param.r_dyn ) /self.param.iw
-        print(self.x_rr.pho_r_2dot,"pho_r_2dot")
+        print('torque fx',self.x_rf.fx/self.param.r_dyn)
+        print('powertrain net torque',self.powertrain_net_torque)
+        
+        print("pho_r_2dot     ", self.x_rr.pho_r_2dot)
         print("FX_________",self.x_rf.fx)
         
         # Calculate the intregral of the wheel_acc to calculate slip_x
@@ -395,11 +399,11 @@ class VehicleDynamics(object):
             
             """O que faz esses valores atras da acceleracao??????????????"""
             self.x_a.acc[0] = (self.sum_f_wheel[0]  - self.drag * self.x_a.vx **2
-                           )/self.param.m #+ self.x_a.wz * self.x_a.vy - self.x_a.wy * self.x_a.vz 
+                           )/self.param.m + self.x_a.wz * self.x_a.vy - self.x_a.wy * self.x_a.vz 
             self.x_a.acc[1] = (self.sum_f_wheel[1] -self.x_a.vy **2
-                           )/self.param.m #+ self.x_a.wx * self.x_a.vz - self.x_a.wz * self.x_a.vx
+                           )/self.param.m + self.x_a.wx * self.x_a.vz - self.x_a.wz * self.x_a.vx
             self.x_a.acc[2] = (self.sum_f_wheel[2] - self.param.m * self.gravity
-                           )/self.param.m #+ self.x_a.wy * self.x_a.vx - self.x_a.wx * self.x_a.vy
+                           )/self.param.m + self.x_a.wy * self.x_a.vx - self.x_a.wx * self.x_a.vy
             
             # vehicle velocity calculation
             self.x_a.vx = self.x_a.vx + self.x_a.acc[0]* self.time_step 
