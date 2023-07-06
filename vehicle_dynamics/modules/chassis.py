@@ -4,7 +4,7 @@ from ..structures.StateVector import StateVector
 import numpy as np
 
 
-def chassis(param:ImportParam,
+def chassis(param: ImportParam,
             x_a: StateVector,
             x_rf: TireForces,
             time_step: float,
@@ -16,8 +16,6 @@ def chassis(param:ImportParam,
     """
     Chassis is a function that calculates the current status of the chassis
 
-    vertical_loads, ax, ay, t_step
-
     Required Parameters from Param:
         1. m
         2. lv
@@ -27,7 +25,7 @@ def chassis(param:ImportParam,
     Required Arguments:
         1. x_a
             1.01 roll
-            1.02 picth
+            1.02 pitch
             1.03 yaw
             1.04 wz
             1.05 wy
@@ -46,8 +44,12 @@ def chassis(param:ImportParam,
         8. polar_inertia_v
 
     Returns:
-        1. ??
-        2. ??
+        1. [x_a.x, x_a.y, x_a.z] 
+        1. x_a.acc
+        4. x_a.vx
+        5. x_a.vy
+        6. x_a.vz
+        7. displacement.za
 
     """
     "Equations of motion Bardini, pag 272 ---- need initialize values"
@@ -108,14 +110,14 @@ def chassis(param:ImportParam,
 
     # Angular position
     x_a.roll = x_a.wx * time_step + x_a.roll
-    x_a.picth = x_a.wy * time_step + x_a.picth
+    x_a.pitch = x_a.wy * time_step + x_a.pitch
     x_a.yaw = x_a.wz * time_step + x_a.yaw
 
     # TODO: updated transformation to vehicle system
 
-    # vehicle_fixed2inertial_system = np.array([[np.cos(x_a.picth) * np.cos(x_a.yaw), np.sin(x_a.roll) * np.sin(x_a.picth) * np.cos(x_a.yaw) - np.cos(x_a.roll) * np.sin(x_a.yaw),     np.cos(x_a.roll) * np.sin(x_a.picth) * np.cos(x_a.yaw) + np.sin(x_a.roll) * np.sin(x_a.yaw)],
-    #                                       [np.cos(x_a.picth) * np.sin(x_a.yaw), np.sin(x_a.roll) * np.sin(x_a.picth) * np.sin(x_a.yaw) + np.cos(x_a.roll) * np.sin(x_a.yaw),     np.cos(x_a.roll) * np.sin(x_a.picth) * np.sin(x_a.yaw) - np.sin(x_a.roll) * np.cos(x_a.yaw)],
-    #                                       [-np.sin(x_a.picth),                         np.sin(x_a.roll) * np.cos(x_a.picth),                                                      np.cos(x_a.roll) * np.cos(x_a.picth)]])
+    # vehicle_fixed2inertial_system = np.array([[np.cos(x_a.pitch) * np.cos(x_a.yaw), np.sin(x_a.roll) * np.sin(x_a.pitch) * np.cos(x_a.yaw) - np.cos(x_a.roll) * np.sin(x_a.yaw),     np.cos(x_a.roll) * np.sin(x_a.pitch) * np.cos(x_a.yaw) + np.sin(x_a.roll) * np.sin(x_a.yaw)],
+    #                                       [np.cos(x_a.pitch) * np.sin(x_a.yaw), np.sin(x_a.roll) * np.sin(x_a.pitch) * np.sin(x_a.yaw) + np.cos(x_a.roll) * np.sin(x_a.yaw),     np.cos(x_a.roll) * np.sin(x_a.pitch) * np.sin(x_a.yaw) - np.sin(x_a.roll) * np.cos(x_a.yaw)],
+    #                                       [-np.sin(x_a.pitch),                         np.sin(x_a.roll) * np.cos(x_a.pitch),                                                      np.cos(x_a.roll) * np.cos(x_a.pitch)]])
 
     # bardini pag 260 -- use vector of torque x euler angle rate
 
@@ -128,15 +130,15 @@ def chassis(param:ImportParam,
 
     # TODO new displacements need taking euler angles into account
 
-    # displacement.za[0]= x_a.z #- param.lv* np.sin(x_a.picth)+ param.sl*np.sin(x_a.roll)
-    # displacement.za[1]= x_a.z #+ param.lh* np.sin(x_a.picth)+ param.sl*np.sin(x_a.roll)
-    # displacement.za[2]= x_a.z #- param.lv* np.sin(x_a.picth)- param.sr*np.sin(x_a.roll)
-    # displacement.za[3]= x_a.z #+ param.lh* np.sin(x_a.picth)- param.sr*np.sin(x_a.roll)
+    # displacement.za[0]= x_a.z #- param.lv* np.sin(x_a.pitch)+ param.sl*np.sin(x_a.roll)
+    # displacement.za[1]= x_a.z #+ param.lh* np.sin(x_a.pitch)+ param.sl*np.sin(x_a.roll)
+    # displacement.za[2]= x_a.z #- param.lv* np.sin(x_a.pitch)- param.sr*np.sin(x_a.roll)
+    # displacement.za[3]= x_a.z #+ param.lh* np.sin(x_a.pitch)- param.sr*np.sin(x_a.roll)
 
-    displacement.za[0] = - param.lv * np.sin(x_a.picth) + param.sl * np.sin(x_a.roll)
-    displacement.za[1] = + param.lh * np.sin(x_a.picth) + param.sl * np.sin(x_a.roll)
-    displacement.za[2] = - param.lv * np.sin(x_a.picth) - param.sr * np.sin(x_a.roll)
-    displacement.za[3] = + param.lh * np.sin(x_a.picth) - param.sr * np.sin(x_a.roll)
+    displacement.za[0] = - param.lv * np.sin(x_a.pitch) + param.sl * np.sin(x_a.roll)
+    displacement.za[1] = + param.lh * np.sin(x_a.pitch) + param.sl * np.sin(x_a.roll)
+    displacement.za[2] = - param.lv * np.sin(x_a.pitch) - param.sr * np.sin(x_a.roll)
+    displacement.za[3] = + param.lh * np.sin(x_a.pitch) - param.sr * np.sin(x_a.roll)
 
     return 
 

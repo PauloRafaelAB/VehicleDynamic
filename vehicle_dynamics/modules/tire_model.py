@@ -4,7 +4,7 @@ from ..structures.StateVector import StateVector
 import numpy as np
 
 
-def tire_model(param:ImportParam,
+def tire_model(param: ImportParam,
                x_a: StateVector,   
                x_rf: TireForces,
                f_zr: np.ndarray,
@@ -25,7 +25,7 @@ def tire_model(param:ImportParam,
     Required Arguments:
         1. x_a
             1.01 roll
-            1.02 picth
+            1.02 pitch
             1.03 yaw
             1.04 wz
             1.05 wy
@@ -46,7 +46,7 @@ def tire_model(param:ImportParam,
         6. compiled_wheel_forces 
         7. VTR_front_axel
         8. VTR_rear_axel
-        
+
 
     Returns:
         1. ??
