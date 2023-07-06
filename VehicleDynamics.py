@@ -12,6 +12,7 @@ from scipy.interpolate import interp1d
 from numpy.linalg import inv
 import numpy as np
 import yaml
+import math
 
 class VehicleDynamics(object):
     # ^class name  #^ inherits from object
@@ -90,51 +91,36 @@ class VehicleDynamics(object):
         # for i in range(4): 
         #     self.wheel_hub_position[i] = self.position_chassi_force[i] + np.matmul(self.transpose_vehicle_fixed2inertial_system,np.array([0,0,self.displacement.l_stat[i]]))
 
-      
-    def powertrain(self, throttle, brake, rpm_table, torque_max_table):
-        ###################################CALCULAR RPMMMMMMMMMMM
-        # Updating RPM
-        self.rpm = self.final_ratio * np.mean(self.wheel_w_vel)   # Wheel vx to engine RPM
-        print("RPM    ",self.rpm)
-        if self.rpm < 1000.:
-            self.rpm = 1000.
-        if self.rpm > 8000.:
-            self.rpm = 8000.
+    
+    def powertrain(self,throttle, brake, rpm_table, torque_max_table, gear_ratio, diff, diff_ni, transmition_ni, gear_selection, engine_inertia, axel_inertia, gearbox_inertia, shaft_inertia, wheel_inertia, max_brake_torque, brake_bias, acc_x, wheel_w_vel, gear, vx):
         
-        # Torque provided by the engine
+        # Update Engine RPM
+        rpm =  gear_ratio[gear] * diff * np.mean(wheel_w_vel)   # Wheel vx to engine RPM
+        if rpm < rpm_table[0]:
+            rpm = rpm_table[0]
+        if rpm > rpm_table[-1]:
+           rpm = rpm_table[-1]
+        
+        
+        # Calculate torque provided by the engine based on the engine RPM
         torque_interpolation = interp1d(rpm_table, torque_max_table)    # how much torque is available thoughout the rpm range 
-        torque_available = torque_interpolation(self.rpm)               # Max torque available at rpm
+        torque_available = torque_interpolation(rpm)                    # Max torque available at rpm
         engine_torque = throttle * torque_available                     # find the torque delivered by te engine
+              
         
-        # WOULD_IT_NOT_LEAD_TO_JUMPING_GEARS_REQUIRES_IMPROVEMENT___________________________________________________________________      
-        #-----------Tranmission ratio----------
-            
-        # Up or down shifting
-        if self.x_a.vx > self.param.gear_selection[int(self.throttle*10)][self.gear]:
-            self.gear = self.gear + 1
-            if self.gear >= self.param.gear_ratio.size:
-                self.gear = self.param.gear_ratio.size-1
-        elif self.x_a.vx < 0.8*self.param.gear_selection[int(self.throttle*10)][self.gear-1]:
-            self.gear = self.gear - 1
-            if self.gear < 1:
-                self.gear = 1
-        
-        '''for i in range(len(self.param.gear_ratio)): # checking number of gears
-         
-            if self.x_a.acc[0] >= 0.0:
-                if self.x_a.vx > self.param.gear_selection[int(self.throttle*10)][i]:
-                    if i >6:
-                        i=6
-                        self.gear = self.param.gear_ratio[i+1]
-            # Using an offset of upshift
-            if self.x_a.acc[0] <0:
-                if  (self.x_a.vx * 0.8) < self.param.gear_selection[int(self.throttle*10)][i]:
-                    self.gear = self.param.gear_ratio[i]
-            
-            ## Se o carro nao estiver com acc=0, accelerando nem desacelerando ele fica no neutro (Nunca vai acontecer)
-            else:
-                self.gear = self.param.gear_ratio[0]    # neutral   ''' 
-        # _____________________________________________________________________________________________________________________________
+        # Gearbox up or down shifting
+        if vx > gear_selection[int(throttle*10)][gear]:
+            gear = gear + 1
+            if gear >= gear_ratio.size:
+                gear = gear_ratio.size-1
+        elif vx < 0.8*gear_selection[int(throttle*10)][gear-1]:
+            gear = gear - 1
+            if gear < 1:
+                gear = 1
+                
+                
+        #Torque converter        
+        # TODO: Include the torque converter
         
         # self.wheel_rpm = 30 * self.x_a.vx/( self.param.r_dyn * np.pi) #RADSEC2RPM = 30/np.pi
         # replaced by self.wheel_w_vel
@@ -146,35 +132,18 @@ class VehicleDynamics(object):
         #     speed_ratio = 1.0
         # torque_convertion = self.torque_converter_ratio_inter(speed_ratio)
         
+        
         # TODO: Engine torque to wheel, taking inercia into account (separated by gear)
-        self.final_ratio = self.param.gear_ratio[self.gear] * self.param.diff # check final gear calculation
+ 
+        traction_torque = (engine_torque * gear_ratio[gear] * diff * diff_ni * transmition_ni) - ((engine_inertia + axel_inertia + gearbox_inertia) * gear ** 2 + shaft_inertia * gear_ratio[gear] * diff ** 2 + wheel_inertia) * acc_x
         
-        print("Final ratio", self.final_ratio)
-        print ("Engine Torque", engine_torque)
-        #TODO: check inertias and formulation
-        
-        #### ENGINE TORQUE IS INCORRECT 
-        traction_torque = (engine_torque * self.final_ratio * self.param.diff_ni * self.param.transmition_ni) - ((self.param.engine_inertia + self.param.ia + self.param.ig) * self.gear ** 2 + self.param.id * self.final_ratio ** 2 + self.param.i_wheel) * self.x_a.acc[0]
-                                                               
                             
         #--------------------Break Torque -------------------------
-        # using brake pedal as input, the brake torque can be calculated by 
-        brake_torque = self.brake * self.param.max_brake_torque
+        brake_torque = brake * max_brake_torque
         
-        #-------------------- Net Torque -------------------------
-        self.powertrain_net = traction_torque - brake_torque
+        #-------------------- Total Torque -------------------------
+        powertrain_net_torque = (traction_torque - brake_torque)*brake_bias
         
-        # function traction divided between axles
-        self.powertrain_net_torque = np.empty(4, dtype = float)
-        self.powertrain_net_torque[0] = self.powertrain_net*0.5* self.param.b_bias  
-        self.powertrain_net_torque[1] = self.powertrain_net*0.5* (1-self.param.b_bias)
-        self.powertrain_net_torque[2] = self.powertrain_net*0.5* self.param.b_bias
-        self.powertrain_net_torque[3] = self.powertrain_net*0.5* (1-self.param.b_bias)
-        
-        
-        #self.powetrain_force = self.powertrain_net_torque/self.param.r_dyn # NAO ESTÀ SENDO USADO EM LUGAR NENHUM 
-        
-        print ("Powertrain Torque", self.powertrain_net_torque)
         """
         # TODO: Check Angular accelerations
         self.alpha_wheel = self.acc_x / self.param.r_dyn #(it s gone be used the one in the car) 
@@ -189,7 +158,7 @@ class VehicleDynamics(object):
         self.torque_d_shaft = (self.clucht_torque - self.param.i_clutch * self.alpha_egine) * self.gear ## Gillespi p.26
         self.engine2wheel_torque = (self.torque_d_shaft - self.param.i_d_shaft * self.alpha_d_shaft) * self.gear
         """
-
+        return [rpm, gear, powertrain_net_torque]
    
     def steering(self, steering):
         
@@ -253,15 +222,14 @@ class VehicleDynamics(object):
             # if self.param.r_dyn[i] * self.wheel_w_vel[i] == abs(self.x_a.vx):
             #     self.slip_x[i] = .0
             # elif abs(self.param.r_dyn[i] * self.wheel_w_vel[i]) > abs(self.x_a.vx):
-            #     self.slip_x[i] =  abs(self.x_a.vx/(self.param.r_dyn[i] * self.wheel_w_vel[i] + 1e-52))
+            #     self.slip_x[i] = 1 - abs(self.x_a.vx/(self.param.r_dyn[i] * self.wheel_w_vel[i] + 1e-52))
             # else:
-            #     self.slip_x[i] = - abs(self.param.r_dyn[i] * self.wheel_w_vel[i]/(self.x_a.vx + 1e-52))
-                
-            
+            #     self.slip_x[i] = -1 + abs(self.param.r_dyn[i] * self.wheel_w_vel[i]/(self.x_a.vx + 1e-52))
+                 
             self.slip_x[i] = (((self.param.r_dyn[i] * self.wheel_w_vel[i] - self.x_a.vx )/ max([abs(self.param.r_dyn[i] * self.wheel_w_vel[i]+1e-26), abs(1e-26+self.x_a.vx)])))         # equation 11.30 Bardini
             ##### REMOVED THE ABS()
-            print('self.wheel_w_vel[i]',self.wheel_w_vel[i])
-            print(self.x_a.vx,'vx')
+            #print('self.wheel_w_vel[i]',self.wheel_w_vel[i])
+            #print(self.x_a.vx,'vx')
             
             # Lateral slip: define wheel_vy Equacao 11_28 >> converte to tire direction
             self.slip_y[i] = - np.arctan( self.x_a.vy / max([abs(self.param.r_dyn[i] * self.wheel_w_vel[i]+1e-16), abs(1e-16+self.x_a.vx)])) # equation 11.31 Bardini
@@ -276,9 +244,6 @@ class VehicleDynamics(object):
         print("SLIP X ",self.slip_x)
     
     def tire_model(self): # fz, slip
-    
-    
-    ######## X IS BIGGER THAN Z ?????????????
     
     ## Input slip, fz - fx_car, fy_car
         print('wheel_load_z',self.f_zr.wheel_load_z)
@@ -314,9 +279,6 @@ class VehicleDynamics(object):
         print("Compiled wheel forces ", self.compiled_wheel_forces)
         print("Compiled wheel force to vehicle", self.x_rf.wheel_forces_transformed_force2vehicle_sys)
 
-        
-        
-        
     
     def Wheel_angular(self):
         ''' wheel velocities are used to calcule slip, than when can futher calculate ax,ay using the forces 
@@ -373,7 +335,7 @@ class VehicleDynamics(object):
         # Bardini pag. 265 eq. 11-21  
         
         # TODO adicionar zs dot VERIFICAR SE É ZA_DOT-ZS_DOT ou se é do outro jeito 
-        self.displacement.za = np.array([0,0,0,0]) # CONSIDERANDO QUE NAO HÁ TRANSFERENCIA DE CARGA
+        #self.displacement.za = np.array([0,0,0,0]) # CONSIDERANDO QUE NAO HÁ TRANSFERENCIA DE CARGA
         self.f_zr.wheel_load_z = (self.param.eq_stiff*(-self.displacement.za + self.displacement.zs + self.displacement.l_stat
                                                         ) + self.param.dumper * (self.displacement.za_dot)) * np.matmul(self.transpose_vehicle_fixed2inertial_system, np.array([[0],[0],[1]]))[2]
         
@@ -468,10 +430,15 @@ class VehicleDynamics(object):
             
             # TODO new displacements need taking euler angles into account
 
-            self.displacement.za[0]= self.x_a.z - self.param.lv* np.sin(self.x_a.picth)+ self.param.sl*np.sin(self.x_a.yaw)
-            self.displacement.za[1]= self.x_a.z + self.param.lh* np.sin(self.x_a.picth)+ self.param.sl*np.sin(self.x_a.yaw)
-            self.displacement.za[2]= self.x_a.z - self.param.lv* np.sin(self.x_a.picth)- self.param.sr*np.sin(self.x_a.yaw)
-            self.displacement.za[3]= self.x_a.z + self.param.lh* np.sin(self.x_a.picth)- self.param.sr*np.sin(self.x_a.yaw)
+            # self.displacement.za[0]= self.x_a.z #- self.param.lv* np.sin(self.x_a.picth)+ self.param.sl*np.sin(self.x_a.roll)
+            # self.displacement.za[1]= self.x_a.z #+ self.param.lh* np.sin(self.x_a.picth)+ self.param.sl*np.sin(self.x_a.roll)
+            # self.displacement.za[2]= self.x_a.z #- self.param.lv* np.sin(self.x_a.picth)- self.param.sr*np.sin(self.x_a.roll)
+            # self.displacement.za[3]= self.x_a.z #+ self.param.lh* np.sin(self.x_a.picth)- self.param.sr*np.sin(self.x_a.roll)
+            
+            self.displacement.za[0]= - self.param.lv* np.sin(self.x_a.picth)+ self.param.sl*np.sin(self.x_a.roll)
+            self.displacement.za[1]= + self.param.lh* np.sin(self.x_a.picth)+ self.param.sl*np.sin(self.x_a.roll)
+            self.displacement.za[2]= - self.param.lv* np.sin(self.x_a.picth)- self.param.sr*np.sin(self.x_a.roll)
+            self.displacement.za[3]= + self.param.lh* np.sin(self.x_a.picth)- self.param.sr*np.sin(self.x_a.roll)
             
             return 
         
@@ -482,7 +449,9 @@ class VehicleDynamics(object):
             return 0
     
     def tick(self, gas_pedal, brake, steering, time):
-        self.powertrain(gas_pedal, brake, self.param.rpm_table, self.param.torque_max) # 
+        #self.powertrain(gas_pedal, brake, self.param.rpm_table, self.param.torque_max) # 
+        [self.rpm, self.gear, self.powertrain_net_torque] = self.powertrain(gas_pedal, brake, self.param.rpm_table, self.param.torque_max, self.param.gear_ratio, self.param.diff,self.param.diff_ni, self.param.transmition_ni, self.param.gear_selection, self.param.engine_inertia, self.param.ia, self.param.ig, self.param.id, self.param.i_wheel, self.param.max_brake_torque, self.param.b_bias, self.x_a.acc[0],self.wheel_w_vel, self.gear, self.x_a.vx) #
+              
         self.steering(steering)
         self.rotationalmatrix()
         self.wheel_slip()
@@ -493,7 +462,7 @@ class VehicleDynamics(object):
         self.chassis() 
         print('                      ')
 
-        return [self.x_a.x,self.x_a.y,self.x_a.z,self.x_a.roll,self.x_a.picth,self.x_a.yaw,self.x_a.vx,self.x_a.vy,self.x_a.vz,self.x_a.wx,self.x_a.wy,self.x_a.wz,self.x_a.acc[0],self.x_a.acc[1],self.x_a.acc[2],self.gear]  #self.rpm self.x_rf.fx[2]
+        return [self.x_a.x,self.x_a.y,self.x_a.z,self.x_a.roll,self.x_a.picth,self.x_a.yaw,self.x_a.vx,self.x_a.vy,self.x_a.vz,self.x_a.wx,self.x_a.wy,self.x_a.wz,self.x_a.acc[0],self.x_a.acc[1],self.x_a.acc[2],self.gear,self.slip_x[0],self.slip_x[1],self.slip_x[2],self.slip_x[3], self.wheel_w_vel[0], self.wheel_w_vel[1]]  #self.rpm self.x_rf.fx[2]
         
 ################################################################################################################################        
 
@@ -555,7 +524,7 @@ class Displacement(object):
         self.zs = zs
         # Vertical displacements/velocity of the wheel *(x_rz)
         # pag 272 eq.53
-        
+            
 class ImportParam(object):
 
     def __init__(self, path = 'config.yaml'):
@@ -575,7 +544,7 @@ class ImportParam(object):
         self.diff = param['vehicle_model']['parameters']['diff']                       # Differential ratio
         self.diff_ni = param['vehicle_model']['parameters']['diff_ni']
         self.transmition_ni = param['vehicle_model']['parameters']['transmition_ni']
-        self.b_bias = param['vehicle_model']['parameters']['b_bias']
+        self.b_bias =  np.array(param['vehicle_model']['parameters']['b_bias'])
         
         #=====================================
         # Powertrain parameters

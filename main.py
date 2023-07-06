@@ -11,10 +11,11 @@ import sys, select, os
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
+
 from VehicleDynamics import VehicleDynamics
 
 frequency= 1000
-maxi = 5.
+maxi = 5.0
 time = np.linspace(0, maxi, int(maxi*frequency))
 
 
@@ -28,7 +29,7 @@ u[1] = throttle
 
 
 ## TODO: Create a structure 
-states = np.zeros((16,points))
+states = np.zeros((22,points))
 
 vehicle_dynamics = VehicleDynamics(initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 1, freq=frequency, param_path = "bmw_m8.yaml")
 
@@ -43,13 +44,19 @@ for i in range(len(u[0])):
 # plt.plot(time, throttle, 'b',label='throttle')
 # plt.plot(time, states[0], '4k',label='x position')
 # plt.plot(time, states[3], '4b',label='roll')
-# plt.plot(time, states[4], '4c',label='pitch')
+plt.plot(time, states[4], '4c',label='pitch')
 # plt.plot(time, states[5], '1g',label='yaw')
 
-plt.plot(time, states[6], '2y',label='vx')
+#plt.plot(time, states[6], '2y',label='vx')
 # plt.plot(time, states[10], '--',label='pitch rate')
-plt.plot(time, states[12], '3m',label='acc x')
+#plt.plot(time, states[12], '3m',label='acc x')
 plt.plot(time, states[15], 'k',label='gear')
+plt.plot(time, states[16], 'b',label='Slip0')
+plt.plot(time, states[17], 'r',label='Slip1')
+#plt.plot(time, states[18], 'k',label='Slip2')
+#plt.plot(time, states[19], 'k',label='Slip3')
+#plt.plot(time, states[20], 'g',label='Wheel Speed 0')
+#plt.plot(time, states[21], 'm',label='Wheel Speed 1')
 plt.xlabel('time (s)')
 plt.title('Logitudinal dynamic')
 plt.legend()

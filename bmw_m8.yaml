@@ -22,7 +22,7 @@ vehicle_model:
     torque_converter_ratio: [2.3, 1, 1]
     engine_inertia: 2.0 # rotational needs caculation
     max_brake_torque: 1000. # [n/m]
-    b_bias: 0.5
+    b_bias: [0.25,0.25,0.25,0.25]
     #                               Tire Data
     #cr: [99900, 99900., 99900, 99900.]        
     # Tire Stiffnes		
