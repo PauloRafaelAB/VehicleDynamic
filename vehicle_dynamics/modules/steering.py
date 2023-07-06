@@ -3,18 +3,17 @@ from ..structures.StateVector import StateVector
 import numpy as np
 
 
-def steering(param:ImportParam,
+def steering(param: ImportParam,
              x_a: StateVector,
-             steering:float,
-             delta_dot:float,
-             last_delta:float,
-             time_step:float,
+             steering: float,
+             delta_dot: float,
+             last_delta: float,
+             time_step: float,
              wheel_angle_front: np.ndarray,
              wheel_angle_rear: np.ndarray,
              VTR_front_axel: np.ndarray,
              VTR_rear_axel: np.ndarray,
-             logger:logging.Logger):
-    
+             logger: logging.Logger) ->tuple:
     """
     steering is a function that calculates the current angle
     of the frontal wheel based on the vehicle coordinate system,
@@ -43,48 +42,51 @@ def steering(param:ImportParam,
         1. delta
         2. wheel_angle_front
         3. wheel_angle_rear
-        4. VTR_front_axel
-        5. VTR_front_axel
+        4. VTR_front_axle
+        5. VTR_front_axle
+        6. last_delta
 
     """
-    delta = steering * param.steering_ratio 
-    delta_dot = float((last_delta - delta) / time_step)
-    
+    delta = steering * param.steering_ratio  # converts input [0,1] to steering angle
+    delta_dot = float((last_delta - delta) / time_step)  # Delta derivated
+
     # Restrain the limite of turning angle
 
-    if (delta <= param.steering_min and delta_dot <= 0) or (delta >= param.steering_max and delta_dot >= 0):
+    if (delta <= param.steering_min and delta_dot <= 0) or (delta >= param.steering_max and delta_dot >= 0):  # steering wheel limits
         delta_dot = 0
-    elif delta_dot <= param.steering_v_min:
-        delta_dot = param.steering_v_min
     elif delta_dot >= param.steering_v_max:
         delta_dot = param.steering_v_max
+    # elif delta_dot <= param.steering_v_min:## Unknown why
+    #    delta_dot = param.steering_v_min
 
     last_delta = delta
- 
+
     # Matrix E_T_R (wheel angles) is calculate at steering fuction      
     # Bardini pag 261 eq. 11-6 (TR1, TR3)
     wheel_angle_front = [[np.cos(x_a.yaw + delta), -np.sin(x_a.yaw + delta), 0],
-                              [np.sin(x_a.yaw + delta), np.cos(x_a.yaw + delta), 0],
-                              [0, 0, 1]]
+                         [np.sin(x_a.yaw + delta), np.cos(x_a.yaw + delta), 0],
+                         [0, 0, 1]]
 
-    # Eq.11-6    Schramm and Bardini Pag 261 (TR2, TR4)
+    # Eq.11-8    Schramm and Bardini Pag 261 (TR2, TR4)
     wheel_angle_rear = [[np.cos(x_a.yaw), - np.sin(x_a.yaw), 0],
-                             [np.sin(x_a.yaw), np.cos(x_a.yaw), 0],
-                             [0, 0, 1]] 
+                        [np.sin(x_a.yaw), np.cos(x_a.yaw), 0],
+                        [0, 0, 1]] 
 
-    VTR_front_axel = np.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])
-    VTR_rear_axel = np.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])
-
-    # Wheel fixed coordinate(KR) rotation relativ to Kv(vehicle system) Bardni pag. 260 eq. 11-9
-    # VTR_front_axel = np.array([[                                                 np.cos(delta) * np.cos(x_a.pitch),                                                -np.sin(delta) * np.cos(x_a.pitch),                          -np.sin(x_a.pitch)],
-    #                                [ np.sin(x_a.yaw) * np.sin(x_a.pitch) * np.cos(delta) + np.cos(x_a.yaw) * np.sin(delta),     -np.sin(x_a.yaw) * np.sin(x_a.pitch) * np.sin(delta) + np.cos(x_a.yaw) * np.cos(delta),            np.sin(x_a.yaw)* np.cos(x_a.pitch)],
-    #                                [ np.cos(x_a.yaw) * np.sin(x_a.pitch) * np.cos(delta) - np.sin(x_a.yaw) * np.sin(delta),     -np.cos(x_a.yaw) * np.sin(x_a.pitch) * np.sin(delta) - np.sin(x_a.yaw) * np.cos(delta),            np.cos(x_a.yaw)* np.cos(x_a.pitch)]])
+    non_rotate_steering_wheel = True
+    if non_rotate_steering_wheel:
+        VTR_front_axle = np.identity(3)  # VTR Vehicle to Wheel
+        VTR_rear_axle = np.identity(3)
+    else:
+        # Wheel fixed coordinate(KR) rotation relativ to Kv(vehicle system) Bardni pag. 260 eq. 11-9
+        VTR_front_axle = np.array([[np.cos(delta) * np.cos(x_a.pitch), -np.sin(delta) * np.cos(x_a.pitch), -np.sin(x_a.pitch)],
+                                   [(np.sin(x_a.roll) * np.sin(x_a.pitch) * np.cos(delta)) + (np.cos(x_a.roll) * np.sin(delta)), (-np.sin(x_a.roll) * np.sin(x_a.pitch) * np.sin(delta)) + (np.cos(x_a.roll) * np.cos(delta)), (np.sin(x_a.roll) * np.cos(x_a.pitch))],
+                                   [(np.cos(x_a.roll) * np.sin(x_a.pitch) * np.cos(delta)) - (np.sin(x_a.roll) * np.sin(delta)), (-np.cos(x_a.roll) * np.sin(x_a.pitch) * np.sin(delta)) - (np.sin(x_a.roll) * np.cos(delta)), np.cos(x_a.roll) * np.cos(x_a.pitch)]])
 
     # # Bardni. Pag. 260 eq. 11-10
-    # VTR_rear_axel = np.array([[                  np.cos(x_a.pitch),                                  0,                                   -np.sin(x_a.pitch)],
-    #                               [ np.sin(x_a.yaw) * np.sin(x_a.pitch),     np.cos(x_a.yaw),            np.sin(x_a.yaw)* np.cos(x_a.pitch)],
-    #                               [ np.cos(x_a.yaw) * np.sin(x_a.pitch),   - np.sin(x_a.yaw),            np.cos(x_a.yaw)* np.cos(x_a.pitch)]])
+        VTR_rear_axle = np.array([[np.cos(x_a.pitch), 0, -np.sin(x_a.pitch)],
+                                  [np.sin(x_a.roll) * np.sin(x_a.pitch), np.cos(x_a.roll), np.sin(x_a.roll) * np.cos(x_a.pitch)],
+                                  [np.cos(x_a.roll) * np.sin(x_a.pitch), - np.sin(x_a.roll), np.cos(x_a.roll) * np.cos(x_a.pitch)]])
 
     "says rotational transformation to Kv is necessary (VTR_front_axel)>> def vehiclefixed2inertial_system"
 
-    # return self.wheel_angle_front, self.wheel_angle_rear
+    return (delta, wheel_angle_front, wheel_angle_rear, VTR_front_axle, VTR_rear_axle, last_delta)

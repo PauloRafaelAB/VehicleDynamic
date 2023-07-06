@@ -4,10 +4,10 @@ import numpy as np
 
 
 def rotational_matrix(x_a: StateVector,
-                      angular_vel_2inercial_sys_in_vehicle_coord:np.ndarray,
-                      rotationalmatrix:np.ndarray,
-                      angular_rates:np.ndarray,
-                      logger:logging.Logger) -> np.ndarray:   # ONDE ESTÁ ATUALIZANDO OS ANGULOS?-------------------------------------------------------------
+                      angular_vel_2inercial_sys_in_vehicle_coord: np.ndarray,
+                      rotationalmatrix: np.ndarray,
+                      angular_rates: np.ndarray,
+                      logger: logging.Logger) -> np.ndarray:   # ONDE ESTÁ ATUALIZANDO OS ANGULOS?-------------------------------------------------------------
     """
     rotational_matrix calculates the Eutler angle conversion from vehicle system to inertial system. 
 
@@ -32,9 +32,10 @@ def rotational_matrix(x_a: StateVector,
 
     # Pitch_dot, roll_dot, yaw_dot -- Bardini Pag. 261 Eq. 11.4
     angular_rates = np.array([x_a.wx,
-                                   x_a.wy,
-                                   x_a.wz])  # It is already calculated in the rotationalmatrix CALCULATE Only once please
+                              x_a.wy,
+                              x_a.wz])  # It is already calculated in the rotationalmatrix CALCULATE Only once please
 
     # Coordinate representation of the absolute velocity of point v with respect to coordinate system “E”, described in coordinates of coordinate system “v” bardni. Pag 260
-    angular_vel_2inercial_sys_in_vehicle_coord = np.dot(rotationalmatrix, angular_rates)  # Bardini Pag. 261 Eq. 11.4    
-    # return angular_vel_2inercial_sys_in_vehicle_coord, rotationalmatrix
+    angular_vel_2inercial_sys_in_vehicle_coord = rotationalmatrix @ angular_rates  # Bardini Pag. 261 Eq. 11.4    
+
+    return angular_vel_2inercial_sys_in_vehicle_coord, rotationalmatrix

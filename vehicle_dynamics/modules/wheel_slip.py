@@ -2,14 +2,12 @@ from ..utils.ImportParam import ImportParam
 from ..structures.StateVector import StateVector
 import numpy as np
 
-def wheel_slip(param:ImportParam,
-               x_a:StateVector,
-               slip_x: np.ndarray,
-               slip_y: np.ndarray,
+
+def wheel_slip(param: ImportParam,
+               x_a: StateVector,
                wheel_w_vel: np.ndarray,
-               logger:logging.Logger) -> np.ndarray:
+               logger: logging.Logger) -> tuple:
     # input: fz, mi, wheel_angle,vx,vy   output:fz,slix,slip_y
-    
     """ This method calculate the wheel slip on each wheel. This is done using the relative 
     velocity between the wheel angular speed and the vehicle speed.
 
@@ -22,38 +20,26 @@ def wheel_slip(param:ImportParam,
             2. slip_x
             3. slip_y
             4. wheel_w_vel
-            
 
         Returns:
             1. slip_x
             2. slip_y
 
-        
+
     """
-    
-    for i in range(4):
+    slip_x, slip_y = np.zeros([1, 4]), np.zeros([1, 4])
 
-        # Slip calculation - Wheel slip is calculated by wheel fixed system
+    vx_4lines = np.ones([1, 4]) * x_a.vx
+    vy_4lines = np.ones([1, 4]) * x_a.vy
 
-        # if param.r_dyn[i] * wheel_w_vel[i] == abs(x_a.vx):
-        #     slip_x[i] = .0
-        # elif abs(param.r_dyn[i] * wheel_w_vel[i]) > abs(x_a.vx):
-        #     slip_x[i] = 1 - abs(x_a.vx/(param.r_dyn[i] * wheel_w_vel[i] + 1e-52))
-        # else:
-        #     slip_x[i] = -1 + abs(param.r_dyn[i] * wheel_w_vel[i]/(x_a.vx + 1e-52))
+    if (abs(param.r_dyn * wheel_w_vel) == 0) and (abs(x_a.vx) == 0):
+        slip_x = 0
+        slip_y = 0
+    else:
+        # equation 11.30 Bardini
+        slip_x = ((((param.r_dyn * wheel_w_vel) - x_a.vx) / max([abs(param.r_dyn * wheel_w_vel), abs(x_a.vx)])))         
+        # equation 11.31 Bardini
+        slip_y = - np.arctan(x_a.vy / max([abs(param.r_dyn * wheel_w_vel), abs(x_a.vx)]))  
 
-        slip_x[i] = (((param.r_dyn[i] * wheel_w_vel[i] - x_a.vx) / max([abs(param.r_dyn[i] * wheel_w_vel[i] + 1e-26), abs(1e-26 + x_a.vx)])))         # equation 11.30 Bardini
-        # logger.debug('wheel_w_vel[i]',wheel_w_vel[i])
-        # logger.debug(x_a.vx,'vx')
-
-        # Lateral slip: define wheel_vy Equacao 11_28 >> converte to tire direction
-        slip_y[i] = - np.arctan(x_a.vy / max([abs(param.r_dyn[i] * wheel_w_vel[i] + 1e-16), abs(1e-16 + x_a.vx)]))  # equation 11.31 Bardini
-
-        # _______________________________________________________________________________________________
-        # TODO: Check first argument by displaying (velocity in wheel fixed coord) Bardini eq 11-29
-
-        # Bardini pag.268 eq 11-33
-        ' Replace with followig code to take antiroll bar in to account'
-        # TODO: Make F_stv diferent than 0; make F_st input on tire fuction
-        # wheel_load_z[0] = - max(param.cr[0]*(displacement.zr[0]-displacement.zs[0]+lr_stat[0]) + F_stv , 0) # Bardini pag.268 eq 11-33
     logger.debug("SLIP X ", slip_x)
+    return (slip_x, slip_y)
