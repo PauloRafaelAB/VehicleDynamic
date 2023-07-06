@@ -12,7 +12,8 @@ def steering(param:ImportParam,
              wheel_angle_front: np.ndarray,
              wheel_angle_rear: np.ndarray,
              VTR_front_axel: np.ndarray,
-             VTR_rear_axel: np.ndarray):
+             VTR_rear_axel: np.ndarray,
+             logger:logging.Logger):
     
     """
     steering is a function that calculates the current angle
@@ -42,6 +43,8 @@ def steering(param:ImportParam,
         1. delta
         2. wheel_angle_front
         3. wheel_angle_rear
+        4. VTR_front_axel
+        5. VTR_front_axel
 
     """
     delta = steering * param.steering_ratio 

@@ -1,7 +1,37 @@
-def wheel_angular(self):
-    ''' wheel velocities are used to calcule slip, than when can futher calculate ax,ay using the forces 
-    using the magic formula
-    '''
+from ..utils.ImportParam import ImportParam
+from ..structures.TireForces import TireForces
+from ..structures.StateVector import StateVector
+import numpy as np
+
+
+def wheel_angular(param: ImportParam,
+                  x_rf: TireForces,
+                  powertrain_net_torque: np.ndarray,
+                  x_rr:np.ndarray,
+                  wheel_w_vel,
+                  
+        ):
+    """
+    wheel_angular velocities velocities are used to calcule slip
+
+    Required Parameters from Param:
+        1. 
+        2. 
+
+    Required Arguments:
+        1. 
+            1.01 
+       2. 
+           2.01 
+           2.02 
+           2.03 
+           2.04 
+       3. 
+    Returns:
+        1. 
+   
+    """
+   
     # EULER’s Equations of the Wheels: Solve  11-25 Bardini pag 266
     # Torque, fx_car, fy_car, Inertias wheel,  output wheel Wv, dot_wv
     if self.powertrain_net_torque[0] > (self.x_rf.fx[0] / self.param.r_dyn[0]):

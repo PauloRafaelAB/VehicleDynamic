@@ -12,7 +12,8 @@ def chassis(param: ImportParam,
             position_chassi_force: np.ndarray,
             strut2chassi_xyz: np.ndarray,
             angular_rates: np.ndarray,
-            polar_inertia_v: np.ndarray) -> np.ndarray: 
+            polar_inertia_v: np.ndarray,
+            logger:logging.Logger) -> np.ndarray: 
     """
     Chassis is a function that calculates the current status of the chassis
 
@@ -49,7 +50,14 @@ def chassis(param: ImportParam,
         4. x_a.vx
         5. x_a.vy
         6. x_a.vz
-        7. displacement.za
+        7. x_a.acc_angular_v
+        8. x_a.wx
+        9. x_a.wy
+        10.x_a.wz
+        11.x_a.roll
+        12.x_a.pitch
+        13.x_a.yaw
+        14. displacement.za
 
     """
     "Equations of motion Bardini, pag 272 ---- need initialize values"
@@ -58,8 +66,8 @@ def chassis(param: ImportParam,
 
     sum_f_wheel = np.sum(x_rf.wheel_forces_transformed_force2vehicle_sys, axis=1)
 
-    print("FORCES IN THE VEHICLE ", x_rf.wheel_forces_transformed_force2vehicle_sys)
-    print("Sum wheel ", sum_f_wheel)
+    logger.debug("FORCES IN THE VEHICLE ", x_rf.wheel_forces_transformed_force2vehicle_sys)
+    logger.debug("Sum wheel ", sum_f_wheel)
     # Equation 11-46 >> 11-12, Pag. 273
     # TODO: check gavity diretion
 
@@ -90,22 +98,21 @@ def chassis(param: ImportParam,
 
     # TODO Check eq 11 - 47
     sum_crossproduct_r_f = np.sum(crossproduct_r_f, axis=0)
-    # print('sum_crossproduct',sum_crossproduct_r_f)
+    # logger.debug('sum_crossproduct',sum_crossproduct_r_f)
     # TODO make the return of acc angular be type (3,0)
 
     x_a.acc_angular_v = np.matmul((sum_crossproduct_r_f - np.cross(angular_rates, (np.matmul(polar_inertia_v, angular_rates)))), inv(polar_inertia_v))
 
-    print('sum_crossproduct', sum_crossproduct_r_f)
-    # print('angular_rates', angular_rates)
-    # print('polar inertia',polar_inertia_v)
+    logger.debug('sum_crossproduct', sum_crossproduct_r_f)
+    # logger.debug('angular_rates', angular_rates)
+    # logger.debug('polar inertia',polar_inertia_v)
 
-    # print('x_a.acc_angular_v',x_a.acc_angular_v,type(x_a.acc_angular_v))
+    # logger.debug('x_a.acc_angular_v',x_a.acc_angular_v,type(x_a.acc_angular_v))
     # TODO: add multiplication of tranpose polar inertia to eq above>>   * polar_inertia_v.T)
 
     # Angular velocity of the chassis
     x_a.wx = x_a.wx + x_a.acc_angular_v[0] * time_step
     x_a.wy = x_a.wy + x_a.acc_angular_v[1] * time_step
-
     x_a.wz = x_a.wz + x_a.acc_angular_v[2] * time_step
 
     # Angular position
@@ -126,7 +133,7 @@ def chassis(param: ImportParam,
 
     # TODO check mat mul ordem
     [x_a.x, x_a.y, x_a.z] = [x_a.x, x_a.y, x_a.z] + np.matmul(movement_vehicle, vehicle_fixed2inertial_system) 
-    print("x", x_a.x, "y", x_a.y, "z", x_a.z)
+    logger.debug("x", x_a.x, "y", x_a.y, "z", x_a.z)
 
     # TODO new displacements need taking euler angles into account
 
