@@ -3,7 +3,8 @@ from ..structures.StateVector import StateVector
 import numpy as np
 
 
-def steering(param,x_a: StateVector,
+def steering(param:ImportParam,
+             x_a: StateVector,
              steering:float,
              delta_dot:float,
              last_delta:float,
@@ -18,7 +19,6 @@ def steering(param,x_a: StateVector,
     of the frontal wheel based on the vehicle coordinate system,
     where the output delta is steering angle of the frontal wheels.
 
-    vertical_loads, ax, ay, t_step
 
     Required Parameters from Param:
         1. steering_ratio

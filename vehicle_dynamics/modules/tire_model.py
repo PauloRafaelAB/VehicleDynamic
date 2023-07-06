@@ -4,19 +4,19 @@ from ..structures.StateVector import StateVector
 import numpy as np
 
 
-def tire_model(param, x_a: StateVector,
-            x_rf: TireForces,
-            f_zr: np.ndarray,
-            position_chassi_force: np.ndarray,
-            slip_x: np.ndarray,
-            slip_y: np.ndarray,
-            compiled_wheel_forces: np.ndarray,
-            VTR_front_axel: np.ndarray,
-            VTR_rear_axel: np.ndarray) -> np.ndarray: 
+def tire_model(param:ImportParam,
+               x_a: StateVector,   
+               x_rf: TireForces,
+               f_zr: np.ndarray,
+               position_chassi_force: np.ndarray,
+               slip_x: np.ndarray,
+               slip_y: np.ndarray,
+               compiled_wheel_forces: np.ndarray,
+               VTR_front_axel: np.ndarray,
+               VTR_rear_axel: np.ndarray) -> np.ndarray: 
     """
     Chassis is a function that calculates the current status of the chassis
 
-    vertical_loads, ax, ay, t_step
 
     Required Parameters from Param:
         1. d

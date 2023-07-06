@@ -4,7 +4,8 @@ from ..structures.StateVector import StateVector
 import numpy as np
 
 
-def chassis(param, x_a: StateVector,
+def chassis(param:ImportParam,
+            x_a: StateVector,
             x_rf: TireForces,
             time_step: float,
             drag: float,
@@ -65,7 +66,7 @@ def chassis(param, x_a: StateVector,
                   ) / param.m + x_a.wz * x_a.vy - x_a.wy * x_a.vz 
     x_a.acc[1] = (sum_f_wheel[1] - x_a.vy ** 2
                   ) / param.m + x_a.wx * x_a.vz - x_a.wz * x_a.vx
-    x_a.acc[2] = (sum_f_wheel[2] - param.m * gravity
+    x_a.acc[2] = (sum_f_wheel[2] - param.m * param.gravity
                   ) / param.m + x_a.wy * x_a.vx - x_a.wx * x_a.vy
 
     # vehicle velocity calculation
