@@ -1,5 +1,8 @@
 from ..utils.ImportParam import ImportParam
+from ..utils.LocalLogger import LocalLogger
+
 from scipy.interpolate import interp1d
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -9,8 +12,8 @@ def powertrain(param: ImportParam,
                acc_x: float,
                wheel_w_vel: float,
                gear: float,
-               vx: float):
-    
+               vx: float,
+               logger: LocalLogger) -> list:
     """
     Powertrain is a function that calculates the current Torque delivered by the engine to the wheels
 
@@ -48,10 +51,8 @@ def powertrain(param: ImportParam,
     # Update Engine RPM
     rpm = param.gear_ratio[gear] * param.diff * \
         np.mean(wheel_w_vel)   # Wheel vx to engine RPM
-    if rpm < param.rpm_table[0]:
-        rpm = param.rpm_table[0]
-    if rpm > param.rpm_table[-1]:
-        rpm = param.rpm_table[-1]
+
+    rpm = param.rpm_table[0] if rpm < param.rpm_table[0] else param.rpm_table[-1] 
 
     # Calculate torque provided by the engine based on the engine RPM
     # how much torque is available thoughout the rpm range
@@ -71,8 +72,9 @@ def powertrain(param: ImportParam,
         if gear < 1:
             gear = 1
 
-    traction_torque = (engine_torque * param.gear_ratio[gear] * param.diff * param.diff_ni * param.transmition_ni) - (
-        (param.engine_inertia + param.axel_inertia + param.gearbox_inertia) * gear ** 2 + param.shaft_inertia * param.gear_ratio[gear] * param.diff ** 2 + param.wheel_inertia) * acc_x
+    traction_torque = (engine_torque * param.gear_ratio[gear] * param.diff * param.diff_ni * param.transmition_ni) - ((
+        ((param.engine_inertia + param.axel_inertia + param.gearbox_inertia) * (gear ** 2)) + (
+            param.shaft_inertia * param.gear_ratio[gear] * (param.diff ** 2)) + param.wheel_inertia) * acc_x)
 
     # --------------------Break Torque -------------------------
     brake_torque = brake * param.max_brake_torque
@@ -81,3 +83,22 @@ def powertrain(param: ImportParam,
     powertrain_net_torque = (traction_torque - brake_torque) * param.brake_bias
 
     return [rpm, gear, powertrain_net_torque]
+
+
+def main():
+    SIM_ITER = 1000
+    logger = LocalLogger()
+    param = ImportParam()
+    data = importdataCM()
+
+    plt.title("powertrain")
+    data = np.array([powertrain(param, throttle, brake, acc_x, wheel_w_vel, gear, vx, logger) for i in range(SIM_ITER)])
+    plt.plot(data[, 0], label="rpm")
+    plt.plot(data[, 1], label="gear")
+    plt.plot(data[, 2], label="powertrain_net_torque")
+    plt.label()
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()
