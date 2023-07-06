@@ -5,7 +5,7 @@ import numpy as np
 
 
 def chassis(param, x_a: StateVector,
-            x_rt: TireForces,
+            x_rf: TireForces,
             time_step: float,
             drag: float,
             position_chassi_force: np.ndarray,
