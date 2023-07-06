@@ -15,7 +15,7 @@ def chassis(param: ImportParam,
             strut2chassi_xyz: np.ndarray,
             angular_rates: np.ndarray,
             polar_inertia_v: np.ndarray,
-            logger:logging.Logger) -> np.ndarray: 
+            logger: logging.Logger) -> np.ndarray: 
     """
     Chassis is a function that calculates the current status of the chassis
 
@@ -78,9 +78,9 @@ def chassis(param: ImportParam,
     # Equation 11-46 >> 11-12, Pag. 273
     # TODO: check gavity diretion
 
-    # O que faz esses valores atras da acceleracao??????????????
-    x_a.acc[0] = ((sum_f_wheel[0] - (drag * (x_a.vx ** 2))) / param.m) + ((x_a.wz * x_a.vy) - (x_a.wy * x_a.vz))
-    x_a.acc[1] = ((sum_f_wheel[1] - (x_a.vy ** 2)) / param.m) + ((x_a.wx * x_a.vz) - (x_a.wz * x_a.vx))
+    # O que faz esses valores atras da acceleracao?????????????? 11.12-13-14
+    x_a.acc[0] = ((sum_f_wheel[0] + (drag * (x_a.vx ** 2))) / param.m) + ((x_a.wz * x_a.vy) - (x_a.wy * x_a.vz))
+    x_a.acc[1] = (sum_f_wheel[1] / param.m) + ((x_a.wx * x_a.vz) - (x_a.wz * x_a.vx))
     x_a.acc[2] = ((sum_f_wheel[2] - (param.m * param.gravity)) / param.m) + ((x_a.wy * x_a.vx) - (x_a.wx * x_a.vy))
 
     # vehicle velocity calculation
@@ -92,14 +92,12 @@ def chassis(param: ImportParam,
     # TODO:Check rolling resistance            
     # rolling_resist = (param.fr * param.m * param.gravity * np.cos(0.) - 0.5 * param.row * param.Cl * param.area * speed ** 2)                              # Rolling Resistance with air lift
 
-    '''Equation 11-46, vehicle velocity xyz calculation: for angular velocities and postion the last step is used
-                Values calculate for positions, atittude and its derivates needs to be saved
-            '''
-    for (chassis_force, strut2chass, cross_product) in zip(position_chassi_force, strut2chassi_xyz, crossproduct_r_f):
-        cross_product[0] = (chassis_force[1] * strut2chass[2]) - (chassis_force[2] * strut2chass[1])
-        cross_product[1] = (chassis_force[2] * strut2chass[0]) - (chassis_force[0] * strut2chass[2])
-        cross_product[2] = (chassis_force[0] * strut2chass[1]) - (chassis_force[1] * strut2chass[0])
+    # 11-47
 
+    for i in range(4):
+        crossproduct_r_f[i][0] = position_chassi_force[i][1] * strut2chassi_xyz[i][2] - position_chassi_force[i][2] * strut2chassi_xyz[i][1] 
+        crossproduct_r_f[i][1] = position_chassi_force[i][2] * strut2chassi_xyz[i][0] - position_chassi_force[i][0] * strut2chassi_xyz[i][2]
+        crossproduct_r_f[i][2] = position_chassi_force[i][0] * strut2chassi_xyz[i][1] - position_chassi_force[i][1] * strut2chassi_xyz[i][0]
     # TODO Check eq 11 - 47
     sum_crossproduct_r_f = np.sum(crossproduct_r_f, axis=0)
     # logger.debug('sum_crossproduct',sum_crossproduct_r_f)
@@ -117,9 +115,9 @@ def chassis(param: ImportParam,
     # Angular velocity of the chassis
 
     angular_velocity = x_a.acc_angular_v * time_step
-    x_a.wx = x_a.wx + x_a.acc_angular_v[0]
-    x_a.wy = x_a.wy + x_a.acc_angular_v[1]
-    x_a.wz = x_a.wz + x_a.acc_angular_v[2]
+    x_a.wx = x_a.wx + angular_velocity[0] 
+    x_a.wy = x_a.wy + angular_velocity[1]
+    x_a.wz = x_a.wz + angular_velocity[2]
 
     # Angular position   
     x_a.roll = (x_a.wx * time_step) + x_a.roll
@@ -128,11 +126,9 @@ def chassis(param: ImportParam,
 
     # TODO: updated transformation to vehicle system
 
-    # vehicle_fixed2inertial_system = np.array([[np.cos(x_a.pitch) * np.cos(x_a.yaw), np.sin(x_a.roll) * np.sin(x_a.pitch) * np.cos(x_a.yaw) - np.cos(x_a.roll) * np.sin(x_a.yaw),     np.cos(x_a.roll) * np.sin(x_a.pitch) * np.cos(x_a.yaw) + np.sin(x_a.roll) * np.sin(x_a.yaw)],
-    #                                       [np.cos(x_a.pitch) * np.sin(x_a.yaw), np.sin(x_a.roll) * np.sin(x_a.pitch) * np.sin(x_a.yaw) + np.cos(x_a.roll) * np.sin(x_a.yaw),     np.cos(x_a.roll) * np.sin(x_a.pitch) * np.sin(x_a.yaw) - np.sin(x_a.roll) * np.cos(x_a.yaw)],
-    #                                       [-np.sin(x_a.pitch),                         np.sin(x_a.roll) * np.cos(x_a.pitch),                                                      np.cos(x_a.roll) * np.cos(x_a.pitch)]])
-
-    # bardini pag 260 -- use vector of torque x euler angle rate
+    vehicle_fixed2inertial_system = np.array([[np.cos(x_a.pitch) * np.cos(x_a.yaw), np.sin(x_a.roll) * np.sin(x_a.pitch) * np.cos(x_a.yaw) - np.cos(x_a.roll) * np.sin(x_a.yaw), np.cos(x_a.roll) * np.sin(x_a.pitch) * np.cos(x_a.yaw) + np.sin(x_a.roll) * np.sin(x_a.yaw)],
+                                              [np.cos(x_a.pitch) * np.sin(x_a.yaw), np.sin(x_a.roll) * np.sin(x_a.pitch) * np.sin(x_a.yaw) + np.cos(x_a.roll) * np.cos(x_a.yaw), np.cos(x_a.roll) * np.sin(x_a.pitch) * np.sin(x_a.yaw) - np.sin(x_a.roll) * np.cos(x_a.yaw)],
+                                              [-np.sin(x_a.pitch), np.sin(x_a.roll) * np.cos(x_a.pitch), np.cos(x_a.roll) * np.cos(x_a.pitch)]])
 
     # vehicle position calculation
     movement_vehicle = (x_a.vx * time_step, x_a.vy * time_step, x_a.vz * time_step) 
@@ -145,7 +141,7 @@ def chassis(param: ImportParam,
     displacement.za[2] = (- param.lv * np.sin(x_a.pitch)) - (param.sr * np.sin(x_a.roll))
     displacement.za[3] = (+ param.lh * np.sin(x_a.pitch)) - (param.sr * np.sin(x_a.roll))
 
-    return np.array([x_a, displacement])
+    return x_a, displacement, movement_vehicle
 
 
 def main():
