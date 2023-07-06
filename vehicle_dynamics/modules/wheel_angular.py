@@ -5,28 +5,27 @@ import numpy as np
 
 
 def wheel_angular(param: ImportParam,
+                  powertrain_net_torque: np.ndarray
                   x_rf: TireForces,
-                  powertrain_net_torque: np.ndarray,
-                  x_rr:np.ndarray,
-                  wheel_w_vel,
-                  
-        ):
+                  x_rr: AngularWheelPosition,
+                  wheel_w_vel:np,ndarray,
+                  time_step: float
+                  logger.debug): -> np.ndarray:
     """
     wheel_angular velocities velocities are used to calcule slip
 
     Required Parameters from Param:
-        1. 
-        2. 
+        1. r_dyn
+        2. iw
 
     Required Arguments:
-        1. 
-            1.01 
-       2. 
-           2.01 
-           2.02 
-           2.03 
-           2.04 
-       3. 
+        1. powertrain_net_torque
+        2.x_rf 
+           2.01 fx 
+       3. x_rr
+           3.01 pho_r_2dot
+       4. wheel_w_vel
+           
     Returns:
         1. 
    
@@ -34,17 +33,16 @@ def wheel_angular(param: ImportParam,
    
     # EULER’s Equations of the Wheels: Solve  11-25 Bardini pag 266
     # Torque, fx_car, fy_car, Inertias wheel,  output wheel Wv, dot_wv
-    if self.powertrain_net_torque[0] > (self.x_rf.fx[0] / self.param.r_dyn[0]):
-        self.x_rr.pho_r_2dot = (self.powertrain_net_torque - self.x_rf.fx / self.param.r_dyn) / self.param.iw
+    if powertrain_net_torque[0] > (x_rf.fx[0] / param.r_dyn[0]):
+        x_rr.pho_r_2dot = (powertrain_net_torque - x_rf.fx / param.r_dyn) / param.iw
     else:
-        self.x_rr.pho_r_2dot = self.powertrain_net_torque / self.param.iw
+        x_rr.pho_r_2dot = powertrain_net_torque / param.iw
 
-    print('torque fx', self.x_rf.fx / self.param.r_dyn)
-    print('powertrain net torque', self.powertrain_net_torque)
+    logger.debug('torque fx', x_rf.fx / param.r_dyn)
+    logger.debug('powertrain net torque', powertrain_net_torque)
 
-    print("pho_r_2dot     ", self.x_rr.pho_r_2dot)
-    print("FX_________", self.x_rf.fx)
+    logger.debug("pho_r_2dot     ", x_rr.pho_r_2dot)
+    logger.debug("FX_________", x_rf.fx)
 
     # Calculate the intregral of the wheel_acc to calculate slip_x
-    self.wheel_w_vel = self.wheel_w_vel + self.x_rr.pho_r_2dot * self.time_step  # rad/s
-    # ___________________________________________________________________________________________________________
+    wheel_w_vel = wheel_w_vel + (x_rr.pho_r_2dot * time_step)  # rad/s

@@ -6,7 +6,7 @@ import numpy as np
 
 def tire_model(param: ImportParam,   
                x_rf: TireForces,
-               f_zr: np.ndarray,
+               f_zr: WheelHubForce,
                position_chassi_force: np.ndarray,
                slip_x: np.ndarray,
                slip_y: np.ndarray,
