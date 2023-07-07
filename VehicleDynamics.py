@@ -1,11 +1,7 @@
-
 # -*- coding: utf-8 -*-
 """
-created on Thu Oct 13 10:28:58 2022
-
-@author:  Paulo R.A. Bloemer, Maikol Funk Drechsler
-Vehicle Dynamic Model
-
+Vehicle Dynamic Model Main Class
+@author:  Paulo R.A. Bloemer, Maikol Funk Drechsler, Yuri Poledna 
 """
 
 from vehicle_dynamics.structures.TireForces import TireForces
@@ -73,7 +69,7 @@ class VehicleDynamics(object):
                                          [0., self.param.i_y_s, 0.],
                                          [0., 0., self.param.i_z]])
 
-        #self.hub_distance = np.array([self.param.hub_fl, self.param.hub_rl,self.param.hub_fr,self.param.hub_rr])
+        # self.hub_distance = np.array([self.param.hub_fl, self.param.hub_rl,self.param.hub_fr,self.param.hub_rr])
         self.position_chassi_force = np.array([[self.param.lv, self.param.sl, -self.param.sz], [-self.param.lh, self.param.sl, -self.param.sz], [self.param.lv, -self.param.sr, -self.param.sz], [-self.param.lh, -self.param.sr, -self.param.sz]])
 
         self.polar_inertia_v = np.array([[self.param.i_x_s, 0., 0.],
@@ -102,21 +98,20 @@ class VehicleDynamics(object):
         self.slip_x = np.zeros(4)
         self.slip_y = np.zeros(4)
         # wheel hub inital eq-27
-        #self.wheel_hub_position = np.zeros((4,3))
+        # self.wheel_hub_position = np.zeros((4,3))
         # for i in range(4): 
         #     self.wheel_hub_position[i] = self.position_chassi_force[i] + np.matmul(self.transpose_vehicle_fixed2inertial_system,np.array([0,0,self.displacement.l_stat[i]]))
+        self.logger = LocalLogger("MainLogger").logger
 
     def tick(self, gas_pedal, brake, steering, time):
-        #self.powertrain(gas_pedal, brake, self.param.rpm_table, self.param.torque_max) # 
-        [self.rpm, self.gear, self.powertrain_net_torque] = self.powertrain(gas_pedal, brake, self.param.rpm_table, self.param.torque_max, self.param.gear_ratio, self.param.diff, self.param.diff_ni, self.param.transmition_ni, self.param.gear_selection, self.param.engine_inertia, self.param.ia, self.param.ig, self.param.id, self.param.i_wheel, self.param.max_brake_torque, self.param.b_bias, self.x_a.acc[0], self.wheel_w_vel, self.gear, self.x_a.vx)
-        [self.displacement.za, self.gear, self.powertrain_net_torque]
-        self.steering(steering)
-        self.rotationalmatrix()
-        self.wheel_slip()
-        self.tire_model()
-        self.Wheel_angular()
-        self.road()
-        self.suspension()
-        self.chassis() 
+        [rpm, gear, powertrain_net_torque] = powertrain(param, throttle, brake, acc_x, wheel_w_vel, gear, vx, self.logger) 
+        (delta, wheel_angle_front, wheel_angle_rear, VTR_front_axle, VTR_rear_axle, last_delta) = steering(param, x_a, steering, delta_dot, last_delta, time_step, wheel_angle_front, wheel_angle_rear, VTR_front_axel, VTR_rear_axel, self.logger)
+        (angular_vel_2inercial_sys_in_vehicle_coord, rotationalmatrix) = rotational_matrix(x_a, angular_vel_2inercial_sys_in_vehicle_coord, rotationalmatrix, angular_rates, self.logger)
+        (slip_x, slip_y) = wheel_slip(param, x_a, wheel_w_vel, self.logger)
+        (x_rf, strut2chassi_xyz) = tire_model(param, x_rf, f_zr, position_chassi_force, slip_x, slip_y, compiled_wheel_forces, VTR_front_axle, VTR_rear_axle, self.logger)
+        wheel_w_vel, x_rr = wheel_angular(param, powertrain_net_torque, x_rf, x_rr, wheel_w_vel, time_step, self.logger)
+        road()
+        f_zr = suspension(param, f_zr, displacement, vehicle_fixed2inertial_system, self.logger)
+        x_a, displacement, movement_vehicle = chassis(param, x_a, time_step, x_rf, drag, position_chassi_force, strut2chassi_xyz, angular_rates, polar_inertia_v, self.logger) 
 
-        return [self.x_a.x, self.x_a.y, self.x_a.z, self.x_a.roll, self.x_a.pitch, self.x_a.yaw, self.x_a.vx, self.x_a.vy, self.x_a.vz, self.x_a.wx, self.x_a.wy, self.x_a.wz, self.x_a.acc[0], self.x_a.acc[1], self.x_a.acc[2], self.gear, self.slip_x[0], self.slip_x[1], self.slip_x[2], self.slip_x[3], self.wheel_w_vel[0], self.wheel_w_vel[1]]  # self.rpm self.x_rf.fx[2]
+        return [self.x_a.x, self.x_a.y, self.x_a.z, self.x_a.roll, self.x_a.pitch, self.x_a.yaw, self.x_a.vx, self.x_a.vy, self.x_a.vz, self.x_a.wx, self.x_a.wy, self.x_a.wz, self.x_a.acc[0], self.x_a.acc[1], self.x_a.acc[2], self.gear, self.slip_x[0], self.slip_x[1], self.slip_x[2], self.slip_x[3], self.wheel_w_vel[0], self.wheel_w_vel[1]] 

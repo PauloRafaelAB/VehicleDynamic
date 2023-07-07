@@ -12,7 +12,7 @@ def wheel_angular(param: ImportParam,
                   powertrain_net_torque: np.ndarray,
                   x_rf: TireForces,
                   x_rr: AngularWheelPosition,
-                  wheel_w_vel: np, ndarray,
+                  wheel_w_vel: np.ndarray,
                   time_step: float,
                   logger: logging.Logger) -> np.ndarray:
     """
