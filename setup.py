@@ -16,9 +16,9 @@ setup(
     packages=find_packages(),
     install_requires=[
         'numpy',
-        'logging',
         'matplotlib',
         'scipy',
+        "pyyaml"
     ],
 
     keywords=['python', 'vehicle dynamics'],

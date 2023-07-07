@@ -1,9 +1,11 @@
-from ..utils.ImportParam import ImportParam
-from ..structures.TireForces import TireForces
-from ..structures.StateVector import StateVector
-from ..structures.AngularWheelPosition import AngularWheelPosition
+from vehicle_dynamics.utils.ImportParam import ImportParam
+from vehicle_dynamics.structures.TireForces import TireForces
+from vehicle_dynamics.structures.StateVector import StateVector
+from vehicle_dynamics.structures.AngularWheelPosition import AngularWheelPosition
+
 import numpy as np
 import logging
+import yaml
 
 
 def wheel_angular(param: ImportParam,

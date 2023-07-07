@@ -1,7 +1,9 @@
-from ..utils.ImportParam import ImportParam
-from ..structures.StateVector import StateVector
+from vehicle_dynamics.utils.ImportParam import ImportParam
+from vehicle_dynamics.structures.StateVector import StateVector
+
 import numpy as np
 import logging
+import yaml
 
 
 def wheel_slip(param: ImportParam,

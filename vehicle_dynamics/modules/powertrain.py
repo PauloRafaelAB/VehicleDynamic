@@ -1,9 +1,10 @@
-from ..utils.ImportParam import ImportParam
-from ..utils.LocalLogger import LocalLogger
+from vehicle_dynamics.utils.ImportParam import ImportParam
+from vehicle_dynamics.utils.LocalLogger import LocalLogger
 
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import numpy as np
+import yaml
 
 
 def powertrain(param: ImportParam,
