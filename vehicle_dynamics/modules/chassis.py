@@ -4,10 +4,12 @@ from vehicle_dynamics.structures.StateVector import StateVector
 from vehicle_dynamics.utils.import_data_CM import import_data_CM
 from vehicle_dynamics.utils.LocalLogger import LocalLogger
 
+
 import numpy as np
 import matplotlib.pyplot as plt
 import logging
 import yaml
+
 
 
 def chassis(param: ImportParam,
@@ -153,7 +155,7 @@ def main():
     logger = LocalLogger("Chassis")
     path = "../../exampledata/2_acc_brake/SimulationData.pickle"
     param = ImportParam("../../bmw_m8.yaml")
-    data = importdataCM(path)
+    #data = import_data_CM(path)
     plt.title("chassis")
     chassis_variables = [chassis(param, x_a, time_step, x_rf, drag, position_chassi_force, strut2chassi_xyz, angular_rates, polar_inertia_v, logger) for i in range(SIM_ITER)]
     plt.plot(chassis_variables)

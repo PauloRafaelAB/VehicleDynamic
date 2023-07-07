@@ -1,3 +1,6 @@
+import yaml
+import numpy as np
+
 class ImportParam(object):
 
     def __init__(self, path = 'config.yaml'):

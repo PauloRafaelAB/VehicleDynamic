@@ -427,7 +427,7 @@ class VehicleDynamics(object):
     def tick(self, gas_pedal, brake, steering, time):
         #self.powertrain(gas_pedal, brake, self.param.rpm_table, self.param.torque_max) # 
         [self.rpm, self.gear, self.powertrain_net_torque] = self.powertrain(gas_pedal, brake, self.param.rpm_table, self.param.torque_max, self.param.gear_ratio, self.param.diff, self.param.diff_ni, self.param.transmition_ni, self.param.gear_selection, self.param.engine_inertia, self.param.ia, self.param.ig, self.param.id, self.param.i_wheel, self.param.max_brake_torque, self.param.b_bias, self.x_a.acc[0], self.wheel_w_vel, self.gear, self.x_a.vx)
-
+        [self.displacement.za, self.gear, self.powertrain_net_torque]
         self.steering(steering)
         self.rotationalmatrix()
         self.wheel_slip()
