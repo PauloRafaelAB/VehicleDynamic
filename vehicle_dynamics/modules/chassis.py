@@ -1,10 +1,10 @@
-from vehicle_dynamics.utils.ImportParam import ImportParam
+from ..utils.ImportParam import ImportParam
 from ..structures.TireForces import TireForces
 from ..structures.StateVector import StateVector
 import numpy as np
 from ..utils.LocalLogger import LocalLogger
 import matplotlib.pyplot as plt
-import logging
+from ..utils.import_data_CM import import_data_CM
 
 
 def chassis(param: ImportParam,
@@ -144,15 +144,15 @@ def chassis(param: ImportParam,
 
     return x_a, displacement, movement_vehicle
 
-
 def main():
     SIM_ITER = 1000
     logger = LocalLogger()
-    param = ImportParam()
-    data = importdataCM()
-
+    param = ImportParam("C:/Users/albertonbloemer/Documents/VehicleDynamic/bmw_m8.yaml")
+    path = "C:/Users/albertonbloemer/Documents\VehicleDynamic/exampledata/2_acc_brake/SimulationData.pickle"
+    data = importdataCM(path)
     plt.title("chassis")
-    plt.plot([chassis(param, x_a, time_step, x_rf, drag, position_chassi_force, strut2chassi_xyz, angular_rates, polar_inertia_v, logger) for i in range(SIM_ITER)])
+    chassis_variables = [chassis(param, x_a, time_step, x_rf, drag, position_chassi_force, strut2chassi_xyz, angular_rates, polar_inertia_v, logger) for i in range(SIM_ITER)]
+    plt.plot(chassis_variables)
     plt.show()
 
 
