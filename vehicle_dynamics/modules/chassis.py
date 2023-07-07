@@ -23,7 +23,8 @@ def chassis(param: ImportParam,
             strut2chassi_xyz: np.ndarray,
             angular_rates: np.ndarray,
             polar_inertia_v: np.ndarray,
-            logger: logging.Logger) -> np.ndarray: 
+            logger: logging.Logger,
+            *xargs, **kwargs) -> np.ndarray: 
     """
     Chassis is a function that calculates the current status of the chassis
 
@@ -154,6 +155,11 @@ def chassis(param: ImportParam,
     return x_a, displacement, movement_vehicle
 
 
+def variable_initialization(param, data, logger):
+
+    return param, x_a, time_step, x_rf, drag, position_chassi_force, strut2chassi_xyz, angular_rates, polar_inertia_v, logger
+
+
 def main():
     SIM_ITER = 1000
     logger = LocalLogger("Chassis").logger
@@ -167,8 +173,9 @@ def main():
 
     exit()
 
+    chassis_variables = [chassis(*variable_initialization(param, data)) for i in range(SIM_ITER)]
+
     plt.title("chassis")
-    chassis_variables = [chassis(param, x_a, time_step, x_rf, drag, position_chassi_force, strut2chassi_xyz, angular_rates, polar_inertia_v, logger) for i in range(SIM_ITER)]
     plt.plot(chassis_variables)
     plt.show()
 
