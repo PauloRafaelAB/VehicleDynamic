@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class AngularWheelPosition(object):
     def __init__(self, pho_r=np.zeros(4), pho_r_dot = np.zeros(4), pho_r_2dot = np.zeros(4)):
 

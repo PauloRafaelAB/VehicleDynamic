@@ -1,7 +1,9 @@
 from ..utils.ImportParam import ImportParam
 from ..structures.TireForces import TireForces
 from ..structures.StateVector import StateVector
+from ..structures.AngularWheelPosition import AngularWheelPosition
 import numpy as np
+import logging
 
 
 def wheel_angular(param: ImportParam,
@@ -9,8 +11,8 @@ def wheel_angular(param: ImportParam,
                   x_rf: TireForces,
                   x_rr: AngularWheelPosition,
                   wheel_w_vel: np, ndarray,
-                  time_step: float
-                  logger.debug): -> np.ndarray:
+                  time_step: float,
+                  logger: logging.Logger) -> np.ndarray:
     """
     wheel_angular velocities velocities are used to calcule slip
 

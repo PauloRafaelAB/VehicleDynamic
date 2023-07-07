@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class Displacement(object):
     def __init__(self, l_stat= np.zeros(4), za=np.zeros(4), za_dot=np.zeros(4), zr_dot=np.zeros(4), zr_2dot = np.zeros(4), zs =np.zeros(4)):
         self.l_stat = l_stat

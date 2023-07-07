@@ -1,7 +1,9 @@
 from ..utils.ImportParam import ImportParam
 from ..structures.TireForces import TireForces
+from ..structures.WheelHubForce import WheelHubForce
 from ..structures.StateVector import StateVector
 import numpy as np
+import logging
 
 
 def tire_model(param: ImportParam,   

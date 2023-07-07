@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class TireForces(object):
     def __init__(self, fx =np.zeros(4), fy =np.zeros(4), wheel_forces_transformed_force2vehicle_sys = np.zeros((3, 4), dtype=float)):        
         # Dynamic forces on the tires

@@ -1,9 +1,10 @@
-from ..utils.ImportParam import ImportParam
+from vehicle_dynamics.utils.ImportParam import ImportParam
 from ..structures.TireForces import TireForces
 from ..structures.StateVector import StateVector
 import numpy as np
 from ..utils.LocalLogger import LocalLogger
 import matplotlib.pyplot as plt
+import logging
 
 
 def chassis(param: ImportParam,

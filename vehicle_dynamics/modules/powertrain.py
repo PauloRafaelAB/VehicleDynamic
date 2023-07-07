@@ -93,9 +93,9 @@ def main():
 
     plt.title("powertrain")
     data = np.array([powertrain(param, throttle, brake, acc_x, wheel_w_vel, gear, vx, logger) for i in range(SIM_ITER)])
-    plt.plot(data[, 0], label="rpm")
-    plt.plot(data[, 1], label="gear")
-    plt.plot(data[, 2], label="powertrain_net_torque")
+    plt.plot(data[:, 0], label="rpm")
+    plt.plot(data[:, 1], label="gear")
+    plt.plot(data[:, 2], label="powertrain_net_torque")
     plt.label()
     plt.show()
 
