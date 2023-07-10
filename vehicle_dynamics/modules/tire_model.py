@@ -8,16 +8,7 @@ import logging
 import yaml
 
 
-def tire_model(param: ImportParam,   
-               x_rf: TireForces,
-               f_zr: WheelHubForce,
-               position_chassi_force: np.ndarray,
-               slip_x: np.ndarray,
-               slip_y: np.ndarray,
-               compiled_wheel_forces: np.ndarray,
-               VTR_front_axle: np.ndarray,
-               VTR_rear_axle: np.ndarray,
-               logger: logging.Logger) -> np.ndarray: 
+def tire_model(parameters: Initialization, logger: logging.Logger):
     """ Tire model calculates de wheel forces fx and fy
     using the Magic Formula
 
@@ -36,52 +27,46 @@ def tire_model(param: ImportParam,
         3. slip_x
         4. slip_y
         5. compiled_wheel_forces 
-        6. VTR_front_axle
-        7. VTR_rear_axle
+        6. parameters.VTR_front_axle
+        7. parameters.VTR_rear_axle
 
 
     Returns:
-        1. x_rf.fx
+        1. parameters.x_rf.fx
             1.01 fx
             1.02 fy
             1.03 wheel_forces_transformed_force2vehicle_sys
         2. strut2chassi_xyz
 
     """    
-    x_rf.fx = f_zr.wheel_load_z * param.d * np.sin(param.c * np.arctan(param.b * slip_x - param.e * (param.b * slip_x - np.arctan(param.b * slip_x))))
-    x_rf.fy = f_zr.wheel_load_z * param.d * np.sin(param.c * np.arctan(param.b * slip_y - param.e * (param.b * slip_y - np.arctan(param.b * slip_y))))
+    parameters.x_rf.fx = f_zr.wheel_load_z * parameters.car_parameters.d * np.sin(parameters.car_parameters.c * np.arctan(parameters.car_parameters.b * parameters.slip_x - parameters.car_parameters.e * (parameters.car_parameters.b * parameters.slip_x - np.arctan(parameters.car_parameters.b * parameters.slip_x))))
+    parameters.x_rf.fy = f_zr.wheel_load_z * parameters.car_parameters.d * np.sin(parameters.car_parameters.c * np.arctan(parameters.car_parameters.b * parameters.slip_y - parameters.car_parameters.e * (parameters.car_parameters.b * parameters.slip_y - np.arctan(parameters.car_parameters.b * parameters.slip_y))))
 
-    compiled_wheel_forces = np.array([x_rf.fx, x_rf.fy, f_zr.wheel_load_z])
+    parameters.compiled_wheel_forces = np.array([parameters.x_rf.fx, parameters.x_rf.fy, f_zr.wheel_load_z])
 
     for i in range(4):
         if i % 2 == 0:
             # TODO: check matrix operation 3x3 3x4>> define wheel_forces_transfomed matrix
-            self.x_rf.wheel_forces_transformed_force2vehicle_sys[i] = self.VTR_front_axle @ self.compiled_wheel_forces[i]  # Bardini pag. 267 eq.32
+            self.parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[i] = self.parameters.VTR_front_axle @ self.parameters.compiled_wheel_forces[i]  # Bardini pag. 267 eq.32
         else: 
-            self.x_rf.wheel_forces_transformed_force2vehicle_sys[i] = self.VTR_rear_axle @ self.compiled_wheel_forces[i]
+            self.parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[i] = self.parameters.VTR_rear_axle @ self.parameters.compiled_wheel_forces[i]
 
         # 3x4 = 3x3 @ 3x4
     # 3x1 = 3x3 @ 3x1
 
-    x_rf.wheel_forces_transformed_force2vehicle_sys[:, 0] = VTR_front_axle @ compiled_wheel_forces.T[:, 0]
-    x_rf.wheel_forces_transformed_force2vehicle_sys[:, 1] = VTR_rear_axle @ compiled_wheel_forces.T[:, 1]
-    x_rf.wheel_forces_transformed_force2vehicle_sys[:, 2] = VTR_front_axle @ compiled_wheel_forces.T[:, 2]
-    x_rf.wheel_forces_transformed_force2vehicle_sys[:, 3] = VTR_rear_axle @ compiled_wheel_forces.T[:, 3]
+    parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[:, 0] = parameters.VTR_front_axle @ parameters.compiled_wheel_forces.T[:, 0]
+    parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[:, 1] = parameters.VTR_rear_axle @ parameters.compiled_wheel_forces.T[:, 1]
+    parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[:, 2] = parameters.VTR_front_axle @ parameters.compiled_wheel_forces.T[:, 2]
+    parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[:, 3] = parameters.VTR_rear_axle @ parameters.compiled_wheel_forces.T[:, 3]
 
     # forces on the vehicle chassis (Ai) >> Bardini pag 236  >> horizontal forces pag 264 f_za.f_za
-    strut2chassi_xyz = compiled_wheel_forces
+    parameters.strut2chassi_xyz = parameters.compiled_wheel_forces
 
-    logger.debug("VTR FRONT AXLE", VTR_front_axle)
-    logger.debug("Compiled wheel forces ", compiled_wheel_forces)
-    logger.debug("Compiled wheel force to vehicle", x_rf.wheel_forces_transformed_force2vehicle_sys)
+    logger.debug("VTR FRONT AXLE", parameters.VTR_front_axle)
+    logger.debug("Compiled wheel forces ", parameters.compiled_wheel_forces)
+    logger.debug("Compiled wheel force to vehicle", parameters.x_rf.wheel_forces_transformed_force2vehicle_sys)
 
-    return (x_rf, strut2chassi_xyz)
-
-
-def variable_initialization(param, data, logger):
-
-    return param, x_rf, f_zr, slip_x, slip_y, compiled_wheel_forces, VTR_front_axle
-    7. VTR_rear_axle, logger
+    return parameters, logger 
 
 
 def main():
