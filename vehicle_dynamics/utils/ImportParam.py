@@ -21,7 +21,7 @@ class ImportParam(object):
         self.diff_ni = param['vehicle_model']['parameters']['diff_ni']
         self.transmition_ni = param['vehicle_model']['parameters']['transmition_ni']
         self.b_bias = np.array(param['vehicle_model']['parameters']['b_bias'])
-        self.torque_max_table = np.array(param['vehicle_model']['parameters']['torque_max_table'])
+        self.torque_max_table = np.array(param['vehicle_model']['parameters']['torque_max'])
         # =====================================
         # Powertrain parameters
         # =====================================
