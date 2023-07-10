@@ -80,27 +80,29 @@ def tire_model(param: ImportParam,
 
 def variable_initialization(param, data, logger):
 
-    return param, x_rf, f_zr, slip_x, slip_y, compiled_wheel_forces , VTR_front_axle
+    return param, x_rf, f_zr, slip_x, slip_y, compiled_wheel_forces, VTR_front_axle
     7. VTR_rear_axle, logger
 
 
 def main():
     SIM_ITER = 1000
-    logger = LocalLogger("tire_model").logger
+    test_function = tire_model
+    function_name = function.__name__
 
-    path = "../../exampledata/2_acc_brake/SimulationData.pickle"
-    param = ImportParam("../../bmw_m8.yaml")
-    logger.info("loaded Params")
+    logger = LocalLogger(function_name).logger
 
-    data = import_data_CM(path)
+    parameters = Initialization("../../bmw_m8.yaml")
+    logger.info("loaded Parameters")
+
+    path_to_simulation_data = "../../exampledata/2_acc_brake/SimulationData.pickle"
+
+    data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
 
-    exit()
+    data = [test_function(parameters, logger)[0] for i in range(SIM_ITER)]
 
-    chassis_variables = [chassis(*variable_initialization(param, data)) for i in range(SIM_ITER)]
-
-    plt.title("tire_model")
-    plt.plot(chassis_variables)
+    plt.title(function_name)
+    plt.plot(data)
     plt.show()
 
 

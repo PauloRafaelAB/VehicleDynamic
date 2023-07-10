@@ -7,7 +7,8 @@ import numpy as np
 import yaml
 
 
-def powertrain(param: ImportParam,
+def powertrain(self.parameters: Initialization, self.logger: logging.Logger):
+            (parameters.car_parameters: ImportParam,
                throttle: float,
                brake: float,
                acc_x: float,
@@ -50,57 +51,63 @@ def powertrain(param: ImportParam,
     """
 
     # Update Engine RPM
-    rpm = param.gear_ratio[gear] * param.diff * \
-        np.mean(wheel_w_vel)   # Wheel vx to engine RPM
+    rpm = parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * \
+        np.mean(parameters.wheel_w_vel)   # Wheel vx to engine RPM
 
-    rpm = param.rpm_table[0] if rpm < param.rpm_table[0] else param.rpm_table[-1] 
+    rpm = parameters.car_parameters.rpm_table[0] if rpm < parameters.car_parameters.rpm_table[0] else parameters.car_parameters.rpm_table[-1] 
 
     # Calculate torque provided by the engine based on the engine RPM
     # how much torque is available thoughout the rpm range
-    torque_interpolation = interp1d(param.rpm_table, param.torque_max_table)
+    torque_interpolation = interp1d(parameters.car_parameters.rpm_table, parameters.car_parameters.torque_max_table)
     # Max torque available at rpm
     torque_available = torque_interpolation(rpm)
     # find the torque delivered by te engine
-    engine_torque = throttle * torque_available
+    engine_torque = parameters.throttle * torque_available
 
     # Gearbox up or down shifting
-    if vx > param.gear_selection[int(throttle * 10)][gear]:
-        gear = gear + 1
-        if gear >= param.gear_ratio.size:
-            gear = param.gear_ratio.size - 1
-    elif vx < 0.8 * param.gear_selection[int(throttle * 10)][gear - 1]:
-        gear = gear - 1
-        if gear < 1:
-            gear = 1
+    if parameters.vx > parameters.car_parameters.gear_selection[int(parameters.throttle * 10)][parameters.gear]:
+        parameters.gear = parameters.gear + 1
+        if parameters.gear >= parameters.car_parameters.gear_ratio.size:
+            parameters.gear = parameters.car_parameters.gear_ratio.size - 1
+    elif parameters.vx < 0.8 * parameters.car_parameters.gear_selection[int(parameters.throttle * 10)][parameters.gear - 1]:
+        parameters.gear = parameters.gear - 1
+        if parameters.gear < 1:
+            parameters.gear = 1
 
-    traction_torque = (engine_torque * param.gear_ratio[gear] * param.diff * param.diff_ni * param.transmition_ni) - ((
-        ((param.engine_inertia + param.axel_inertia + param.gearbox_inertia) * (gear ** 2)) + (
-            param.shaft_inertia * param.gear_ratio[gear] * (param.diff ** 2)) + param.wheel_inertia) * acc_x)
+    traction_torque = (engine_torque * parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * parameters.car_parameters.diff_ni * parameters.car_parameters.transmition_ni) - ((
+        ((parameters.car_parameters.engine_inertia + parameters.car_parameters.axel_inertia + parameters.car_parameters.gearbox_inertia) * (parameters.gear ** 2)) + (
+            parameters.car_parameters.shaft_inertia * parameters.car_parameters.gear_ratio[parameters.gear] * (parameters.car_parameters.diff ** 2)) + parameters.car_parameters.wheel_inertia) * parameters.acc_x)
 
     # --------------------Break Torque -------------------------
-    brake_torque = brake * param.max_brake_torque
+    brake_torque = parameters.brake * parameters.car_parameters.max_brake_torque
 
     # -------------------- Total Torque -------------------------
-    powertrain_net_torque = (traction_torque - brake_torque) * param.brake_bias
+    powertrain_net_torque = (traction_torque - brake_torque) * parameters.car_parameters.brake_bias
 
-    return [rpm, gear, powertrain_net_torque]
+    return self.parameters, self.logger 
 
-
-def variable_initialization(param, data, logger):
-
-    return param, rpm_table, torque_max_table, gear_ratio, diff,diff_ni, transmition_ni, gear_selection, engine_inertia, axel_inertia, gearbox_inertia, shaft_inertia, wheel_inertia, max_brake_torque, brake_bias,time_step, logger
 
 def main():
     SIM_ITER = 1000
-    logger = LocalLogger()
-    param = ImportParam()
-    data = importdataCM()
+    test_function = powertrain
+    function_name = function.__name__
 
-    plt.title("powertrain")
-    data = np.array([powertrain(param, throttle, brake, acc_x, wheel_w_vel, gear, vx, logger) for i in range(SIM_ITER)])
-    plt.plot(data[:, 0], label="rpm")
-    plt.plot(data[:, 1], label="gear")
-    plt.plot(data[:, 2], label="powertrain_net_torque")
+    logger = LocalLogger(function_name).logger
+
+    parameters = Initialization("../../bmw_m8.yaml")
+    logger.info("loaded Parameters")
+
+    path_to_simulation_data = "../../exampledata/2_acc_brake/SimulationData.pickle"
+
+    data = import_data_CM(path_to_simulation_data)
+    logger.info("loaded SimulationData")
+
+    data = [test_function(parameters, logger)[0] for i in range(SIM_ITER)]
+
+    plt.title(function_name)
+    plt.plot(data.rpm[:, 0], label="rpm")
+    plt.plot(data.gear[:, 1], label="gear")
+    plt.plot(data.powertrain_net_torque[:, 2], label="powertrain_net_torque")
     plt.label()
     plt.show()
 

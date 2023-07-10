@@ -46,3 +46,29 @@ def wheel_slip(param: ImportParam,
 
     logger.debug("SLIP X ", slip_x)
     return (slip_x, slip_y)
+
+
+def main():
+    SIM_ITER = 1000
+    test_function = wheel_slip
+    function_name = function.__name__
+
+    logger = LocalLogger(function_name).logger
+
+    parameters = Initialization("../../bmw_m8.yaml")
+    logger.info("loaded Parameters")
+
+    path_to_simulation_data = "../../exampledata/2_acc_brake/SimulationData.pickle"
+
+    data = import_data_CM(path_to_simulation_data)
+    logger.info("loaded SimulationData")
+
+    data = [test_function(parameters, logger)[0] for i in range(SIM_ITER)]
+
+    plt.title(function_name)
+    plt.plot(data)
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()
