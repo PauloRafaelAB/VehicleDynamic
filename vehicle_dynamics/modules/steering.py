@@ -114,7 +114,7 @@ def main():
     data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
 
-    data = [test_function(parameters, logger)[0] for i in range(SIM_ITER)]
+    data = [test_function(parameters, logger, steering = steering)[0] for i in range(SIM_ITER)]
 
     plt.title(function_name)
     plt.plot(data)

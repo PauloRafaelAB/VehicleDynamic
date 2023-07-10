@@ -41,8 +41,8 @@ class VehicleDynamics(object):
         self.logger = LocalLogger("MainLogger").logger
 
     def tick(self, gas_pedal, brake, steering, time):
-        self.parameters, self.logger = powertrain(self.parameters, self.logger) 
-        self.parameters, self.logger = steering(self.parameters, self.logger) 
+        self.parameters, self.logger = powertrain(self.parameters, self.logger, gas_pedal = gas_pedal, brake = brake)
+        self.parameters, self.logger = steering(self.parameters, self.logger, steering = steering)
         self.parameters, self.logger = rotational_matrix(self.parameters, self.logger) 
         self.parameters, self.logger = wheel_slip(self.parameters, self.logger) 
         self.parameters, self.logger = tire_model(self.parameters, self.logger) 
@@ -52,7 +52,7 @@ class VehicleDynamics(object):
         self.parameters, self.logger = chassis(self.parameters, self.logger)  
 
         # in essence you could do: 
-        # self.parameters, self.logger = powertrain(steering(rotational_matrix(wheel_slip(tire_model(wheel_angular(road(suspension(chassis(self.parameters, self.logger)))))))))
+        # self.parameters, self.logger = powertrain(steering(rotational_matrix(wheel_slip(tire_model(wheel_angular(road(suspension(chassis(self.parameters, self.logger)))))))steering=steering)gas_pedal=gas_pedal, brake=brake)
 
         return [self.parameters.x_a.x,
                 self.parameters.x_a.y,

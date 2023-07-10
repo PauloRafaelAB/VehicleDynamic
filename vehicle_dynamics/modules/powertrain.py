@@ -7,7 +7,7 @@ import numpy as np
 import yaml
 
 
-def powertrain(self.parameters: Initialization, self.logger: logging.Logger):
+def powertrain(self.parameters: Initialization, self.logger: logging.Logger, gas_pedal = gas_pedal, brake = brake):
             (parameters.car_parameters: ImportParam,
                throttle: float,
                brake: float,
@@ -102,7 +102,7 @@ def main():
     data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
 
-    data = [test_function(parameters, logger)[0] for i in range(SIM_ITER)]
+    data = [test_function(parameters, logger, gas_pedal = gas_pedal, brake = brake)[0] for i in range(SIM_ITER)]
 
     plt.title(function_name)
     plt.plot(data.rpm[:, 0], label="rpm")
