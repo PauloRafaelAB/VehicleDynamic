@@ -7,15 +7,7 @@ import numpy as np
 import yaml
 
 
-def powertrain(self.parameters: Initialization, self.logger: logging.Logger, gas_pedal = gas_pedal, brake = brake):
-            (parameters.car_parameters: ImportParam,
-               throttle: float,
-               brake: float,
-               acc_x: float,
-               wheel_w_vel: float,
-               gear: float,
-               vx: float,
-               logger: LocalLogger) -> list:
+def powertrain(self.parameters: Initialization, self.logger: logging.Logger, throttle = throttle, brake = brake):
     """
     Powertrain is a function that calculates the current Torque delivered by the engine to the wheels
 
@@ -62,10 +54,10 @@ def powertrain(self.parameters: Initialization, self.logger: logging.Logger, gas
     # Max torque available at rpm
     torque_available = torque_interpolation(rpm)
     # find the torque delivered by te engine
-    engine_torque = parameters.throttle * torque_available
+    engine_torque = throttle * torque_available
 
     # Gearbox up or down shifting
-    if parameters.vx > parameters.car_parameters.gear_selection[int(parameters.throttle * 10)][parameters.gear]:
+    if parameters.vx > parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]:
         parameters.gear = parameters.gear + 1
         if parameters.gear >= parameters.car_parameters.gear_ratio.size:
             parameters.gear = parameters.car_parameters.gear_ratio.size - 1
@@ -79,7 +71,7 @@ def powertrain(self.parameters: Initialization, self.logger: logging.Logger, gas
             parameters.car_parameters.shaft_inertia * parameters.car_parameters.gear_ratio[parameters.gear] * (parameters.car_parameters.diff ** 2)) + parameters.car_parameters.wheel_inertia) * parameters.acc_x)
 
     # --------------------Break Torque -------------------------
-    brake_torque = parameters.brake * parameters.car_parameters.max_brake_torque
+    brake_torque = brake * parameters.car_parameters.max_brake_torque
 
     # -------------------- Total Torque -------------------------
     powertrain_net_torque = (traction_torque - brake_torque) * parameters.car_parameters.brake_bias
@@ -102,7 +94,7 @@ def main():
     data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
 
-    data = [test_function(parameters, logger, gas_pedal = gas_pedal, brake = brake)[0] for i in range(SIM_ITER)]
+    data = [test_function(parameters, logger, throttle = throttle, brake = brake)[0] for i in range(SIM_ITER)]
 
     plt.title(function_name)
     plt.plot(data.rpm[:, 0], label="rpm")
