@@ -41,7 +41,7 @@ def wheel_angular(parameters: Initialization, logger: logging.Logger):
     logger.debug("FX_________", parameters.x_rf.fx)
 
     # Calculate the integral of the wheel_acc to calculate slip_x
-    parameters.wheel_w_vel = parameters.wheel_w_vel + (parameters.x_rr.pho_r_2dot * time_step)  # rad/s
+    parameters.wheel_w_vel = parameters.wheel_w_vel + (parameters.x_rr.pho_r_2dot * parameters.time_step)  # rad/s
 
     return parameters, logger
 

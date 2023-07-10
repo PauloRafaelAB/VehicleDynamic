@@ -51,7 +51,7 @@ class VehicleDynamics(object):
         self.parameters, self.logger = chassis(self.parameters, self.logger)  
 
         # in essence you could do: 
-        # self.parameters, self.logger = powertrain(steering(rotational_matrix(wheel_slip(tire_model(wheel_angular(road(suspension(chassis(self.parameters, self.logger)))))))throttle=throttle)gas_pedal=gas_pedal, brake=brake)
+        # self.parameters, self.logger = powertrain(steering(rotational_matrix(wheel_slip(tire_model(wheel_angular(road(suspension(chassis(self.parameters, self.logger))))))),steering=steering)throttle=throttle, brake=brake)
 
         return [self.parameters.x_a.x,
                 self.parameters.x_a.y,

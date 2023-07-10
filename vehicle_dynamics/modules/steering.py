@@ -37,7 +37,7 @@ def steering(parameters: Initialization, logger: logging.Logger, steering_angle:
 
     """
     delta = steering_angle * parameters.car_parameters.steering_ratio  # converts input [0,1] to steering angle
-    delta_dot = float((last_delta - delta) / time_step)  # Delta derivated
+    delta_dot = float((last_delta - delta) / parameters.time_step)  # Delta derivated
 
     # Restrain the limite of turning angle
 
