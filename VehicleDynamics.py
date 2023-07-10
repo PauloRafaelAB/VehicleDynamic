@@ -39,9 +39,9 @@ class VehicleDynamics(object):
         self.parameters = Initialization()
         self.logger = LocalLogger("MainLogger").logger
 
-    def tick(self, throttle, brake, steering, time):
-        self.parameters, self.logger = powertrain(self.parameters, self.logger, throttle = throttle, brake = brake)
-        self.parameters, self.logger = steering(self.parameters, self.logger, steering = steering)
+    def tick(self, throttle, brake, steering_angle, time):
+        self.parameters, self.logger = powertrain(self.parameters, self.logger, throttle, brake)
+        self.parameters, self.logger = steering(self.parameters, self.logger, steering_angle)
         self.parameters, self.logger = rotational_matrix(self.parameters, self.logger) 
         self.parameters, self.logger = wheel_slip(self.parameters, self.logger) 
         self.parameters, self.logger = tire_model(self.parameters, self.logger) 
