@@ -23,8 +23,7 @@ def chassis(param: ImportParam,
             strut2chassi_xyz: np.ndarray,
             angular_rates: np.ndarray,
             polar_inertia_v: np.ndarray,
-            logger: logging.Logger,
-            *xargs, **kwargs) -> np.ndarray: 
+            logger: logging.Logger) -> np.ndarray: 
     """
     Chassis is a function that calculates the current status of the chassis
 
