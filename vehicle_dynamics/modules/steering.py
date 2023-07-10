@@ -92,3 +92,33 @@ def steering(param: ImportParam,
     "says rotational transformation to Kv is necessary (VTR_front_axel)>> def vehiclefixed2inertial_system"
 
     return (delta, wheel_angle_front, wheel_angle_rear, VTR_front_axle, VTR_rear_axle, last_delta)
+
+
+
+def variable_initialization(param, data, logger):
+
+    return param, x_a, delta_dot, last_delta, time_step, wheel_angle_front, wheel_angle_rear, VTR_front_axel, VTR_rear_axel, logger
+
+
+def main():
+    SIM_ITER = 1000
+    logger = LocalLogger("steering").logger
+
+    path = "../../exampledata/2_acc_brake/SimulationData.pickle"
+    param = ImportParam("../../bmw_m8.yaml")
+    logger.info("loaded Params")
+
+    data = import_data_CM(path)
+    logger.info("loaded SimulationData")
+
+    exit()
+
+    chassis_variables = [chassis(*variable_initialization(param, data)) for i in range(SIM_ITER)]
+
+    plt.title("steering")
+    plt.plot(chassis_variables)
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()

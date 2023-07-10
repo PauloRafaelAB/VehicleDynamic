@@ -41,3 +41,33 @@ def suspension(param: ImportParam,
     logger.debug("whell load z", f_zr.wheel_load_z)
 
     return f_zr
+
+
+
+def variable_initialization(param, data, logger):
+
+    return param, f_zr, displacement, vehicle_fixed2inertial_system, logger
+
+
+def main():
+    SIM_ITER = 1000
+    logger = LocalLogger("suspension").logger
+
+    path = "../../exampledata/2_acc_brake/SimulationData.pickle"
+    param = ImportParam("../../bmw_m8.yaml")
+    logger.info("loaded Params")
+
+    data = import_data_CM(path)
+    logger.info("loaded SimulationData")
+
+    exit()
+
+    chassis_variables = [chassis(*variable_initialization(param, data)) for i in range(SIM_ITER)]
+
+    plt.title("suspension")
+    plt.plot(chassis_variables)
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()

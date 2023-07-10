@@ -86,6 +86,10 @@ def powertrain(param: ImportParam,
     return [rpm, gear, powertrain_net_torque]
 
 
+def variable_initialization(param, data, logger):
+
+    return param, rpm_table, torque_max_table, gear_ratio, diff,diff_ni, transmition_ni, gear_selection, engine_inertia, axel_inertia, gearbox_inertia, shaft_inertia, wheel_inertia, max_brake_torque, brake_bias,time_step, logger
+
 def main():
     SIM_ITER = 1000
     logger = LocalLogger()

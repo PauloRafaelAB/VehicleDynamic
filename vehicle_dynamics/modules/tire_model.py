@@ -76,3 +76,33 @@ def tire_model(param: ImportParam,
     logger.debug("Compiled wheel force to vehicle", x_rf.wheel_forces_transformed_force2vehicle_sys)
 
     return (x_rf, strut2chassi_xyz)
+
+
+def variable_initialization(param, data, logger):
+
+    return param, x_rf, f_zr, slip_x, slip_y, compiled_wheel_forces , VTR_front_axle
+    7. VTR_rear_axle, logger
+
+
+def main():
+    SIM_ITER = 1000
+    logger = LocalLogger("tire_model").logger
+
+    path = "../../exampledata/2_acc_brake/SimulationData.pickle"
+    param = ImportParam("../../bmw_m8.yaml")
+    logger.info("loaded Params")
+
+    data = import_data_CM(path)
+    logger.info("loaded SimulationData")
+
+    exit()
+
+    chassis_variables = [chassis(*variable_initialization(param, data)) for i in range(SIM_ITER)]
+
+    plt.title("tire_model")
+    plt.plot(chassis_variables)
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()

@@ -41,3 +41,4 @@ def rotational_matrix(x_a: StateVector,
     angular_vel_2inercial_sys_in_vehicle_coord = rotationalmatrix @ angular_rates  # Bardini Pag. 261 Eq. 11.4    
 
     return angular_vel_2inercial_sys_in_vehicle_coord, rotationalmatrix
+
