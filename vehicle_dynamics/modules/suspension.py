@@ -8,12 +8,10 @@ import logging
 import yaml
 
 
-def suspension(param: ImportParam,
-               f_zr: WheelHubForce,
-               displacement: Displacement,
-               vehicle_fixed2inertial_system: np.ndarray,
-               logger: logging.Logger) -> np.ndarray:  # previsious forces, ax,ay 
-    """
+def suspension(parameters: Initialization, logger: logging.Logger)
+
+
+"""
      suspension is a function that calculates the current wheel loads (z)
 
      Required Parameters from Param:
@@ -33,19 +31,15 @@ def suspension(param: ImportParam,
          1. f_zr.wheel_load_z
 
      """
-    # Forces on the vehicle chassis at the pivot points Ai
-    # Bardini pag. 265 eq. 11-21  
+# Forces on the vehicle chassis at the pivot points Ai
+# Bardini pag. 265 eq. 11-21  
 
-    f_zr.wheel_load_z = -(param.eq_stiff * (displacement.za - displacement.zs + displacement.l_stat) + param.dumper * (displacement.za_dot)) * vehicle_fixed2inertial_system @ np.array([[0], [0], [1]])[2]
+parameters.f_zr.wheel_load_z = -(parameters.car_parameters.eq_stiff * (parameters.displacement.za - parameters.displacement.zs + parameters.displacement.l_stat) + parameters.car_parameters.dumper * (parameters.displacement.za_dot)) * parameters.vehicle_fixed2inertial_system @ np.array([[0], [0], [1]])[2]
 
-    logger.debug("whell load z", f_zr.wheel_load_z)
+logger.debug("whell load z", parameters.f_zr.wheel_load_z)
 
-    return f_zr
-
-
-def variable_initialization(param, data, logger):
-
-    return param, f_zr, displacement, vehicle_fixed2inertial_system, logger
+return parameters, logger
+return f_zr
 
 
 def main():
