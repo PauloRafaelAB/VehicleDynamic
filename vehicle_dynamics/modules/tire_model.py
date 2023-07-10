@@ -2,6 +2,8 @@ from vehicle_dynamics.utils.ImportParam import ImportParam
 from vehicle_dynamics.structures.TireForces import TireForces
 from vehicle_dynamics.structures.WheelHubForce import WheelHubForce
 from vehicle_dynamics.structures.StateVector import StateVector
+from vehicle_dynamics.utils.Initialization import Initialization
+
 
 import numpy as np
 import logging

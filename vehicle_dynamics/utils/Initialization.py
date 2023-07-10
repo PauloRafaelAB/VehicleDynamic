@@ -1,3 +1,15 @@
+from vehicle_dynamics.utils.ImportParam import ImportParam
+from vehicle_dynamics.structures.TireForces import TireForces
+from vehicle_dynamics.structures.StateVector import StateVector
+from vehicle_dynamics.structures.Displacement import Displacement
+from vehicle_dynamics.structures.StrutForce import StrutForce
+from vehicle_dynamics.structures.WheelHubForce import WheelHubForce
+from vehicle_dynamics.structures.AngularWheelPosition import AngularWheelPosition
+
+from vehicle_dynamics.utils.import_data_CM import import_data_CM
+from vehicle_dynamics.utils.LocalLogger import LocalLogger
+from vehicle_dynamics.utils.SimulationData import SimulationData
+
 from scipy.interpolate import interp1d
 from numpy.linalg import inv
 import numpy as np
@@ -8,11 +20,12 @@ import math
 class Initialization(object):
     """This class initialize the values of a vehicular dynamic model. """
 
-    def __init__(self, car_parameters_path):
+    def __init__(self, car_parameters_path, freq, initial_speed, state_0, initial_gear, logger):
         super(Initialization, self).__init__()
         assert car_parameters_path, "Required Car Parameters"
 
         self.car_parameters = ImportParam(car_parameters_path)
+        logger.info("Imported YAML car parameters")    
 
         self.time_step = 1. / freq
 

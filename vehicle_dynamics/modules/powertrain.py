@@ -1,6 +1,8 @@
 from vehicle_dynamics.utils.ImportParam import ImportParam
 from vehicle_dynamics.utils.LocalLogger import LocalLogger
+from vehicle_dynamics.utils.Initialization import Initialization
 
+import logging
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import numpy as np
