@@ -15,7 +15,7 @@ import logging
 import yaml
 
 
-def chassis(self.parameters: Initialization, self.logger: logging.Logger):
+def chassis(parameters: Initialization, logger: logging.Logger):
     """
     Chassis is a function that calculates the current status of the chassis
 
@@ -142,7 +142,7 @@ def chassis(self.parameters: Initialization, self.logger: logging.Logger):
     parameters.displacement.za[2] = (- parameters.car_parameters.lv * np.sin(parameters.x_a.pitch)) - (parameters.car_parameters.sr * np.sin(parameters.x_a.roll))
     parameters.displacement.za[3] = (+ parameters.car_parameters.lh * np.sin(parameters.x_a.pitch)) - (parameters.car_parameters.sr * np.sin(parameters.x_a.roll))
 
-    return self.parameters, self.logger 
+    return parameters, logger 
 
 
 def main():

@@ -7,7 +7,7 @@ import numpy as np
 import yaml
 
 
-def powertrain(self.parameters: Initialization, self.logger: logging.Logger, throttle: float, brake: float):
+def powertrain(parameters: Initialization, logger: logging.Logger, throttle: float, brake: float):
     """
     Powertrain is a function that calculates the current Torque delivered by the engine to the wheels
 
@@ -75,8 +75,7 @@ def powertrain(self.parameters: Initialization, self.logger: logging.Logger, thr
 
     # -------------------- Total Torque -------------------------
     powertrain_net_torque = (traction_torque - brake_torque) * parameters.car_parameters.brake_bias
-
-    return self.parameters, self.logger 
+    return parameters, logger 
 
 
 def main():
