@@ -38,6 +38,7 @@ class VehicleDynamics(object):
 
     def __init__(self, initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 1, freq=100, param_path = ""):
         self.logger = LocalLogger("MainLogger").logger
+        self.logger.setLevel("INFO")
         self.parameters = Initialization(param_path, freq, initial_speed, state_0, initial_gear, self.logger)
 
     def tick(self, throttle, brake, steering_angle):
@@ -66,9 +67,9 @@ class VehicleDynamics(object):
                 self.parameters.x_a.wx,
                 self.parameters.x_a.wy,
                 self.parameters.x_a.wz,
-                self.parameters.x_a.acc[0],
-                self.parameters.x_a.acc[1],
-                self.parameters.x_a.acc[2],
+                self.parameters.x_a.acc_x,
+                self.parameters.x_a.acc_y,
+                self.parameters.x_a.acc_z,
                 self.parameters.gear,
                 self.parameters.slip_x[0],
                 self.parameters.slip_x[1],

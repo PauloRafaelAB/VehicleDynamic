@@ -59,24 +59,24 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
     engine_torque = throttle * torque_available
 
     # Gearbox up or down shifting
-    if parameters.vx > parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]:
+    if parameters.x_a.vx > parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]:
         parameters.gear = parameters.gear + 1
         if parameters.gear >= parameters.car_parameters.gear_ratio.size:
             parameters.gear = parameters.car_parameters.gear_ratio.size - 1
-    elif parameters.vx < 0.8 * parameters.car_parameters.gear_selection[int(parameters.throttle * 10)][parameters.gear - 1]:
+    elif parameters.x_a.vx < 0.8 * parameters.car_parameters.gear_selection[int(parameters.throttle * 10)][parameters.gear - 1]:
         parameters.gear = parameters.gear - 1
         if parameters.gear < 1:
             parameters.gear = 1
 
     traction_torque = (engine_torque * parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * parameters.car_parameters.diff_ni * parameters.car_parameters.transmition_ni) - ((
         ((parameters.car_parameters.engine_inertia + parameters.car_parameters.axel_inertia + parameters.car_parameters.gearbox_inertia) * (parameters.gear ** 2)) + (
-            parameters.car_parameters.shaft_inertia * parameters.car_parameters.gear_ratio[parameters.gear] * (parameters.car_parameters.diff ** 2)) + parameters.car_parameters.wheel_inertia) * parameters.acc_x)
+            parameters.car_parameters.shaft_inertia * parameters.car_parameters.gear_ratio[parameters.gear] * (parameters.car_parameters.diff ** 2)) + parameters.car_parameters.wheel_inertia) * parameters.x_a.acc_x)
 
     # --------------------Break Torque -------------------------
     brake_torque = brake * parameters.car_parameters.max_brake_torque
 
     # -------------------- Total Torque -------------------------
-    powertrain_net_torque = (traction_torque - brake_torque) * parameters.car_parameters.brake_bias
+    parameters.powertrain_net_torque = (traction_torque - brake_torque) * parameters.car_parameters.brake_bias
     return parameters, logger 
 
 

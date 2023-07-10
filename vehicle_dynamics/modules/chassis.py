@@ -72,39 +72,40 @@ def chassis(parameters: Initialization, logger: logging.Logger):
 
     sum_f_wheel = np.sum(parameters.x_rf.wheel_forces_transformed_force2vehicle_sys, axis = 1)
 
-    logger.debug("FORCES IN THE VEHICLE ", parameters.x_rf.wheel_forces_transformed_force2vehicle_sys)
-    logger.debug("Sum wheel ", sum_f_wheel)
+    logger.debug(f"FORCES IN THE VEHICLE  {np.shape(parameters.x_rf.wheel_forces_transformed_force2vehicle_sys)}")
+    logger.debug(f"Sum wheel {np.shape(sum_f_wheel)}")
     # Equation 11-46 >> 11-12, Pag. 273
     # TODO: check gravity diretion
 
     # O que faz esses valores atras da acceleracao?????????????? 11.12-13-14
-    parameters.x_a.acc[0] = ((sum_f_wheel[0] + (parameters.drag * (parameters.x_a.vx ** 2))) / parameters.car_parameters.m) + ((parameters.x_a.wz * parameters.x_a.vy) - (parameters.x_a.wy * parameters.x_a.vz))
-    parameters.x_a.acc[1] = (sum_f_wheel[1] / parameters.car_parameters.m) + ((parameters.x_a.wx * parameters.x_a.vz) - (parameters.x_a.wz * parameters.x_a.vx))
-    parameters.x_a.acc[2] = ((sum_f_wheel[2] - (parameters.car_parameters.m * parameters.car_parameters.gravity)) / parameters.car_parameters.m) + ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
+    parameters.x_a.acc_x = ((sum_f_wheel[0] + (parameters.drag * (parameters.x_a.vx ** 2))) / parameters.car_parameters.m) + ((parameters.x_a.wz * parameters.x_a.vy) - (parameters.x_a.wy * parameters.x_a.vz))
+    parameters.x_a.acc_y = (sum_f_wheel[1] / parameters.car_parameters.m) + ((parameters.x_a.wx * parameters.x_a.vz) - (parameters.x_a.wz * parameters.x_a.vx))
+    parameters.x_a.acc_z = ((sum_f_wheel[2] - (parameters.car_parameters.m * parameters.gravity)) / parameters.car_parameters.m) + ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
 
     # vehicle velocity calculation
-    velocity = parameters.x_a.acc * parameters.time_step
-    parameters.x_a.vx = parameters.x_a.vx + velocity[0] 
-    parameters.x_a.vy = parameters.x_a.vy + velocity[1] 
-    parameters.x_a.vz = parameters.x_a.vz + velocity[2] 
+    parameters.x_a.vx = parameters.x_a.vx + parameters.x_a.acc_x * parameters.time_step
+    parameters.x_a.vy = parameters.x_a.vy + parameters.x_a.acc_y * parameters.time_step
+    parameters.x_a.vz = parameters.x_a.vz + parameters.x_a.acc_z * parameters.time_step
 
     # TODO:Check rolling resistance            
     # rolling_resist = (parameters.car_parameters.fr * parameters.car_parameters.m * parameters.car_parameters.gravity * np.cos(0.) - 0.5 * parameters.car_parameters.row * parameters.car_parameters.Cl * parameters.car_parameters.area * speed ** 2)                              # Rolling Resistance with air lift
+    crossproduct_r_f = np.zeros((4, 3))
+    logger.debug(f"shape position_chassi_force {np.shape(parameters.position_chassi_force)} {np.shape(parameters.strut2chassi_xyz)}")
 
-    # 11-47
+    parameters.strut2chassi_xyz = parameters.strut2chassi_xyz.T  # na duvida do que isso significa, conferir a matemagica
 
     for i in range(4):
         crossproduct_r_f[i][0] = parameters.position_chassi_force[i][1] * parameters.strut2chassi_xyz[i][2] - parameters.position_chassi_force[i][2] * parameters.strut2chassi_xyz[i][1] 
         crossproduct_r_f[i][1] = parameters.position_chassi_force[i][2] * parameters.strut2chassi_xyz[i][0] - parameters.position_chassi_force[i][0] * parameters.strut2chassi_xyz[i][2]
         crossproduct_r_f[i][2] = parameters.position_chassi_force[i][0] * parameters.strut2chassi_xyz[i][1] - parameters.position_chassi_force[i][1] * parameters.strut2chassi_xyz[i][0]
+
     # TODO Check eq 11 - 47
     sum_crossproduct_r_f = np.sum(crossproduct_r_f, axis = 0)
-    # logger.debug('sum_crossproduct',sum_crossproduct_r_f)
     # TODO make the return of acc angular be type (3,0)
 
     parameters.x_a.acc_angular_v = (sum_crossproduct_r_f - np.cross(parameters.angular_rates, (parameters.polar_inertia_v @ parameters.angular_rates))) @ np.linalg.inv(parameters.polar_inertia_v)
 
-    logger.debug('sum_crossproduct', sum_crossproduct_r_f)
+    logger.debug(f"sum_crossproduct {sum_crossproduct_r_f}")
     # logger.debug('parameters.angular_rates', parameters.angular_rates)
     # logger.debug('polar inertia',parameters.polar_inertia_v)
 

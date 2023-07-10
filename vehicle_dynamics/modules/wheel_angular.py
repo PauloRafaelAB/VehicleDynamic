@@ -34,13 +34,13 @@ def wheel_angular(parameters: Initialization, logger: logging.Logger):
 
     # EULER’s Equations of the Wheels: Solve  11-25 Bardini pag 266
     # Torque, fx_car, fy_car, Inertias wheel,  output wheel Wv, dot_wv
-    parameters.x_rr.pho_r_2dot = (parameters.powertrain_net_torque / parameters.car_parameters.iw) - ((parameters.x_rf.fx * parameters.car_parameters.r_dyn) / parameters.car_parameters.iw) 
+    parameters.x_rr.pho_r_2dot = (parameters.powertrain_net_torque / parameters.car_parameters.wheel_inertia) - ((parameters.x_rf.fx * parameters.car_parameters.r_dyn) / parameters.car_parameters.wheel_inertia) 
 
-    logger.debug('torque fx', parameters.x_rf.fx / parameters.car_parameters.r_dyn)
-    logger.debug('powertrain net torque', parameters.powertrain_net_torque)
+    logger.debug(f'torque fx { parameters.x_rf.fx / parameters.car_parameters.r_dyn}')
+    logger.debug(f'powertrain net torque {parameters.powertrain_net_torque}')
 
-    logger.debug("pho_r_2dot     ", parameters.x_rr.pho_r_2dot)
-    logger.debug("FX_________", parameters.x_rf.fx)
+    logger.debug(f"pho_r_2dot     {parameters.x_rr.pho_r_2dot}")
+    logger.debug(f"FX_________ {parameters.x_rf.fx}")
 
     # Calculate the integral of the wheel_acc to calculate slip_x
     parameters.wheel_w_vel = parameters.wheel_w_vel + (parameters.x_rr.pho_r_2dot * parameters.time_step)  # rad/s

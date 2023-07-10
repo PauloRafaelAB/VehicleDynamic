@@ -74,7 +74,9 @@ class Initialization(object):
 
         # Creating vector for chassis method 
         self.sum_f_wheel = np.zeros(3, dtype=float)  # Sum of wheel forces
-        # self.acc = np.zeros((3),dtype=float) # acceleration
+
+        # self.acc = np.zeros((3), dtype=float)  # acceleration
+
         self.crossproduct_r_f = np.zeros((4, 3), dtype=float)
 
         # Transformation matrix vehicle coord sys(Kv) into inertia sys(Ke) - E_T_V -- Bardini pag 260 eq. 11.3
@@ -90,3 +92,5 @@ class Initialization(object):
         # self.wheel_hub_position = np.zeros((4,3))
         # for i in range(4): 
         #     self.wheel_hub_position[i] = self.position_chassi_force[i] + np.matmul(self.transpose_vehicle_fixed2inertial_system,np.array([0,0,self.displacement.l_stat[i]]))
+
+        self.powertrain_net_torque = 0

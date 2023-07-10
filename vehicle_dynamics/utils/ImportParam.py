@@ -20,7 +20,7 @@ class ImportParam(object):
         self.diff = param['vehicle_model']['parameters']['diff']                       # Differential ratio
         self.diff_ni = param['vehicle_model']['parameters']['diff_ni']
         self.transmition_ni = param['vehicle_model']['parameters']['transmition_ni']
-        self.b_bias = np.array(param['vehicle_model']['parameters']['b_bias'])
+        self.brake_bias = np.array(param['vehicle_model']['parameters']['b_bias'])
         self.torque_max_table = np.array(param['vehicle_model']['parameters']['torque_max'])
         # =====================================
         # Powertrain parameters
@@ -71,10 +71,10 @@ class ImportParam(object):
         # =====================================
         "Intertial Resistance Parameters need to be measured"
         # =====================================
-        self.iw = param['vehicle_model']['parameters']['iw']                                    # Wheel inertia [Kgm^2]
-        self.ia = param['vehicle_model']['parameters']['ia']                                    # Axel inertia [Kgm^2]
-        self.id = param['vehicle_model']['parameters']['id']                                    # drive shaft inertia [Kgm^2]
-        self.ig = param['vehicle_model']['parameters']['ig']            # gear box inertia
+        self.wheel_inertia = param['vehicle_model']['parameters']['iw']                                    # Wheel inertia [Kgm^2]
+        self.axel_inertia = param['vehicle_model']['parameters']['ia']                                    # Axel inertia [Kgm^2]
+        self.shaft_inertia = param['vehicle_model']['parameters']['id']                                    # drive shaft inertia [Kgm^2]
+        self.gearbox_inertia = param['vehicle_model']['parameters']['ig']            # gear box inertia
         self.engine_inertia = param['vehicle_model']['parameters']['engine_inertia']                              # Engine inertia [Kgm^2]
         self.max_brake_torque = param['vehicle_model']['parameters']['max_brake_torque']  
         # self.i_uf = param['vehicle_model']['parameters']['i_uf']        # moment of inertia for unsprung mass about x-axis (front) [kg m^2]  IXUF
