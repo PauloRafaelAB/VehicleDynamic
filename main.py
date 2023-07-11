@@ -2,7 +2,7 @@
 """
 Created on Thu Oct 13 09:45:43 2022
 
-@author: Paulo R.A. Bloemer, Maikol Funk Drechsler
+@author: Paulo R.A. Bloemer, Maikol Funk Drechsler, Yuri Poledna
 """
 import math
 import numpy as np
@@ -32,7 +32,7 @@ u[1] = throttle
 # TODO: Create a structure 
 states = np.zeros((22, points))
 
-vehicle_dynamics = VehicleDynamics(initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 1, freq=frequency, param_path = "bmw_m8.yaml")
+vehicle_dynamics = VehicleDynamics(initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 1, freq=frequency, param_path = "Audi_r8.yaml")
 
 for i in range(len(u[0])):
 

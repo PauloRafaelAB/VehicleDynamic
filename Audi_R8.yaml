@@ -1,0 +1,86 @@
+vehicle_model:
+  parameters:
+    min_rpm: 883.18
+    rpm_table: [1000, 1800, 5500, 6000, 7000, 8300]
+    torque_max: [200, 328, 400, 450, 400, 250]            # [Nm]
+    gear_ratio: [0, 3.1, 2.59, 1.96, 1.24, 0.98, .91, 0.84, 0.84]
+    gear_selection: [[0.0, 0.0, 5.555555556, 8.333333333, 11.11111111, 13.88888889, 16.66666667, 20.83333333, 27.7777777],
+      [0.0, 0.777777778, 5.555555556, 8.333333333, 11.11111111, 13.88888889, 16.66666667, 20.83333333, 27.77777778],
+      [0.0, 5.555555556, 9.722222222, 13.88888889, 18.05555556, 22.22222222, 27.77777778, 30.55555556, 41.66666667],
+      [0.0, 8.333333333, 13.88888889, 19.44444444, 25, 30.55555556, 38.88888889, 43.05555556, 55.55555556],
+      [0.0, 11.11111111, 18.05555556, 25, 31.94444444, 38.88888889, 50, 55.55555556, 69.44444444],
+      [0.0, 11.11111111, 22.22222222, 33.33333333, 41.66666667, 50, 58.33333333, 66.66666667, 75],
+      [0.0, 11.38888889, 22.5, 33.61111111, 41.94444444, 50.27777778, 58.61111111, 66.94444444, 75.27777778],
+      [0.0, 11.66666667, 22.77777778, 33.88888889, 42.22222222, 50.55555556, 58.88888889, 67.22222222, 75.55555556],
+      [0.0, 11.94444444, 23.05555556, 34.16666667, 42.5, 50.83333333, 59.16666667, 67.5, 75.83333333],
+      [0.0, 12.22222222, 23.33333333, 34.44444444, 42.77777778, 51.11111111, 59.44444444, 67.77777778, 76.11111111],
+      [0.0, 12.5, 23.61111111, 34.72222222, 43.05555556, 51.38888889, 59.72222222, 68.05555556, 76.38888889]]
+    diff: 3.59 # Differential ratio
+    diff_ni: 0.98
+    transmition_ni: 0.95
+    speed_ratio_TC: [0,0.9,1]
+    torque_converter_ratio: [2.3, 1, 1]
+    engine_inertia: 0.2270 
+    max_brake_torque: 2000. # [n/m]
+    b_bias: [0.25,0.25,0.25,0.25]
+    #                               Tire Data
+    #cr: [99900, 99900., 99900, 99900.]        
+    # Tire Stiffnes		
+    i_wheel: 70. # sum of all 4 wheel inertia
+    wheel_mass: [20.,25.,20.,25.]
+    magic_formula_d : 1.2 # Magic formula coefficient
+    magic_formula_e : 0.97 # Magic formula coefficient
+    magic_formula_c : 1.9 # Magic formula coefficient
+    magic_formula_b : 10. # Magic formula coefficient
+    r_stat: 0.5334 # Tire Radius Static [m]
+    r_dyn: [0.5334,0.5334,0.5334,0.5334]  # Tire Radius Dynamic [m]	
+    #                          	Resistance
+    cd: 0.35  #Air Drag Coefficient
+    row: 1.
+    front_area: 2.057 #Front Area of Car
+    air_density: 1.2  # Air Dencity 
+    # 				Steering contrains
+    steering_min: -0.910 # minimum steering angle [rad]
+    steering_max: 0.910 # maximum steering angle [rad]
+    steering_v_min: -0.4 # minimum steering velocity [rad/s]
+    steering_v_max: 0.4  # maximum steering velocity [rad/s]   
+    steering_ratio: 4. 
+    # 					Masses
+    mass: 1424.2 # Vehicle Mass
+    m_s: [350.,400.,350.,400.]  # sprung mass [kg]
+    unsprung_mass: [70.,70.,70.,70.] # unsprung mass vector [kg]  
+    # 					inertias
+    i_d_shaft: 1     # Drive shaft inertia
+    i_clutch: .01 # clucth inertia	
+    iw: [1.953,1.953,1.953,1.953]  # Wheel Inertia on each wheel [Kgm^2]
+    ia: 0.135  # Axel Inertia [Kgm^2]
+    id: 0.0    # drive shaft Inertia [Kgm^2]                    
+    gd: 1      # Differential Gear Ratio
+    ig: 0.1   # Gear Box Inertia [Kgm^2]
+    i_engine: 0.227  # Engine Inertia [Kgm^2]
+    
+    # Body inertias
+    i_phi_s: 518.05  # moment of inertia for sprung mass in roll [kg m^2]  
+    i_y_s: 1677  # moment of inertia for sprung mass in pitch [kg m^2] 
+    i_z: 1921.3   # moment of inertia for sprung mass in yaw [kg m^2]  
+    
+    # 					suspension parameters
+    eq_stiff: [60000., 70000., 60000., 70000.]  # suspension spring rate (front i = 1 or 3)  (rear i= 2,4) [N/m]   
+    dumper: [2500., 3000.,2500., 30000]  # suspension damping rate (front i = 1 or 3)  (rear = 1 = 2,4)[N s/m]  
+    anti_roll_stiffness: 2882. # Anti roll bar stiffness [Nm/rad]
+    
+
+    # 					geometric parameters
+    track_width: 1.82     # [m]
+    wheel_base: 2.75 # [m]
+    lv: 1.240 # x-distance from Vehicle CoG to the front axle [m]
+    lh: 1.510    # x-distance from Vehicle Cog to the rear axle [m]
+    sl: 0.6    # y-distance from Vehicle CoG to the left chassis point [m]
+    sr: .6    # y-distance from Vehicle CoG to the right chassis point  [m]
+    sz: 0.475  # z-distance from Vehicle CoG to the chassis point [m]
+    hub_fl: [0.866,-0.816, 0.298] # 
+    hub_rl: [-0.866,0.791,-0.314] #
+    hub_fr: [0.866,-0.816,-0.298] #
+    hub_rr: [-0.866,0.791,-0.314] #
+    
+     
