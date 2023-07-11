@@ -14,9 +14,7 @@ import pickle
 # Specify the path to your CSV file
 data = {}
 
-
-#csv_file = 'C:/Users/albertonbloemer/Documents/T3.6_1/src_cm4sl/data_sim/2_acc_brake/brake_pedal.csv'
-path = "../../exampledata/2_acc_brake/"
+path = "../../exampledata/Powertrain testing/"
 
 files_in_dir = os.listdir(path)
 
@@ -28,13 +26,13 @@ for i, file_in_dir in enumerate(files_in_dir):
         filename = file_in_dir.split(".csv")[0]
         if i == 0:
             reader = csv.reader(file)
-            for row in reader:
-                data[row[0]] = SimulationData(files_in_dir)
-                setattr(data[row[0]], filename, float(row[1]))
+            for j, row in enumerate(reader):
+                data[j] = SimulationData(files_in_dir)
+                setattr(data[j], filename, float(row[1]))
         else: 
             reader = csv.reader(file)
-            for row in reader:
-                setattr(data[row[0]], filename, float(row[1]))
+            for j, row in enumerate(reader):
+                setattr(data[j], filename, float(row[1]))
 
 with open(path + "SimulationData.pickle", "wb+") as handle:
 

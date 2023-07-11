@@ -36,10 +36,10 @@ class VehicleDynamics(object):
     of brake, steer and thorttle positons.
     """
 
-    def __init__(self, initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 1, freq=100, param_path = ""):
+    def __init__(self, state_0 = np.zeros(15), initial_gear = 1, freq=100, param_path = ""):
         self.logger = LocalLogger("MainLogger").logger
         self.logger.setLevel("INFO")
-        self.parameters = Initialization(param_path, freq, initial_speed, state_0, initial_gear, self.logger)
+        self.parameters = Initialization(param_path, freq, state_0, initial_gear, self.logger)
 
     def tick(self, throttle, brake, steering_angle):
         self.parameters, self.logger = powertrain(self.parameters, self.logger, throttle, brake)

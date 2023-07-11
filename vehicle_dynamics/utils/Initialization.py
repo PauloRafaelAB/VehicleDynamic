@@ -20,7 +20,7 @@ import math
 class Initialization(object):
     """This class initialize the values of a vehicular dynamic model. """
 
-    def __init__(self, car_parameters_path, freq, initial_speed, state_0, initial_gear, logger):
+    def __init__(self, car_parameters_path, freq = 100, state_0 = np.zeros(15), initial_gear = 1, logger = 1):
         super(Initialization, self).__init__()
         assert car_parameters_path, "Required Car Parameters"
 
@@ -44,7 +44,7 @@ class Initialization(object):
         self.drag = 0.5 * self.car_parameters.row * self.car_parameters.Cd * self.car_parameters.Front_area  # constant for air resistance
 
         # State initiate with the position, orientation and speed provided by the arguments, acc = 0; 
-        self.x_a = StateVector(x=state_0[0], y=state_0[1], z=state_0[2], roll=state_0[3], pitch=state_0[4], yaw=state_0[5], vx =initial_speed, vy=0., vz=0., wx=0., wy=0., wz=0.)  # State_0
+        self.x_a = StateVector(*state_0)  # State_0
 
         # Wheel initiate stoped 
         self.x_rr = AngularWheelPosition(pho_r=np.zeros(4), pho_r_dot = np.zeros(4), pho_r_2dot =np.zeros(4))
@@ -94,3 +94,29 @@ class Initialization(object):
         #     self.wheel_hub_position[i] = self.position_chassi_force[i] + np.matmul(self.transpose_vehicle_fixed2inertial_system,np.array([0,0,self.displacement.l_stat[i]]))
 
         self.powertrain_net_torque = 0
+
+    def get_data(self):
+        return {"x_a.x": self.x_a.x,
+                "x_a.y": self.x_a.y,
+                "x_a.z": self.x_a.z,
+                "x_a.roll": self.x_a.roll,
+                "x_a.pitch": self.x_a.pitch,
+                "x_a.yaw": self.x_a.yaw,
+                "x_a.vx": self.x_a.vx,
+                "x_a.vy": self.x_a.vy,
+                "x_a.vz": self.x_a.vz,
+                "x_a.wx": self.x_a.wx,
+                "x_a.wy": self.x_a.wy,
+                "x_a.wz": self.x_a.wz,
+                "x_a.acc_x": self.x_a.acc_x,
+                "x_a.acc_y": self.x_a.acc_y,
+                "x_a.acc_z": self.x_a.acc_z,
+                "gear": self.gear,
+                "slip_x0": self.slip_x[0],
+                "slip_x1": self.slip_x[1],
+                "slip_x2": self.slip_x[2],
+                "slip_x3": self.slip_x[3],
+                "wheel_w_vel0": self.wheel_w_vel[0],
+                "wheel_w_vel1": self.wheel_w_vel[1],
+                "rpm": self.rpm,
+                "powertrain_net_torque": self.powertrain_net_torque}

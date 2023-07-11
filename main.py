@@ -32,7 +32,7 @@ u[1] = throttle
 # TODO: Create a structure 
 states = np.zeros((22, points))
 
-vehicle_dynamics = VehicleDynamics(initial_speed = 0., state_0 = [0., 0., 0., 0., 0., 0.], initial_gear = 1, freq=frequency, param_path = "Audi_r8.yaml")
+vehicle_dynamics = VehicleDynamics(state_0 = np.zeros(15), initial_gear = 1, freq=frequency, param_path = "Audi_r8.yaml")
 
 for i in range(len(u[0])):
 
