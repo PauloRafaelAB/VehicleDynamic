@@ -45,26 +45,39 @@ def suspension(parameters: Initialization, logger: logging.Logger):
 
 
 def main():
-    SIM_ITER = 1000
-    test_function = suspension
-    function_name = function.__name__
+    SIM_TIME = 22
+    test_function = powertrain
+    function_name = test_function.__name__
 
     logger = LocalLogger(function_name).logger
 
-    parameters = Initialization("../../bmw_m8.yaml")
+    parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
 
-    path_to_simulation_data = "../../exampledata/2_acc_brake/SimulationData.pickle"
-
-    data = import_data_CM(path_to_simulation_data)
+    path_to_simulation_data = "../../exampledata/Powertrain testing/SimulationData.pickle"
+    sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
+    data = []
+    for i in range(22001):
+        parameters.f_zr.wheel_load_z = sim_data[i].wheel_load_z_FL
+        parameters.displacement.za = sim_data[i].wheel_load_z_FL
+        # parameters.displacement.l_stat =
+        # parameters.displacement.za_dot = 
+        # parameters.vehicle_fixed2inertial_system =
 
-    data = [test_function(parameters, logger)[0] for i in range(SIM_ITER)]
+        data.append(test_function(parameters, logger, throttle = sim_data[i].gas_pedal, brake = sim_data[i].brake_pedal)[0].get_data())  
 
-    plt.title(function_name)
-    plt.plot(data)
+    plt.figure()
+    plt.step(range(22001), [i["gear"] for i in data], "g", label="gear_no_calcu")
+    var_name = "gear_no"
+    plt.step([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
+    plt.legend()
+    plt.figure()
+    plt.plot([i["x_a.vx"] for i in data])
+
     plt.show()
 
 
 if __name__ == '__main__':
     main()
+()

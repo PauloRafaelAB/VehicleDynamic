@@ -15,7 +15,7 @@ from scipy.interpolate import interp1d
 
 from VehicleDynamics import VehicleDynamics
 
-frequency = 100
+frequency = 1000
 end_time = 5.0
 time = np.linspace(0, end_time, int(end_time * frequency))
 
@@ -25,14 +25,14 @@ points = int(end_time * frequency)
 
 u = np.zeros((4, points))
 steering = np.zeros(points)
-throttle = np.linspace(0., 1, points)
-brake = np.zeros(points)
+throttle = np.zeros(points)
+brake = np.ones(points)
 u[1] = throttle
 
 # TODO: Create a structure 
 states = np.zeros((22, points))
 
-vehicle_dynamics = VehicleDynamics(state_0 = np.zeros(15), initial_gear = 1, freq=frequency, param_path = "Audi_r8.yaml")
+vehicle_dynamics = VehicleDynamics(state_0 = np.zeros(15), initial_gear = 1, freq=frequency, param_path = "bmw_m8.yaml")
 
 for i in range(len(u[0])):
 
@@ -63,7 +63,7 @@ plt.legend()
 # plt.plot(time, throttle, 'k', time, states[0], '-',time, states[3],'^')
 # plt.plot(time, throttle, 'd', time, states[9], '--',time, states[13],':')
 #plt.plot(time, throttle, 'g^',time, states[13],'r')
-
+plt.grid()
 # #plot x, y, z
 # fig, axs = plt.subplots(3, 1, figsize=(8, 15))
 # axs[0].plot(time, states[:,0], label='x')
@@ -72,7 +72,7 @@ plt.legend()
 # axs[0].set_xlabel('time (s)')
 # axs[0].set_ylabel('position (m)')
 # axs[0].legend()
-plt.ylim([-10, 10])
+#plt.ylim([-10, 10])
 # # plot x_vel, y_vel, z_vel
 # axs[1].plot(time, states[4], label='x_vel')
 # axs[1].plot(time, states[5], label='y_vel')

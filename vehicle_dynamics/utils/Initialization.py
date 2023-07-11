@@ -20,7 +20,7 @@ import math
 class Initialization(object):
     """This class initialize the values of a vehicular dynamic model. """
 
-    def __init__(self, car_parameters_path, freq = 100, state_0 = np.zeros(15), initial_gear = 1, logger = 1):
+    def __init__(self, car_parameters_path, freq = 100, state_0 = np.zeros(15), initial_gear = 0, logger = 1):
         super(Initialization, self).__init__()
         assert car_parameters_path, "Required Car Parameters"
 

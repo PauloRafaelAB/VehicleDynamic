@@ -70,13 +70,13 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
     engine_torque = throttle * torque_available
     # Gearbox up or down shifting
 
-    # print(f"{parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]} {parameters.x_a.vx} {parameters.gear} {int(throttle * 10)} ")
+    print(f"{parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]} {parameters.x_a.vx} {parameters.gear} {int(throttle * 10)} ")
 
     if parameters.x_a.vx > parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]:
         parameters.gear = parameters.gear + 1
         if parameters.gear >= parameters.car_parameters.gear_ratio.size:
             parameters.gear = parameters.car_parameters.gear_ratio.size - 1
-    elif parameters.x_a.vx < 0.8 * parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear - 1]:
+    elif parameters.x_a.vx <= 0.8 * parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear - 1]:
         parameters.gear = parameters.gear - 1
         if parameters.gear < 1:
             parameters.gear = 1
@@ -131,7 +131,7 @@ def main():
     plt.step([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
     plt.legend()
     plt.figure()
-    plt.plot([i["rpm"] for i in data])
+    plt.plot([i["x_a.vx"] for i in data])
 
     plt.show()
 
