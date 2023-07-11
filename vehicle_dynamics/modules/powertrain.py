@@ -1,6 +1,8 @@
 from vehicle_dynamics.utils.ImportParam import ImportParam
 from vehicle_dynamics.utils.LocalLogger import LocalLogger
 from vehicle_dynamics.utils.Initialization import Initialization
+from vehicle_dynamics.exampledata.1_acc_brake import brake_pedal
+
 
 import logging
 from scipy.interpolate import interp1d
@@ -8,6 +10,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 
+
+
+VhclCtrl Gas # engine rpm
+VhclCtrl Brake # Brake pedal
+Vhcl PoI_Acc_1 x # x acceleration
+PT IF W<pos> rotv # wheel angular velocity
+Vehicle.GearNo # gear
+# Vehicle.Engine_rotv # eng rpm >>engine_rotv 
 
 def powertrain(parameters: Initialization, logger: logging.Logger, throttle: float, brake: float):
     """
