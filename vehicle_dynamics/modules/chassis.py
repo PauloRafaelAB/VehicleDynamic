@@ -159,7 +159,7 @@ def main():
     parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
 
-    path_to_simulation_data = "../../exampledata/Powertrain testing/SimulationData.pickle"
+    path_to_simulation_data = "../../exampledata/chassis debug data/SimulationData.pickle"
     sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
     data = []
@@ -180,21 +180,36 @@ def main():
         parameters.x_rf.wheel_forces_transformed_force2vehicle_sys = np.array([[sim_data[i].wheel_load_x_FL, sim_data[i].wheel_load_x_RL, sim_data[i].wheel_load_x_FR, sim_data[i].wheel_load_x_RR],
                                                                                [sim_data[i].wheel_load_y_FL, sim_data[i].wheel_load_y_RL, sim_data[i].wheel_load_y_FR, sim_data[i].wheel_load_y_RR],
                                                                                [sim_data[i].wheel_load_z_FL, sim_data[i].wheel_load_z_RL, sim_data[i].wheel_load_z_FR, sim_data[i].wheel_load_z_RR]])
-        parameters.strut2chassi_xyz = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys.T
-        data.append(test_function(parameters, logger, throttle = sim_data[i].gas_pedal, brake = sim_data[i].brake_pedal)[0].get_data())  
+        parameters.strut2chassi_xyz = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys
+        parameters.angular_rates = np.array([parameters.x_a.wx,
+                                             parameters.x_a.wy,
+                                             parameters.x_a.wz]) 
+
+        data.append(test_function(parameters, logger)[0].get_data())  
 
     plt.figure()
-    plt.step(range(22001), [i["pitch"] for i in data], "g", label="pitch")
-    plt.step(range(22001), [i["yaw"] for i in data], "g", label="yaw")
+    plt.plot(range(22001), [i["x_a.pitch"] for i in data], "--", label="pitch")
+    plt.plot(range(22001), [i["x_a.yaw"] for i in data], "--", label="yaw")
     var_name = "Vhcl_Pitch"
-    plt.step([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
     var_name = "Vhcl_Yaw"
-    plt.step([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
 
     plt.legend()
-    plt.figure()
-    plt.plot([i["x_a.vx"] for i in data])
 
+    plt.figure()
+    plt.plot([i["x_a.vx"] for i in data], "--", label="x_a.vx")
+    var_name = "Vhcl_PoI_Vel_1_x"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
+
+    plt.plot([i["x_a.vy"] for i in data], "--", label="x_a.vy")
+    var_name = "Vhcl_PoI_Vel_1_y"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
+
+    plt.plot([i["x_a.vz"] for i in data], "--", label="x_a.vz")
+    var_name = "Vhcl_PoI_Vel_1_z"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
+    plt.legend()
     plt.show()
 
 

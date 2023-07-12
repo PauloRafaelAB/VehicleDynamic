@@ -22,10 +22,10 @@ def suspension(parameters: Initialization, logger: logging.Logger):
          1. f_zr
              1.01 wheel_load_z
         2.displacement
-            2.01 za
-            2.02 zs
-            2.03 l_stat
-            2.04 za_dot
+            2.01 za    :  position of the connection point of the suspension with the dampner spring system
+            2.02 zs    :  Z velocity of the wheel
+            2.03 l_stat:  constant
+            2.04 za_dot:  velocity of the chassis point
         3.vehicle_fixed2inertial_system
      Returns:
          1. f_zr.wheel_load_z
