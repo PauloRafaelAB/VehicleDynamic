@@ -150,24 +150,51 @@ def chassis(parameters: Initialization, logger: logging.Logger):
 
 
 def main():
-    SIM_ITER = 1000
+    SIM_TIME = 22
     test_function = chassis
-    function_name = function.__name__
+    function_name = test_function.__name__
 
     logger = LocalLogger(function_name).logger
 
-    parameters = Initialization("../../bmw_m8.yaml")
+    parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
 
-    path_to_simulation_data = "../../exampledata/2_acc_brake/SimulationData.pickle"
-
-    data = import_data_CM(path_to_simulation_data)
+    path_to_simulation_data = "../../exampledata/Powertrain testing/SimulationData.pickle"
+    sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
+    data = []
+    for i in range(22001):
+        parameters.x_a.roll = sim_data[i].Vhcl_Roll
+        parameters.x_a.pitch = sim_data[i].Vhcl_Pitch
+        parameters.x_a.yaw = sim_data[i].Vhcl_Yaw
+        parameters.x_a.wz = sim_data[i].Vhcl_YawVel 
+        parameters.x_a.wy = sim_data[i].Vhcl_PitchVel 
+        parameters.x_a.wx = sim_data[i].Vhcl_RollVel 
+        parameters.x_a.vx = sim_data[i].Vhcl_PoI_Vel_1_x
+        parameters.x_a.vy = sim_data[i].Vhcl_PoI_Vel_1_y
+        parameters.x_a.vz = sim_data[i].Vhcl_PoI_Vel_1_z
+        parameters.x_a.acc_x = sim_data[i].Vhcl_PoI_Acc_x
+        parameters.x_a.acc_y = sim_data[i].Vhcl_PoI_Acc_y
+        parameters.x_a.acc_z = sim_data[i].Vhcl_PoI_Acc_z
+        parameters.x_a.acc_angular_v = [sim_data[i].Vhcl_RollVel, sim_data[i].Vhcl_PitchVel, sim_data[i].Vhcl_YawVel]
+        parameters.x_rf.wheel_forces_transformed_force2vehicle_sys = np.array([[sim_data[i].wheel_load_x_FL, sim_data[i].wheel_load_x_RL, sim_data[i].wheel_load_x_FR, sim_data[i].wheel_load_x_RR],
+                                                                               [sim_data[i].wheel_load_y_FL, sim_data[i].wheel_load_y_RL, sim_data[i].wheel_load_y_FR, sim_data[i].wheel_load_y_RR],
+                                                                               [sim_data[i].wheel_load_z_FL, sim_data[i].wheel_load_z_RL, sim_data[i].wheel_load_z_FR, sim_data[i].wheel_load_z_RR]])
+        parameters.strut2chassi_xyz = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys.T
+        data.append(test_function(parameters, logger, throttle = sim_data[i].gas_pedal, brake = sim_data[i].brake_pedal)[0].get_data())  
 
-    data = [test_function(parameters, logger)[0] for i in range(SIM_ITER)]
+    plt.figure()
+    plt.step(range(22001), [i["pitch"] for i in data], "g", label="pitch")
+    plt.step(range(22001), [i["yaw"] for i in data], "g", label="yaw")
+    var_name = "Vhcl_Pitch"
+    plt.step([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
+    var_name = "Vhcl_Yaw"
+    plt.step([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
 
-    plt.title(function_name)
-    plt.plot(data)
+    plt.legend()
+    plt.figure()
+    plt.plot([i["x_a.vx"] for i in data])
+
     plt.show()
 
 
