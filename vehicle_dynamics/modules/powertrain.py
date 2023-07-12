@@ -76,7 +76,7 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
         parameters.gear = parameters.gear + 1
         if parameters.gear >= parameters.car_parameters.gear_ratio.size:
             parameters.gear = parameters.car_parameters.gear_ratio.size - 1
-    elif parameters.x_a.vx <= 0.8 * parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear - 1]:
+    elif parameters.x_a.vx <= 0.75 * parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear - 1]:
         parameters.gear = parameters.gear - 1
         if parameters.gear < 1:
             parameters.gear = 1

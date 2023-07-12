@@ -46,7 +46,7 @@ def suspension(parameters: Initialization, logger: logging.Logger):
 
 def main():
     SIM_TIME = 22
-    test_function = powertrain
+    test_function = suspension
     function_name = test_function.__name__
 
     logger = LocalLogger(function_name).logger
