@@ -23,12 +23,11 @@ def steering(parameters: Initialization, logger: logging.Logger, steering_angle:
         1. x_a
             1.01 yaw
             1.02 pitch
-        4. last_delta
-        5. time_step
-        6. wheel_angle_front
-        7. wheel_angle_rear
-        8. VTR_front_axel
-        9. VTR_rear_axel
+        4. last_delta : steer_angle
+        5. wheel_angle_front: 
+        6. wheel_angle_rear: 
+        7. VTR_front_axel: function of pitch, yaw, roll
+        8. VTR_rear_axel: function of pitch, yaw, roll
 
     Returns:
         2. wheel_angle_front
