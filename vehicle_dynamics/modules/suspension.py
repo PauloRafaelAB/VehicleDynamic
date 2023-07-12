@@ -34,7 +34,7 @@ def suspension(parameters: Initialization, logger: logging.Logger):
     # Forces on the vehicle chassis at the pivot points Ai
     # Bardini pag. 265 eq. 11-21  
 
-    A = -(parameters.car_parameters.eq_stiff * (parameters.displacement.za - parameters.displacement.zs + parameters.displacement.l_stat) + parameters.car_parameters.dumper * (parameters.displacement.za_dot))
+    A = -(parameters.car_parameters.eq_stiff * (-parameters.displacement.za + parameters.displacement.zs + parameters.displacement.l_stat)) + (parameters.car_parameters.dumper * parameters.displacement.za_dot)
     B = parameters.vehicle_fixed2inertial_system @ np.array([[0], [0], [1]])
     parameters.f_zr.wheel_load_z = (A * B)[2]
 
