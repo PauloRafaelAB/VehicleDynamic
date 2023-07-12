@@ -89,7 +89,12 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
     brake_torque = brake * parameters.car_parameters.max_brake_torque
 
     # -------------------- Total Torque -------------------------
-    parameters.powertrain_net_torque = (traction_torque - brake_torque) * parameters.car_parameters.brake_bias
+    
+    if  np.mean((traction_torque - brake_torque)) <= 0 and parameters.x_a.vx <=0:
+        parameters.powertrain_net_torque = np.zeros(4)
+    else:
+        parameters.powertrain_net_torque = (traction_torque - brake_torque) * parameters.car_parameters.brake_bias
+
     return parameters, logger
 
 

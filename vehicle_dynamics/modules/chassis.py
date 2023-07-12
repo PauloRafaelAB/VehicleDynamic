@@ -77,7 +77,10 @@ def chassis(parameters: Initialization, logger: logging.Logger):
     # Equation 11-46 >> 11-12, Pag. 273
     # TODO: check gravity diretion
 
-    # O que faz esses valores atras da acceleracao?????????????? 11.12-13-14
+# =============================================================================
+#     # O que faz esses valores atras da acceleracao?????????????? 11.12-13-14
+#       vx must be the vehicle speed one dimenention only
+# =============================================================================
     parameters.x_a.acc_x = ((sum_f_wheel[0] + (parameters.drag * (parameters.x_a.vx ** 2))) / parameters.car_parameters.m) + ((parameters.x_a.wz * parameters.x_a.vy) - (parameters.x_a.wy * parameters.x_a.vz))
     parameters.x_a.acc_y = (sum_f_wheel[1] / parameters.car_parameters.m) + ((parameters.x_a.wx * parameters.x_a.vz) - (parameters.x_a.wz * parameters.x_a.vx))
     parameters.x_a.acc_z = ((sum_f_wheel[2] - (parameters.car_parameters.m * parameters.gravity)) / parameters.car_parameters.m) + ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
