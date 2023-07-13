@@ -49,24 +49,53 @@ def wheel_angular(parameters: Initialization, logger: logging.Logger):
 
 
 def main():
-    SIM_ITER = 1000
-    test_function = wheel_angular
-    function_name = function.__name__
+    SIM_TIME = 22
+    test_function = wheel_angular  
+    function_name = test_function.__name__
 
     logger = LocalLogger(function_name).logger
 
-    parameters = Initialization("../../bmw_m8.yaml")
+    parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
 
-    path_to_simulation_data = "../../exampledata/2_acc_brake/SimulationData.pickle"
-
-    data = import_data_CM(path_to_simulation_data)
+    path_to_simulation_data = "../../exampledata/chassis debug data/SimulationData.pickle"
+    sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
+    data = []
+    for i in range(len(sim_data)):
 
-    data = [test_function(parameters, logger)[0] for i in range(SIM_ITER)]
+        parameters.x_rr.pho_r_2dot = np.array([sim_data[i].Wheel_w_vel_FL, sim_data[i].Wheel_w_vel_RL, sim_data[i].Wheel_w_vel_FR, sim_data[i].Wheel_w_vel_RR]) / 1000
+        parameters.x_rf.fx = np.array(([sim_data[i].Vhcl_Wheel_FL_Fx,
+                                        sim_data[i].Vhcl_Wheel_RL_Fx,
+                                        sim_data[i].Vhcl_Wheel_FR_Fx,
+                                        sim_data[i].Vhcl_Wheel_RR_Fx])
 
+        parameters.powertrain_net_torque = sim_data[i].powertrain_net_torque  # Paulo Confere aqui o nome do teu arquivo com o powertrain net torque
+
+        data.append(test_function(parameters, logger)[0].get_data())  
+
+    plt.figure()
     plt.title(function_name)
-    plt.plot(data)
+    plt.subplot(221)
+    var_name = "Wheel_w_vel_FL"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
+    plt.plot([i["wheel_w_vel"][0] for i in data], "--", label="wheel_w_vel 0 ")
+    plt.legend()
+    plt.subplot(222)
+    var_name = "Wheel_w_vel_RL"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
+    plt.plot([i["wheel_w_vel"][1] for i in data], "--", label="wheel_w_vel 1")
+    plt.legend()
+    plt.subplot(223)
+    var_name = "Wheel_w_vel_FR"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
+    plt.plot([i["wheel_w_vel"][2] for i in data], "--", label="wheel_w_vel 2")
+    plt.legend()
+    plt.subplot(224)
+    var_name = "Wheel_w_vel_RR"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
+    plt.plot([i["wheel_w_vel"][3] for i in data], "--", label="wheel_w_vel 3 ")
+    plt.legend()
     plt.show()
 
 
