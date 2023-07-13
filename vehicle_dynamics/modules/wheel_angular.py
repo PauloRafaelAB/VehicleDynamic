@@ -65,7 +65,7 @@ def main():
     for i in range(len(sim_data)):
 
         parameters.x_rr.pho_r_2dot = np.array([sim_data[i].Wheel_w_vel_FL, sim_data[i].Wheel_w_vel_RL, sim_data[i].Wheel_w_vel_FR, sim_data[i].Wheel_w_vel_RR]) / 1000
-        parameters.x_rf.fx = np.array(([sim_data[i].Vhcl_Wheel_FL_Fx,
+        parameters.x_rf.fx = np.array([sim_data[i].Vhcl_Wheel_FL_Fx,
                                         sim_data[i].Vhcl_Wheel_RL_Fx,
                                         sim_data[i].Vhcl_Wheel_FR_Fx,
                                         sim_data[i].Vhcl_Wheel_RR_Fx])
