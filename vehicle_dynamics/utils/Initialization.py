@@ -24,10 +24,7 @@ class Initialization(object):
         super(Initialization, self).__init__()
         assert car_parameters_path, "Required Car Parameters"
 
-        self.init_variables()
-
-    def init_variables(self):
-                self.car_parameters = ImportParam(car_parameters_path)
+        self.car_parameters = ImportParam(car_parameters_path)
         logger.info("Imported YAML car parameters")    
 
         self.time_step = 1. / freq
@@ -127,4 +124,4 @@ class Initialization(object):
                 "powertrain_net_torque": self.powertrain_net_torque,
                 "last_delta": self.last_delta,
                 "wheel_load_z": self.f_zr.wheel_load_z,
-                "wheel_w_vel":self.wheel_w_vel}
+                "wheel_w_vel": self.wheel_w_vel}

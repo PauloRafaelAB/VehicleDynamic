@@ -52,7 +52,7 @@ vehicle_model:
     # 					inertias
     i_d_shaft: 1     # Drive shaft inertia
     i_clutch: .01 # clucth inertia	
-    iw: [1.953,1.953,1.953,1.953]  # Wheel Inertia on each wheel [Kgm^2]
+    iw: [9.25,24,9.25,24]  # Wheel Inertia on each wheel [Kgm^2]
     ia: 0.135  # Axel Inertia [Kgm^2]
     id: 0.0    # drive shaft Inertia [Kgm^2]                    
     gd: 1      # Differential Gear Ratio

@@ -16,7 +16,7 @@ from scipy.interpolate import interp1d
 from VehicleDynamics import VehicleDynamics
 
 frequency = 1000
-end_time = 5.0
+end_time = 10.0
 time = np.linspace(0, end_time, int(end_time * frequency))
 
 
@@ -25,7 +25,9 @@ points = int(end_time * frequency)
 
 u = np.zeros((4, points))
 steering = np.zeros(points)
-throttle = np.zeros(points)
+throttle = np.linspace(0, 1, int(5000)).tolist()
+throttle.extend(np.ones(5000).tolist())
+
 brake = np.ones(points)
 u[1] = throttle
 
@@ -47,7 +49,7 @@ plt.plot(time, states[0], '4k', label='x position')
 plt.plot(time, states[4], '4c', label='pitch')
 # plt.plot(time, states[5], '1g',label='yaw')
 
-#plt.plot(time, states[6], '2y',label='vx')
+plt.plot(time, states[6], '2y', label='vx')
 # plt.plot(time, states[10], '--',label='pitch rate')
 #plt.plot(time, states[12], '3m',label='acc x')
 plt.step(time, states[15], 'k', label='gear')
@@ -72,7 +74,7 @@ plt.grid()
 # axs[0].set_xlabel('time (s)')
 # axs[0].set_ylabel('position (m)')
 # axs[0].legend()
-#plt.ylim([-10, 10])
+plt.ylim([-2, 10])
 # # plot x_vel, y_vel, z_vel
 # axs[1].plot(time, states[4], label='x_vel')
 # axs[1].plot(time, states[5], label='y_vel')

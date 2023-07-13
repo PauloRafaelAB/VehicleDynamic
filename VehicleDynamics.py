@@ -42,6 +42,7 @@ class VehicleDynamics(object):
         self.parameters = Initialization(param_path, freq, state_0, initial_gear, self.logger)
 
     def tick(self, throttle, brake, steering_angle):
+        self.logger.info(f"{self.parameters.x_a.vx}")
         self.parameters, self.logger = powertrain(self.parameters, self.logger, throttle, brake)
         self.parameters, self.logger = steering(self.parameters, self.logger, steering_angle)
         self.parameters, self.logger = rotational_matrix(self.parameters, self.logger) 
@@ -51,7 +52,7 @@ class VehicleDynamics(object):
         self.parameters, self.logger = road(self.parameters, self.logger) 
         self.parameters, self.logger = suspension(self.parameters, self.logger) 
         self.parameters, self.logger = chassis(self.parameters, self.logger)  
-
+        self.logger.info(f"{self.parameters.x_a.vx}")
         # in essence you could do the exact inverse of: 
         # self.parameters, self.logger = powertrain(steering(rotational_matrix(wheel_slip(tire_model(wheel_angular(road(suspension(chassis(self.parameters, self.logger))))))),steering=steering)throttle=throttle, brake=brake)
 
