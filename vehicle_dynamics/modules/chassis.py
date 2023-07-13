@@ -188,6 +188,7 @@ def main():
         data.append(test_function(parameters, logger)[0].get_data())  
 
     plt.figure()
+    plt.title(function_name)
     plt.plot(range(22001), [i["x_a.pitch"] for i in data], "--", label="pitch")
     plt.plot(range(22001), [i["x_a.yaw"] for i in data], "--", label="yaw")
     var_name = "Vhcl_Pitch"
@@ -198,6 +199,7 @@ def main():
     plt.legend()
 
     plt.figure()
+    plt.title(function_name)
     plt.plot([i["x_a.vx"] for i in data], "--", label="x_a.vx")
     var_name = "Vhcl_PoI_Vel_1_x"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)

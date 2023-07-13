@@ -1,10 +1,13 @@
 from vehicle_dynamics.utils.ImportParam import ImportParam
 from vehicle_dynamics.structures.StateVector import StateVector
 from vehicle_dynamics.utils.Initialization import Initialization
+from vehicle_dynamics.utils.import_data_CM import import_data_CM
+from vehicle_dynamics.utils.LocalLogger import LocalLogger
 
+import matplotlib.pyplot as plt
 import numpy as np
-import yaml
 import logging
+import yaml 
 
 
 def steering(parameters: Initialization, logger: logging.Logger, steering_angle: float):
@@ -23,11 +26,12 @@ def steering(parameters: Initialization, logger: logging.Logger, steering_angle:
         1. x_a
             1.01 yaw
             1.02 pitch
-        4. last_delta : steer_angle
-        5. wheel_angle_front: 
-        6. wheel_angle_rear: 
-        7. VTR_front_axel: function of pitch, yaw, roll
-        8. VTR_rear_axel: function of pitch, yaw, roll
+        4. last_delta
+        5. time_step
+        6. wheel_angle_front
+        7. wheel_angle_rear
+        8. VTR_front_axel
+        9. VTR_rear_axel
 
     Returns:
         2. wheel_angle_front
@@ -83,24 +87,35 @@ def steering(parameters: Initialization, logger: logging.Logger, steering_angle:
 
 
 def main():
-    SIM_ITER = 1000
     test_function = steering
-    function_name = function.__name__
+    function_name = test_function.__name__
 
     logger = LocalLogger(function_name).logger
 
-    parameters = Initialization("../../bmw_m8.yaml")
+    parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
 
-    path_to_simulation_data = "../../exampledata/2_acc_brake/SimulationData.pickle"
-
-    data = import_data_CM(path_to_simulation_data)
+    path_to_simulation_data = "../../exampledata/steering data/SimulationData.pickle"
+    sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
-
-    data = [test_function(parameters, logger, steering_angle)[0] for i in range(SIM_ITER)]
-
+    data = []
+    steering_angle_v = []
+    for i in range(len(sim_data)):
+        parameters.x_a.roll = sim_data[i].Vhcl_Roll
+        parameters.x_a.pitch = sim_data[i].Vhcl_Pitch
+        parameters.x_a.yaw = sim_data[i].Vhcl_Yaw
+        steering_angle_calc = parameters.car_parameters.steering_ratio * sim_data[i].Steering_angle / (4 * np.pi)
+        data.append(test_function(parameters, logger, steering_angle_calc)[0].get_data())  
+        steering_angle_v.append(steering_angle_calc)
+    plt.figure()
     plt.title(function_name)
-    plt.plot(data)
+    plt.plot([i["last_delta"] for i in data], "--", label="delta")
+    plt.plot(steering_angle_v, label ="steering_angle_calc")
+
+    var_name = "Steering_angle"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
+    plt.legend()
+
     plt.show()
 
 

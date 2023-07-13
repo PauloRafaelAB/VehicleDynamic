@@ -20,11 +20,14 @@ import math
 class Initialization(object):
     """This class initialize the values of a vehicular dynamic model. """
 
-    def __init__(self, car_parameters_path, freq = 100, state_0 = np.zeros(15), initial_gear = 0, logger = 1):
+    def __init__(self, car_parameters_path, freq = 1000, state_0 = np.zeros(15), initial_gear = 0, logger = 1):
         super(Initialization, self).__init__()
         assert car_parameters_path, "Required Car Parameters"
 
-        self.car_parameters = ImportParam(car_parameters_path)
+        self.init_variables()
+
+    def init_variables(self):
+                self.car_parameters = ImportParam(car_parameters_path)
         logger.info("Imported YAML car parameters")    
 
         self.time_step = 1. / freq
@@ -80,6 +83,7 @@ class Initialization(object):
         self.crossproduct_r_f = np.zeros((4, 3), dtype=float)
 
         # Transformation matrix vehicle coord sys(Kv) into inertia sys(Ke) - E_T_V -- Bardini pag 260 eq. 11.3
+        # Check this for iterative processes
         self.vehicle_fixed2inertial_system = np.array([[np.cos(self.x_a.pitch) * np.cos(self.x_a.yaw), np.sin(self.x_a.roll) * np.sin(self.x_a.pitch) * np.cos(self.x_a.yaw) - np.cos(self.x_a.roll) * np.sin(self.x_a.yaw), np.cos(self.x_a.roll) * np.sin(self.x_a.pitch) * np.cos(self.x_a.yaw) + np.sin(self.x_a.roll) * np.sin(self.x_a.yaw)],
                                                        [np.cos(self.x_a.pitch) * np.sin(self.x_a.yaw), np.sin(self.x_a.roll) * np.sin(self.x_a.pitch) * np.sin(self.x_a.yaw) + np.cos(self.x_a.roll) * np.cos(self.x_a.yaw), np.cos(self.x_a.roll) * np.sin(self.x_a.pitch) * np.sin(self.x_a.yaw) - np.sin(self.x_a.roll) * np.cos(self.x_a.yaw)],
                                                        [-np.sin(self.x_a.pitch), np.sin(self.x_a.roll) * np.cos(self.x_a.pitch), np.cos(self.x_a.roll) * np.cos(self.x_a.pitch)]])  # Bardini pag 260
@@ -94,6 +98,7 @@ class Initialization(object):
         #     self.wheel_hub_position[i] = self.position_chassi_force[i] + np.matmul(self.transpose_vehicle_fixed2inertial_system,np.array([0,0,self.displacement.l_stat[i]]))
 
         self.powertrain_net_torque = 0
+        pass
 
     def get_data(self):
         return {"x_a.x": self.x_a.x,
@@ -119,4 +124,7 @@ class Initialization(object):
                 "wheel_w_vel0": self.wheel_w_vel[0],
                 "wheel_w_vel1": self.wheel_w_vel[1],
                 "rpm": self.rpm,
-                "powertrain_net_torque": self.powertrain_net_torque}
+                "powertrain_net_torque": self.powertrain_net_torque,
+                "last_delta": self.last_delta,
+                "wheel_load_z": self.f_zr.wheel_load_z,
+                "wheel_w_vel":self.wheel_w_vel}

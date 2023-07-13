@@ -22,6 +22,7 @@ all_data_names = ""
 
 
 for i, file_in_dir in enumerate(files_in_dir): 
+    print(file_in_dir)
     with open(path + file_in_dir, 'r') as file:
         filename = file_in_dir.split(".csv")[0]
         if i == 0:

@@ -122,7 +122,7 @@ def main():
     sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
     data = []
-    for i in range(22001):
+    for i in range(len(sim_data)):
         parameters.x_a.vx = sim_data[i].Vhcl_PoI_Vel_1_x
         parameters.wheel_w_vel = np.array([sim_data[i].Wheel_w_vel_FL,
                                            sim_data[i].Wheel_w_vel_RL,
@@ -131,13 +131,17 @@ def main():
         data.append(test_function(parameters, logger, throttle = sim_data[i].gas_pedal, brake = sim_data[i].brake_pedal)[0].get_data())  
 
     plt.figure()
-    plt.step(range(22001), [i["gear"] for i in data], "g", label="gear_no_calcu")
+    plt.title(function_name)
+    plt.step([i["gear"] for i in data], "--g", label="gear_no_calcu")
     var_name = "gear_no"
     plt.step([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
     plt.legend()
     plt.figure()
-    plt.plot([i["x_a.vx"] for i in data])
-
+    plt.title(function_name)
+    var_name = "Vhcl_PoI_Vel_1_x"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
+    plt.plot([i["x_a.vx"] for i in data], "--", label="vx calculated")
+    plt.legend()
     plt.show()
 
 
