@@ -13,6 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 import yaml
+import pdb
 
 
 def chassis(parameters: Initialization, logger: logging.Logger):
@@ -79,35 +80,28 @@ def chassis(parameters: Initialization, logger: logging.Logger):
 
 # =============================================================================
 #     # O que faz esses valores atras da acceleracao?????????????? 11.12-13-14
-#       vx must be the vehicle speed one dimenention only
+#       vx must be the vehicle speed one dimension only
 # =============================================================================
     parameters.x_a.acc_x = ((sum_f_wheel[0] + (parameters.drag * (parameters.x_a.vx ** 2))) / parameters.car_parameters.m) + ((parameters.x_a.wz * parameters.x_a.vy) - (parameters.x_a.wy * parameters.x_a.vz))
     parameters.x_a.acc_y = (sum_f_wheel[1] / parameters.car_parameters.m) + ((parameters.x_a.wx * parameters.x_a.vz) - (parameters.x_a.wz * parameters.x_a.vx))
     parameters.x_a.acc_z = ((sum_f_wheel[2] - (parameters.car_parameters.m * parameters.gravity)) / parameters.car_parameters.m) + ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
 
     # vehicle velocity calculation
-    parameters.x_a.vx = parameters.x_a.vx + parameters.x_a.acc_x * parameters.time_step
-    parameters.x_a.vy = parameters.x_a.vy + parameters.x_a.acc_y * parameters.time_step
-    parameters.x_a.vz = parameters.x_a.vz + parameters.x_a.acc_z * parameters.time_step
+    parameters.x_a.vx = parameters.x_a.vx + (parameters.x_a.acc_x * parameters.time_step)
+    parameters.x_a.vy = parameters.x_a.vy + (parameters.x_a.acc_y * parameters.time_step)
+    parameters.x_a.vz = parameters.x_a.vz + (parameters.x_a.acc_z * parameters.time_step)
 
     # TODO:Check rolling resistance            
     # rolling_resist = (parameters.car_parameters.fr * parameters.car_parameters.m * parameters.car_parameters.gravity * np.cos(0.) - 0.5 * parameters.car_parameters.row * parameters.car_parameters.Cl * parameters.car_parameters.area * speed ** 2)                              # Rolling Resistance with air lift
-    crossproduct_r_f = np.zeros((4, 3))
     logger.debug(f"shape position_chassi_force {np.shape(parameters.position_chassi_force)} {np.shape(parameters.strut2chassi_xyz)}")
 
     parameters.strut2chassi_xyz = parameters.strut2chassi_xyz.T  # na duvida do que isso significa, conferir a matemagica
 
-    for i in range(4):
-        crossproduct_r_f[i][0] = parameters.position_chassi_force[i][1] * parameters.strut2chassi_xyz[i][2] - parameters.position_chassi_force[i][2] * parameters.strut2chassi_xyz[i][1] 
-        crossproduct_r_f[i][1] = parameters.position_chassi_force[i][2] * parameters.strut2chassi_xyz[i][0] - parameters.position_chassi_force[i][0] * parameters.strut2chassi_xyz[i][2]
-        crossproduct_r_f[i][2] = parameters.position_chassi_force[i][0] * parameters.strut2chassi_xyz[i][1] - parameters.position_chassi_force[i][1] * parameters.strut2chassi_xyz[i][0]
-
     # TODO Check eq 11 - 47
-    sum_crossproduct_r_f = np.sum(crossproduct_r_f, axis = 0)
+    sum_crossproduct_r_f = np.sum(np.cross(parameters.position_chassi_force, parameters.strut2chassi_xyz), axis=0)
+
     # TODO make the return of acc angular be type (3,0)
-
     parameters.x_a.acc_angular_v = (sum_crossproduct_r_f - np.cross(parameters.angular_rates, (parameters.polar_inertia_v @ parameters.angular_rates))) @ np.linalg.inv(parameters.polar_inertia_v)
-
     logger.debug(f"sum_crossproduct {sum_crossproduct_r_f}")
     # logger.debug('parameters.angular_rates', parameters.angular_rates)
     # logger.debug('polar inertia',parameters.polar_inertia_v)
@@ -133,11 +127,10 @@ def chassis(parameters: Initialization, logger: logging.Logger):
                                               [np.cos(parameters.x_a.pitch) * np.sin(parameters.x_a.yaw), np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(parameters.x_a.yaw) + np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.yaw), np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(parameters.x_a.yaw) - np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.yaw)],
                                               [-np.sin(parameters.x_a.pitch), np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.pitch), np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch)]])
 
-    # vehicle position calculation
-    movement_vehicle = (parameters.x_a.vx * parameters.time_step, parameters.x_a.vy * parameters.time_step, parameters.x_a.vz * parameters.time_step) 
-
     # TODO check mat mul ordem
-    [parameters.x_a.x, parameters.x_a.y, parameters.x_a.z] = [parameters.x_a.x, parameters.x_a.y, parameters.x_a.z] + (movement_vehicle @ vehicle_fixed2inertial_system)
+    parameters.x_a.x = parameters.x_a.x + (parameters.x_a.vx * parameters.time_step)
+    parameters.x_a.y = parameters.x_a.y + (parameters.x_a.vy * parameters.time_step)
+    parameters.x_a.z = parameters.x_a.z + (parameters.x_a.vz * parameters.time_step)  # + (movement_vehicle @ vehicle_fixed2inertial_system)
 
     displacement = Displacement()
 
@@ -163,20 +156,20 @@ def main():
     sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
     data = []
-    for i in range(22001):
-        parameters.x_a.roll = sim_data[i].Vhcl_Roll
-        parameters.x_a.pitch = sim_data[i].Vhcl_Pitch
-        parameters.x_a.yaw = sim_data[i].Vhcl_Yaw
-        parameters.x_a.wz = sim_data[i].Vhcl_YawVel 
-        parameters.x_a.wy = sim_data[i].Vhcl_PitchVel 
-        parameters.x_a.wx = sim_data[i].Vhcl_RollVel 
-        parameters.x_a.vx = sim_data[i].Vhcl_PoI_Vel_1_x
-        parameters.x_a.vy = sim_data[i].Vhcl_PoI_Vel_1_y
-        parameters.x_a.vz = sim_data[i].Vhcl_PoI_Vel_1_z
-        parameters.x_a.acc_x = sim_data[i].Vhcl_PoI_Acc_x
-        parameters.x_a.acc_y = sim_data[i].Vhcl_PoI_Acc_y
-        parameters.x_a.acc_z = sim_data[i].Vhcl_PoI_Acc_z
-        parameters.x_a.acc_angular_v = [sim_data[i].Vhcl_RollVel, sim_data[i].Vhcl_PitchVel, sim_data[i].Vhcl_YawVel]
+    parameters.x_a.roll = sim_data[0].Vhcl_Roll
+    parameters.x_a.pitch = sim_data[0].Vhcl_Pitch
+    parameters.x_a.yaw = sim_data[0].Vhcl_Yaw
+    parameters.x_a.wz = sim_data[0].Vhcl_YawVel 
+    parameters.x_a.wy = sim_data[0].Vhcl_PitchVel 
+    parameters.x_a.wx = sim_data[0].Vhcl_RollVel 
+    parameters.x_a.vx = sim_data[0].Vhcl_PoI_Vel_1_x
+    parameters.x_a.vy = sim_data[0].Vhcl_PoI_Vel_1_y
+    parameters.x_a.vz = sim_data[0].Vhcl_PoI_Vel_1_z
+    parameters.x_a.acc_x = sim_data[0].Vhcl_PoI_Acc_x
+    parameters.x_a.acc_y = sim_data[0].Vhcl_PoI_Acc_y
+    parameters.x_a.acc_z = sim_data[0].Vhcl_PoI_Acc_z
+    parameters.x_a.acc_angular_v = [sim_data[0].Vhcl_RollVel, sim_data[0].Vhcl_PitchVel, sim_data[0].Vhcl_YawVel]
+    for i in range(15003):
         parameters.x_rf.wheel_forces_transformed_force2vehicle_sys = np.array([[sim_data[i].wheel_load_x_FL, sim_data[i].wheel_load_x_RL, sim_data[i].wheel_load_x_FR, sim_data[i].wheel_load_x_RR],
                                                                                [sim_data[i].wheel_load_y_FL, sim_data[i].wheel_load_y_RL, sim_data[i].wheel_load_y_FR, sim_data[i].wheel_load_y_RR],
                                                                                [sim_data[i].wheel_load_z_FL, sim_data[i].wheel_load_z_RL, sim_data[i].wheel_load_z_FR, sim_data[i].wheel_load_z_RR]])
@@ -189,11 +182,14 @@ def main():
 
     plt.figure()
     plt.title(function_name)
-    plt.plot(range(22001), [i["x_a.pitch"] for i in data], "--", label="pitch")
-    plt.plot(range(22001), [i["x_a.yaw"] for i in data], "--", label="yaw")
+    plt.plot(range(15003), [i["x_a.pitch"] for i in data], "--", label="pitch")
+    plt.plot(range(15003), [i["x_a.yaw"] for i in data], "--", label="yaw")
+    #plt.plot(range(15003), [i["x_a.roll"] for i in data], "--", label="roll")
     var_name = "Vhcl_Pitch"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
     var_name = "Vhcl_Yaw"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
+    var_name = "Vhcl_Roll"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
 
     plt.legend()
@@ -211,6 +207,7 @@ def main():
     plt.plot([i["x_a.vz"] for i in data], "--", label="x_a.vz")
     var_name = "Vhcl_PoI_Vel_1_z"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label = var_name)
+
     plt.legend()
     plt.show()
 
