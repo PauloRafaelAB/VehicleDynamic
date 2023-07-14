@@ -10,10 +10,15 @@ from vehicle_dynamics.utils.SimulationData import SimulationData
 from vehicle_dynamics.utils.Initialization import Initialization
 
 import numpy as np
+import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import logging
 import yaml
 import pdb
+
+
+def sub(a):
+    return (a[0] - a[1])
 
 
 def chassis(parameters: Initialization, logger: logging.Logger):
@@ -87,9 +92,12 @@ def chassis(parameters: Initialization, logger: logging.Logger):
     parameters.x_a.acc_z = ((sum_f_wheel[2] - (parameters.car_parameters.m * parameters.gravity)) / parameters.car_parameters.m) + ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
 
     # vehicle velocity calculation
-    parameters.x_a.vx = parameters.x_a.vx + (parameters.x_a.acc_x * parameters.time_step)
-    parameters.x_a.vy = parameters.x_a.vy + (parameters.x_a.acc_y * parameters.time_step)
-    parameters.x_a.vz = parameters.x_a.vz + (parameters.x_a.acc_z * parameters.time_step)
+    acc_update_x = integrate.quad(lambda x: parameters.x_a.acc_x, 0, parameters.time_step)
+    acc_update_y = integrate.quad(lambda x: parameters.x_a.acc_y, 0, parameters.time_step)
+    acc_update_z = integrate.quad(lambda x: parameters.x_a.acc_z, 0, parameters.time_step)
+    parameters.x_a.vx = parameters.x_a.vx + sum(acc_update_x)
+    parameters.x_a.vy = parameters.x_a.vy + sum(acc_update_y)
+    parameters.x_a.vz = parameters.x_a.vz + sum(acc_update_z)
 
     # TODO:Check rolling resistance            
     # rolling_resist = (parameters.car_parameters.fr * parameters.car_parameters.m * parameters.car_parameters.gravity * np.cos(0.) - 0.5 * parameters.car_parameters.row * parameters.car_parameters.Cl * parameters.car_parameters.area * speed ** 2)                              # Rolling Resistance with air lift
@@ -111,15 +119,22 @@ def chassis(parameters: Initialization, logger: logging.Logger):
 
     # Angular velocity of the chassis
 
-    angular_velocity = parameters.x_a.acc_angular_v * parameters.time_step
-    parameters.x_a.wx = parameters.x_a.wx + angular_velocity[0] 
-    parameters.x_a.wy = parameters.x_a.wy + angular_velocity[1]
-    parameters.x_a.wz = parameters.x_a.wz + angular_velocity[2]
+    angular_velocity_x = integrate.quad(lambda x: parameters.x_a.acc_angular_v[0], 0, parameters.time_step)
+    angular_velocity_y = integrate.quad(lambda x: parameters.x_a.acc_angular_v[1], 0, parameters.time_step)
+    angular_velocity_z = integrate.quad(lambda x: parameters.x_a.acc_angular_v[2], 0, parameters.time_step)
 
-    # Angular position   
-    parameters.x_a.roll = (parameters.x_a.wx * parameters.time_step) + parameters.x_a.roll
-    parameters.x_a.pitch = (parameters.x_a.wy * parameters.time_step) + parameters.x_a.pitch
-    parameters.x_a.yaw = (parameters.x_a.wz * parameters.time_step) + parameters.x_a.yaw
+    parameters.x_a.wx = parameters.x_a.wx + sub(angular_velocity_x)
+    parameters.x_a.wy = parameters.x_a.wy + sub(angular_velocity_y)
+    parameters.x_a.wz = parameters.x_a.wz + sub(angular_velocity_z)
+
+    # Angular position  
+    roll_update = integrate.quad(lambda x: parameters.x_a.wx, 0, parameters.time_step)
+    pitch_update = integrate.quad(lambda x: parameters.x_a.wy, 0, parameters.time_step)
+    yaw_update = integrate.quad(lambda x: parameters.x_a.wz, 0, parameters.time_step)
+
+    parameters.x_a.roll = sub(roll_update) + parameters.x_a.roll
+    parameters.x_a.pitch = sub(pitch_update) + parameters.x_a.pitch
+    parameters.x_a.yaw = sub(pitch_update) + parameters.x_a.yaw
 
     # TODO: updated transformation to vehicle system
 
@@ -127,10 +142,13 @@ def chassis(parameters: Initialization, logger: logging.Logger):
                                               [np.cos(parameters.x_a.pitch) * np.sin(parameters.x_a.yaw), np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(parameters.x_a.yaw) + np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.yaw), np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(parameters.x_a.yaw) - np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.yaw)],
                                               [-np.sin(parameters.x_a.pitch), np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.pitch), np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch)]])
 
-    # TODO check mat mul ordem
-    parameters.x_a.x = parameters.x_a.x + (parameters.x_a.vx * parameters.time_step)
-    parameters.x_a.y = parameters.x_a.y + (parameters.x_a.vy * parameters.time_step)
-    parameters.x_a.z = parameters.x_a.z + (parameters.x_a.vz * parameters.time_step)  # + (movement_vehicle @ vehicle_fixed2inertial_system)
+    x_update = integrate.quad(lambda x: parameters.x_a.vx, 0, parameters.time_step)
+    y_update = integrate.quad(lambda x: parameters.x_a.vy, 0, parameters.time_step)
+    z_update = integrate.quad(lambda x: parameters.x_a.vz, 0, parameters.time_step)
+
+    parameters.x_a.x = parameters.x_a.x + sub(x_update)
+    parameters.x_a.y = parameters.x_a.y + sub(x_update)
+    parameters.x_a.z = parameters.x_a.z + sub(x_update)
 
     displacement = Displacement()
 
