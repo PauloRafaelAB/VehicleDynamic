@@ -88,10 +88,10 @@ def chassis(parameters: Initialization, logger: logging.Logger, wx: float, wy: f
 #       vx must be the vehicle speed one dimension only
 # =============================================================================
     drag_x = (parameters.drag * (np.sqrt(parameters.x_a.vx**2 + parameters.x_a.vy**2) * parameters.x_a.vx))
-    drag_y = 0#(parameters.drag * (np.sqrt(parameters.x_a.vx**2 + parameters.x_a.vy**2) * parameters.x_a.vy))
+    drag_y =(parameters.drag * (np.sqrt(parameters.x_a.vx**2 + parameters.x_a.vy**2) * parameters.x_a.vy))
     parameters.x_a.acc_x = ((sum_f_wheel[0] + drag_x) / parameters.car_parameters.m) + ((parameters.x_a.wz * parameters.x_a.vy) - (parameters.x_a.wy * parameters.x_a.vz))
     parameters.x_a.acc_y = ((sum_f_wheel[1] + drag_y) / parameters.car_parameters.m) + ((parameters.x_a.wx * parameters.x_a.vz) - (parameters.x_a.wz * parameters.x_a.vx))
-    parameters.x_a.acc_z = (sum_f_wheel[2] / parameters.car_parameters.m) - parameters.gravity + ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
+    parameters.x_a.acc_z = 0 #(sum_f_wheel[2] / parameters.car_parameters.m) - parameters.gravity + ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
 
     parameters.x_a.vx = parameters.x_a.vx + (parameters.x_a.acc_x * parameters.time_step)
     parameters.x_a.vy = parameters.x_a.vy + (parameters.x_a.acc_y * parameters.time_step)
@@ -164,7 +164,7 @@ def main():
     parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
 
-    path_to_simulation_data = "../../exampledata/chassis debug data/SimulationData.pickle"
+    path_to_simulation_data = "../../exampledata/acc_brake/SimulationData.pickle"
     sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
     data = []

@@ -6,7 +6,7 @@ sim_data = import_data_CM(path_to_simulation_data)
 
 sum_wheel_forces = []
 y_forces = []
-for i in range(15003):
+for i in range(40003):
     wheel_forces = np.array([[sim_data[i].wheel_load_x_FL, sim_data[i].wheel_load_x_RL, sim_data[i].wheel_load_x_FR, sim_data[i].wheel_load_x_RR],
                              [sim_data[i].wheel_load_y_FL, sim_data[i].wheel_load_y_RL, sim_data[i].wheel_load_y_FR, sim_data[i].wheel_load_y_RR],
                              [sim_data[i].wheel_load_z_FL, sim_data[i].wheel_load_z_RL, sim_data[i].wheel_load_z_FR, sim_data[i].wheel_load_z_RR]])
