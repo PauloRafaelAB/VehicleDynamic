@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from vehicle_dynamics.utils.import_data_CM import import_data_CM
-path_to_simulation_data = "../../exampledata/lanechange/SimulationData.pickle"
+path_to_simulation_data = "../../exampledata/acc_brake/SimulationData.pickle"
 sim_data = import_data_CM(path_to_simulation_data)
 
 sum_wheel_forces = []
