@@ -103,14 +103,35 @@ def chassis(parameters: Initialization, logger: logging.Logger, wx: float, wy: f
     # TODO:Check rolling resistance            
     # rolling_resist = (parameters.car_parameters.fr * parameters.car_parameters.m * parameters.car_parameters.gravity * np.cos(0.) - 0.5 * parameters.car_parameters.row * parameters.car_parameters.Cl * parameters.car_parameters.area * speed ** 2)                              # Rolling Resistance with air lift
     logger.debug(f"shape position_chassi_force {np.shape(parameters.position_chassi_force)} {np.shape(parameters.strut2chassi_xyz)}")
-
-    parameters.strut2chassi_xyz = parameters.strut2chassi_xyz.T  # na duvida do que isso significa, conferir a matemagica
+    
+    #parameters.strut2chassi_xyz = parameters.strut2chassi_xyz.T  # na duvida do que isso significa, conferir a matemagica
 
     # TODO Check eq 11 - 47
-    sum_crossproduct_r_f = np.sum(np.cross(parameters.position_chassi_force, parameters.strut2chassi_xyz), axis=0)
+    crossproduct_r_f = np.zeros(((3,4)))
+    logger.debug(f" position_chassi_force {parameters.position_chassi_force[0,:]} strut2chassi_xyz {parameters.strut2chassi_xyz[:,0]}")
+    
+    
+    crossproduct_r_f[:,0] = np.cross(parameters.position_chassi_force[0,:], parameters.strut2chassi_xyz[:,0])
+    crossproduct_r_f[:,1] = np.cross(parameters.position_chassi_force[1,:], parameters.strut2chassi_xyz[:,1])
+    crossproduct_r_f[:,2] = np.cross(parameters.position_chassi_force[2,:], parameters.strut2chassi_xyz[:,2])
+    crossproduct_r_f[:,3] = np.cross(parameters.position_chassi_force[3,:], parameters.strut2chassi_xyz[:,3])
+    # logger.debug(f"shape crossproduct_r_f[:,0] {np.shape(crossproduct_r_f[:,0])}")
+    sum_crossproduct_r_f = np.sum(crossproduct_r_f,1)
+    logger.debug(f"shape sum_crossproduct_r_f {np.shape(sum_crossproduct_r_f)}")
+    
+    
+    #sum_crossproduct_r_f = np.sum(np.cross(parameters.position_chassi_force, parameters.strut2chassi_xyz))
 
     # TODO make the return of acc angular be type (3,0)
     parameters.x_a.acc_angular_v = (sum_crossproduct_r_f - np.cross(parameters.angular_rates, (parameters.polar_inertia_v @ parameters.angular_rates))) @ np.linalg.inv(parameters.polar_inertia_v)
+    
+    
+    
+    
+    
+    
+    
+    
     logger.debug(f"sum_crossproduct {sum_crossproduct_r_f}")
     # logger.debug('parameters.angular_rates', parameters.angular_rates)
     # logger.debug('polar inertia',parameters.polar_inertia_v)
@@ -159,7 +180,7 @@ def main():
     function_name = test_function.__name__
 
     logger = LocalLogger(function_name).logger
-
+    logger.setLevel('INFO')
     parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
 
