@@ -46,7 +46,7 @@ vehicle_model:
     steering_v_max: 0.4  # maximum steering velocity [rad/s]   
     steering_ratio: 4. 
     # 					Masses
-    mass: 1424.2 # Vehicle Mass
+    mass: 1644 #1644.1274 # Vehicle Mass 1424.2 
     m_s: [350.,400.,350.,400.]  # sprung mass [kg]
     unsprung_mass: [70.,70.,70.,70.] # unsprung mass vector [kg]  
     # 					inertias
