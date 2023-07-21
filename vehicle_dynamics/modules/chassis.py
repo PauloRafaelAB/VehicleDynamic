@@ -169,7 +169,7 @@ def main():
     function_name = test_function.__name__
 
     logger = LocalLogger(function_name).logger
-    logger.setLevel('DEBUG')
+    logger.setLevel('INFO')
     parameters = Initialization("C:/Users/albertonbloemer/Documents/VehicleDynamic/Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
 
