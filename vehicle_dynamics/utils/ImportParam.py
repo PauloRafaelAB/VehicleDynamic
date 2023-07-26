@@ -123,10 +123,10 @@ class ImportParam(object):
         # suspension damping rate (front i = 1 or 3)  (rear = 1 = 2,4)[N s/m]  KSDF
         self.dumper = np.array(param['vehicle_model']['parameters']['dumper'])
         # Anti roll bar stiffness [Nm/rad]
-        self.anti_roll_stiffness = param['vehicle_model']['parameters']['anti_roll_stiffness']
-        self.c_roll = param['vehicle_model']['parameters']['anti_roll_stiffness']
-        self.k_pitch = param['vehicle_model']['parameters']['anti_roll_stiffness']
-        self.c_pitch = param['vehicle_model']['parameters']['anti_roll_stiffness']
+        self.k_roll = param['vehicle_model']['parameters']['k_roll']
+        self.c_roll = param['vehicle_model']['parameters']['c_roll']
+        self.k_pitch = param['vehicle_model']['parameters']['k_pitch']
+        self.c_pitch = param['vehicle_model']['parameters']['c_pitch']
         # =====================================
         # geometric parameters
         # =====================================

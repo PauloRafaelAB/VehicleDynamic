@@ -17,6 +17,8 @@ from vehicle_dynamics.utils.SimulationData import SimulationData
 from vehicle_dynamics.utils.Initialization import Initialization
 
 import numpy as np
+from tqdm import tqdm
+
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import logging
@@ -28,7 +30,7 @@ def sub(a):
     return (a[0] - a[1])
 
 
-def chassis(parameters: Initialization, logger: logging.Logger, wx: float, wy: float, wz: float, ax: float, ay: float, az: float):
+def chassis_2(parameters: Initialization, logger: logging.Logger):
     """
     Chassis is a function that calculates the current status of the chassis
 
@@ -93,12 +95,14 @@ def chassis(parameters: Initialization, logger: logging.Logger, wx: float, wy: f
 
     drag_x = (-parameters.drag * (np.sqrt(parameters.x_a.vx **
               2 + parameters.x_a.vy**2) * parameters.x_a.vx))
-    parameters.x_a.acc_x = ((sum_f_wheel[0] + drag_x) / parameters.car_parameters.m) + (
-        (parameters.x_a.wz * parameters.x_a.vy) - (parameters.x_a.wy * parameters.x_a.vz))
-    parameters.x_a.acc_y = ((sum_f_wheel[1]) / parameters.car_parameters.m) + (
-        (parameters.x_a.wx * parameters.x_a.vz) - (parameters.x_a.wz * parameters.x_a.vx))
-    parameters.x_a.acc_z = ((sum_f_wheel[2] - parameters.car_parameters.m * parameters.gravity) / parameters.car_parameters.m) + (
-        (parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
+    # + ((parameters.x_a.wz * parameters.x_a.vy) - (parameters.x_a.wy * parameters.x_a.vz))
+    parameters.x_a.acc_x = (
+        (sum_f_wheel[0] + drag_x) / parameters.car_parameters.m)
+    # + ((parameters.x_a.wx * parameters.x_a.vz) - (parameters.x_a.wz * parameters.x_a.vx))
+    parameters.x_a.acc_y = ((sum_f_wheel[1]) / parameters.car_parameters.m)
+    # ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
+    parameters.x_a.acc_z = (
+        (sum_f_wheel[2] - parameters.car_parameters.m * parameters.gravity) / parameters.car_parameters.m)
 
     parameters.x_a.vx = parameters.x_a.vx + \
         (parameters.x_a.acc_x * parameters.time_step)
@@ -119,7 +123,7 @@ def chassis(parameters: Initialization, logger: logging.Logger, wx: float, wy: f
 
     # TODO Check eq 11 - 47
     crossproduct_r_f = np.zeros(((3, 4)))
-    logger.info(
+    logger.debug(
         f" position_chassi_force {np.shape(parameters.position_chassi_force[0,:])} strut2chassi_xyz {parameters.strut2chassi_xyz[:,0]}")
 
 # =============================================================================
@@ -127,13 +131,15 @@ def chassis(parameters: Initialization, logger: logging.Logger, wx: float, wy: f
 # =============================================================================
 
     # Angular position, velocity, acceleration of the chassis
+    delta = 0  # wheel angle
     Ix = parameters.car_parameters.i_x_s
     Iy = parameters.car_parameters.i_y_s
     Iz = parameters.car_parameters.i_z
     h = parameters.car_parameters.sz
+    l = 0.6  # halftrack
 
-    Fx = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[0]
-    Fy = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[1]
+    Fx = sum_f_wheel[0]
+    Fy = sum_f_wheel[1]
     fy_fl = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[1, 0]
     fy_rl = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[1, 1]
     fy_fr = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[1, 2]
@@ -143,41 +149,32 @@ def chassis(parameters: Initialization, logger: logging.Logger, wx: float, wy: f
     fx_fr = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[0, 2]
     fx_rr = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[0, 3]
 
-    
-    Mz = ((fy_fl + fy_fr)*parameters.car_parameters.lv * np.cos(delta) -
-          (fy_rl + fy_rr)*parameters.car_parameters.lh + (fx_fl + fx_fr) * parameters.car_parameters.lv * np.sin(delta) +
-          (fx_rr + fx_fr * np.cos(delta)+fy_fl*np.sin*(delta) - fx_rl-fx_fl*np.cos(delta)-fy_fr*np.sin(delta)))
+    Mz = ((fy_fl + fy_fr) * parameters.car_parameters.lv * np.cos(delta) -
+          (fy_rl + fy_rr) * parameters.car_parameters.lh +
+          (fx_fl + fx_fr) * parameters.car_parameters.lv * np.sin(delta) +
+          (fx_rr + fx_fr * np.cos(delta) + fy_fl * np.sin(delta) -
+           fx_rl - fx_fl * np.cos(delta) - fy_fr * np.sin(delta))*l)
 
-    wx_dot = (h * (Fy * np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch) + parameters.car_parameters.m * parameters.gravity * np.sin(parameters.x_a.roll)
-                   ) - parameters.car_parameters.c_roll * parameters.x_a.roll - parameters.car_parameters.k_roll * parameters.x_a.wx + parameters.x_a.wz * (Iz - Iz) *
-              (parameters.wz * np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch + parameters.x_a.wx * np.sin(parameters.x_a.pitch)*np.sin(parameters.x_a.roll)*np.cos(parameters.x_a.roll)) +
-               parameters.wz*parameters.wx *
-               (Iy*np.cos(parameters.x_a.roll)**2 +
-                Iz * np.sin(parameters.x_a.roll)**2)
-               )/(Ix * np.cos(parameters.x_a.pitch)**2 + Iy * np.sin(parameters.x_a.pitch)**2*np.sin(parameters.x_a.roll)**2 + Iz * np.sin(parameters.x_a.pitch)**2*np.cos(parameters.x_a.roll)**2)
-              )
+    wx_dot = (h * (Fy * np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch) +
+                   parameters.car_parameters.m * parameters.gravity * np.sin(parameters.x_a.roll))
+              - parameters.car_parameters.c_roll * parameters.x_a.roll -
+              parameters.car_parameters.k_roll * parameters.x_a.wx +
+              parameters.x_a.wz * (Iy - Iz) * (parameters.x_a.wz * np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch) +
+              parameters.x_a.wx * np.sin(parameters.x_a.pitch) * np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll)) +
+              parameters.x_a.wz * parameters.x_a.wx * (Iy*np.cos(parameters.x_a.roll)**2 + Iz * np.sin(parameters.x_a.roll)**2))/(
+                  Ix * np.cos(parameters.x_a.pitch)**2 +
+                  Iy * np.sin(parameters.x_a.pitch)**2 * np.sin(parameters.x_a.roll)**2 +
+                  Iz * np.sin(parameters.x_a.pitch)**2 * np.cos(parameters.x_a.roll)**2)
 
-    wy_dot = (h*(parameters.car_parameters.m*parameters.gravity*np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll)
-                 - Fx * np.cos(parameters.x_a.pitch)*np.cos(parameters.x_a.roll))
-              - parameters.car_parameters.c_pitch * parameters.x_a.pitch - parameters.car_parameters.k_pitch * parameters.x_a.wx + parameters.x_a.wz * (parameters.x_a.wz * np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.pitch)*(Ix-Iy + np.cos(parameters.x_a.roll)**2*(Iy-Iz))
-                                                                                                                                                        - parameters.x_a.roll*np.cos(parameters.x_a.pitch)**2*Ix + np.sin(parameters.x_a.roll)**2 * np.sin(parameters.x_a.pitch)**2 * Iy +
-                                                                                                                                                        np.sin(parameters.x_a.pitch)**2*np.cos(parameters.x_a.roll)**2*Iz) -
-              parameters.x_a.wy * (np.sin(parameters.x_a.pitch) ** 2 * np.sin(
-                  parameters.x_a.roll)*np.cos(parameters.x_a.roll)*(Iy-Iz))
-              )/(Iy*np.cos(parameters.x_a.roll)**2+Iz*np.sin(parameters.x_a.roll)**2)
+    wy_dot = (h*(parameters.car_parameters.m*parameters.gravity*np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll) - Fx * np.cos(parameters.x_a.pitch)*np.cos(parameters.x_a.roll)) - parameters.car_parameters.c_pitch * parameters.x_a.pitch - parameters.car_parameters.k_pitch * parameters.x_a.wx + parameters.x_a.wz * (parameters.x_a.wz * np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.pitch)*(Ix-Iy + np.cos(parameters.x_a.roll)
+              ** 2*(Iy-Iz)) - parameters.x_a.roll*np.cos(parameters.x_a.pitch)**2*Ix + np.sin(parameters.x_a.roll)**2 * np.sin(parameters.x_a.pitch)**2 * Iy + np.sin(parameters.x_a.pitch)**2*np.cos(parameters.x_a.roll)**2*Iz) - parameters.x_a.wy * (np.sin(parameters.x_a.pitch) ** 2 * np.sin(parameters.x_a.roll)*np.cos(parameters.x_a.roll)*(Iy-Iz)))/(Iy*np.cos(parameters.x_a.roll)**2+Iz*np.sin(parameters.x_a.roll)**2)
 
-    wz_dot = (Mz - h * (Fx*np.sin(parameters.x_a.pitch) + Fy * np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll))
-              )/(Ix*np.sin(parameters.x_a.pitch)**2+np.cos(parameters.x_a.pitch) * (Iy * np.sin(parameters.x_a.roll)**2 + Iz * np.cos(parameters.x_a.roll)**2))
+    wz_dot = (Mz - h * (Fx * np.sin(parameters.x_a.pitch) + Fy * np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll)))/(Ix*np.sin(
+        parameters.x_a.pitch)**2 + np.cos(parameters.x_a.pitch)**2 * (Iy * np.sin(parameters.x_a.roll)**2 + Iz * np.cos(parameters.x_a.roll)**2))
 
-    angular_velocity = parameters.x_a.acc_angular_v * parameters.time_step
-    parameters.x_a.wx = parameters.x_a.wx + wx_dot[0]
-    parameters.x_a.wy = parameters.x_a.wy + wy_dot[1]
-    parameters.x_a.wz = parameters.x_a.wz + wz_dot[2]
-
-    # angular_velocity = parameters.x_a.acc_angular_v * parameters.time_step
-    parameters.x_a.wx = parameters.x_a.wx + angular_velocity[0]
-    parameters.x_a.wy = parameters.x_a.wy + angular_velocity[1]
-    parameters.x_a.wz = parameters.x_a.wz + angular_velocity[2]
+    parameters.x_a.wx = parameters.x_a.wx + wx_dot * parameters.time_step
+    parameters.x_a.wy = parameters.x_a.wy + wy_dot * parameters.time_step
+    parameters.x_a.wz = parameters.x_a.wz + wz_dot * parameters.time_step
 
     # Angular position
     parameters.x_a.roll = (parameters.x_a.wx *
@@ -212,11 +209,11 @@ def chassis(parameters: Initialization, logger: logging.Logger, wx: float, wy: f
 
 def main():
     SIM_TIME = 22
-    test_function = chassis
+    test_function = chassis_2
     function_name = test_function.__name__
 
     logger = LocalLogger(function_name).logger
-    logger.setLevel('DEBUG')
+    logger.setLevel('INFO')
     parameters = Initialization(
         "C:/Users/albertonbloemer/Documents/VehicleDynamic/Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
@@ -232,34 +229,30 @@ def main():
     parameters.x_a.acc_x = sim_data[0].Vhcl_PoI_Acc_x
     parameters.x_a.acc_y = sim_data[0].Vhcl_PoI_Acc_y
     parameters.x_a.acc_z = sim_data[0].Vhcl_PoI_Acc_z
-    parameters.x_a.roll = 0  # sim_data[0].Vhcl_Roll
-    parameters.x_a.pitch = 0  # sim_data[0].Vhcl_Pitch
-    parameters.x_a.yaw = 0  # sim_data[0].Vhcl_Yaw
+    parameters.x_a.roll = sim_data[0].Vhcl_Roll
+    parameters.x_a.pitch = sim_data[0].Vhcl_Pitch
+    parameters.x_a.yaw = sim_data[0].Vhcl_Yaw
     cm_z_force = parameters.f_za.f_za
+    parameters.x_a.acc_angular_v = [
+        sim_data[0].Vhcl_RollVel, sim_data[0].Vhcl_PitchVel, sim_data[0].Vhcl_YawVel]
 
     sum_wheels = []
-    range_calc = range(1, 15000)
-    for i in range_calc:
-        wz = sim_data[i].Vhcl_YawVel
-        wy = sim_data[i].Vhcl_PitchVel
-        wx = sim_data[i].Vhcl_RollVel
-        ax = sim_data[i].Vhcl_PoI_Acc_x
-        ay = sim_data[i].Vhcl_PoI_Acc_y
-        az = sim_data[i].Vhcl_PoI_Acc_z
-        # parameters.x_a.acc_angular_v = [sim_data[0].Vhcl_RollVel, sim_data[0].Vhcl_PitchVel, sim_data[0].Vhcl_YawVel]
-
-        parameters.x_rf.wheel_forces_transformed_force2vehicle_sys = np.array([[30, 30, 30, 30],  # [sim_data[i].wheel_load_x_FL, sim_data[i].wheel_load_x_RL, sim_data[i].wheel_load_x_FR, sim_data[i].wheel_load_x_RR],
-                                                                               # [sim_data[i].wheel_load_y_FL, sim_data[i].wheel_load_y_RL, sim_data[i].wheel_load_y_FR, sim_data[i].wheel_load_y_RR],
-                                                                               [0, 0,
-                                                                                   0, 0],
-                                                                               cm_z_force])  # [sim_data[i].wheel_load_z_FL, sim_data[i].wheel_load_z_RL, sim_data[i].wheel_load_z_FR, sim_data[i].wheel_load_z_RR]])
+    range_calc = range(1, 40000)
+    for i in tqdm(range_calc):
+        forces_in_x = [sim_data[i].wheel_load_x_FL, sim_data[i].wheel_load_x_RL,
+                       sim_data[i].wheel_load_x_FR, sim_data[i].wheel_load_x_RR]
+        forces_in_y = [sim_data[i].wheel_load_y_FL, sim_data[i].wheel_load_y_RL,
+                       sim_data[i].wheel_load_y_FR, sim_data[i].wheel_load_y_RR]
+        forces_in_z = [sim_data[i].wheel_load_z_FL, sim_data[i].wheel_load_z_RL,
+                       sim_data[i].wheel_load_z_FR, sim_data[i].wheel_load_z_RR]
+        parameters.x_rf.wheel_forces_transformed_force2vehicle_sys = np.array(
+            [forces_in_x, forces_in_y, cm_z_force])
         parameters.strut2chassi_xyz = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys
         parameters.angular_rates = np.array([parameters.x_a.wx,
                                              parameters.x_a.wy,
                                              parameters.x_a.wz])
 
-        return_values = test_function(
-            parameters, logger, wx, wy, wz, ax, ay, az)
+        return_values = test_function(parameters, logger)
 
         sum_wheels.append(return_values[2].tolist())
         data.append(return_values[0].get_data())
@@ -285,49 +278,70 @@ def main():
 
     plt.figure()
     plt.title(function_name)
-    plt.plot(range_calc, [i["x_a.acc_x"] for i in data], "--", label="acc_x")
-    plt.plot(range_calc, [i["x_a.acc_y"] for i in data], "--", label="acc_y")
-    plt.plot(range_calc, [i["x_a.acc_z"] for i in data], "--", label="acc_z")
-    var_name = "Vhcl_PoI_Acc_x"
+    plt.plot(range_calc, [i["x_a.wx"] for i in data], "--", label="wx - roll")
+    plt.plot(range_calc, [i["x_a.wy"] for i in data], "x", label="wy - pitch")
+    plt.plot(range_calc, [i["x_a.wz"] for i in data], "+", label="wz - yaw")
+    var_name = "Vhcl_PitchVel"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
         sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
-    var_name = "Vhcl_PoI_Acc_y"
+    var_name = "Vhcl_YawVel"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
         sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
-    var_name = "Vhcl_PoI_Acc_z"
-    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
-
-    plt.legend()
-
-    plt.figure()
-    plt.title(function_name)
-    plt.plot([i["x_a.vx"] for i in data], "--", label="x_a.vx")
-    var_name = "Vhcl_PoI_Vel_x"
-    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
-
-    plt.plot([i["x_a.vy"] for i in data], "--", label="x_a.vy")
-    var_name = "Vhcl_PoI_Vel_y"
-    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
-
-    plt.plot([i["x_a.vz"] for i in data], "--", label="x_a.vz")
-    var_name = "Vhcl_PoI_Vel_z"
+    var_name = "Vhcl_RollVel"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
         sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
 
     plt.legend()
 
-    plt.figure()
+    if False:
+        plt.figure()
+        plt.title(function_name)
+        plt.plot(range_calc, [i["x_a.acc_x"]
+                 for i in data], "--", label="acc_x")
+        plt.plot(range_calc, [i["x_a.acc_y"]
+                 for i in data], "*", label="acc_y")
+        # plt.plot(range_calc, [i["x_a.acc_z"] for i in data], "o", label="acc_z")
+        var_name = "Vhcl_PoI_Acc_x"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+            sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+        var_name = "Vhcl_PoI_Acc_y"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+            sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+        var_name = "Vhcl_PoI_Acc_z"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+            sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
 
-    plt.title("forces")
-    sum_wheels = np.array(sum_wheels)
-    plt.plot(sum_wheels[:, 0], label="x")
-    plt.plot(sum_wheels[:, 1], label="y")
-    plt.plot(sum_wheels[:, 2], label="z")
+        plt.legend()
 
-    # plt.legend()
+        plt.figure()
+        plt.title(function_name)
+        plt.plot([i["x_a.vx"] for i in data], "--", label="x_a.vx")
+        var_name = "Vhcl_PoI_Vel_x"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+            sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+
+        plt.plot([i["x_a.vy"] for i in data], "--", label="x_a.vy")
+        var_name = "Vhcl_PoI_Vel_y"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+            sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+
+        plt.plot([i["x_a.vz"] for i in data], "--", label="x_a.vz")
+        var_name = "Vhcl_PoI_Vel_z"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+            sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+
+        plt.legend()
+
+        plt.figure()
+
+        plt.title("forces")
+        sum_wheels = np.array(sum_wheels)
+        plt.plot(sum_wheels[:, 0], label="x")
+        plt.plot(sum_wheels[:, 1], label="y")
+        plt.plot(sum_wheels[:, 2], label="z")
+
+        plt.legend()
+
     plt.show()
 
 

@@ -67,7 +67,10 @@ vehicle_model:
     # 					suspension parameters
     eq_stiff: [60000., 70000., 60000., 70000.]  # suspension spring rate (front i = 1 or 3)  (rear i= 2,4) [N/m]   
     dumper: [2500., 3000.,2500., 30000]  # suspension damping rate (front i = 1 or 3)  (rear = 1 = 2,4)[N s/m]  
-    anti_roll_stiffness: 2882. # Anti roll bar stiffness [Nm/rad]
+    k_roll: 1000. # Anti roll bar stiffness [Nm/rad]
+    c_roll: 38100
+    k_pitch: 9000
+    c_pitch: 40000
     
 
     # 					geometric parameters
