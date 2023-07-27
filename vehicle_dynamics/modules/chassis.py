@@ -256,7 +256,6 @@ def main():
 
         return_values = test_function(parameters, logger)
 
-        sum_wheels.append(return_values[2].tolist())
         data.append(return_values[0].get_data())
 
     logger.info("calc end")
@@ -333,14 +332,6 @@ def main():
         plt.legend()
 
         plt.figure()
-
-        plt.title("forces")
-        sum_wheels = np.array(sum_wheels)
-        plt.plot(sum_wheels[:, 0], label="x")
-        plt.plot(sum_wheels[:, 1], label="y")
-        plt.plot(sum_wheels[:, 2], label="z")
-
-        plt.legend()
 
     plt.show()
 
