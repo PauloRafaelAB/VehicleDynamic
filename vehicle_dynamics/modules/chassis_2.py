@@ -234,8 +234,7 @@ def main():
 
     logger = LocalLogger(function_name).logger
     logger.setLevel('INFO')
-    parameters = Initialization(
-        "C:/Users/albertonbloemer/Documents/VehicleDynamic/Audi_r8.yaml", logger=logger)
+    parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
 
     path_to_simulation_data = "../../exampledata/acc_brake/SimulationData.pickle"
@@ -252,8 +251,8 @@ def main():
     parameters.x_a.roll = sim_data[0].Vhcl_Roll
     parameters.x_a.pitch = 0
     pitch_trans = [sim_data[i].Vhcl_Pitch - sim_data[0].Vhcl_Pitch for i in range(len(sim_data))]
-
-    parameters.x_a.yaw = sim_data[0].Vhcl_Yaw
+    parameters.x_a.yaw = 0
+    yaw_trans = [sim_data[i].Vhcl_Yaw - sim_data[0].Vhcl_Yaw for i in range(len(sim_data))]
     cm_z_force = parameters.f_za.f_za
     parameters.x_a.acc_angular_v = [
         sim_data[0].Vhcl_RollVel, sim_data[0].Vhcl_PitchVel, sim_data[0].Vhcl_YawVel]
@@ -289,9 +288,7 @@ def main():
     plt.plot(range_calc, [i["x_a.roll"] for i in data], "+", label="roll")
     
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [i for j, i in enumerate(pitch_trans) if j % 10 == 0], label="pitch_trans")
-    var_name = "Vhcl_Yaw"
-    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [i for j, i in enumerate(yaw_trans) if j % 10 == 0], label="yaw_trans")
     var_name = "Vhcl_Roll"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
         sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
