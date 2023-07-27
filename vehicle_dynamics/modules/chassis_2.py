@@ -161,9 +161,7 @@ def chassis_2(parameters: Initialization, logger: logging.Logger):
     b = -parameters.car_parameters.c_roll * parameters.x_a.roll - \
         parameters.car_parameters.k_roll * \
         parameters.x_a.wx 
-    
-    
-    
+
     c = parameters.x_a.wz * (Iy - Iz)*( parameters.x_a.wz * np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch) + \
         parameters.x_a.wx * np.sin(parameters.x_a.pitch) * \
         np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll))
@@ -184,13 +182,12 @@ def chassis_2(parameters: Initialization, logger: logging.Logger):
     cc = parameters.x_a.wy * (np.sin(parameters.x_a.pitch) *
                               np.sin(parameters.x_a.roll)*np.cos(parameters.x_a.roll)*(Iy-Iz))
     dd = (Iy*np.cos(parameters.x_a.roll)**2+Iz*np.sin(parameters.x_a.roll)**2)
-  
-    #######################################################################################################################
-    bb =0
+    #bb =0
     wy_dot = (aa + bb - cc)/dd
-
+#######################################################################################################################
     wz_dot = (Mz - h * (Fx * np.sin(parameters.x_a.roll) + Fy * np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll)))/(
         Ix*np.sin(parameters.x_a.pitch)**2 + np.cos(parameters.x_a.pitch)**2 * (Iy * np.sin(parameters.x_a.roll)**2 + Iz * np.cos(parameters.x_a.roll)**2))
+    
     #wz_dot = 0
     parameters.x_a.wx = parameters.x_a.wx + wx_dot * parameters.time_step
     parameters.x_a.wy = parameters.x_a.wy + wy_dot * parameters.time_step
@@ -237,7 +234,7 @@ def main():
     parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
 
-    path_to_simulation_data = "../../exampledata/acc_brake/SimulationData.pickle"
+    path_to_simulation_data = "../../exampledata/lanechange/SimulationData.pickle"
     sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
     data = []
@@ -258,7 +255,7 @@ def main():
         sim_data[0].Vhcl_RollVel, sim_data[0].Vhcl_PitchVel, sim_data[0].Vhcl_YawVel]
 
     sum_wheels = []
-    range_calc = range(1, 40000)
+    range_calc = range(1, 15000)
     for i in tqdm(range_calc):
         forces_in_x = [sim_data[i].wheel_load_x_FL, sim_data[i].wheel_load_x_RL,
                        sim_data[i].wheel_load_x_FR, sim_data[i].wheel_load_x_RR]
