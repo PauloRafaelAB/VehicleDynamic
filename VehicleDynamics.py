@@ -9,8 +9,9 @@ from vehicle_dynamics.structures.Displacement import Displacement
 from vehicle_dynamics.structures.StrutForce import StrutForce
 from vehicle_dynamics.structures.WheelHubForce import WheelHubForce
 from vehicle_dynamics.structures.AngularWheelPosition import AngularWheelPosition
+from vehicle_dynamics.structures.OutputStates import OutputStates
 
-from vehicle_dynamics.modules.chassis import chassis
+from vehicle_dynamics.modules.chassis_2 import chassis_2 as chassis
 from vehicle_dynamics.modules.powertrain import powertrain
 from vehicle_dynamics.modules.road import road
 from vehicle_dynamics.modules.rotational_matrix import rotational_matrix
@@ -42,7 +43,6 @@ class VehicleDynamics(object):
         self.parameters = Initialization(param_path, freq, state_0, initial_gear, self.logger)
 
     def tick(self, throttle, brake, steering_angle):
-        self.logger.info(f"{self.parameters.x_a.vx}")
         self.parameters, self.logger = powertrain(self.parameters, self.logger, throttle, brake)
         self.parameters, self.logger = steering(self.parameters, self.logger, steering_angle)
         self.parameters, self.logger = rotational_matrix(self.parameters, self.logger) 
@@ -52,29 +52,5 @@ class VehicleDynamics(object):
         self.parameters, self.logger = road(self.parameters, self.logger) 
         self.parameters, self.logger = suspension(self.parameters, self.logger) 
         self.parameters, self.logger = chassis(self.parameters, self.logger)  
-        self.logger.info(f"{self.parameters.x_a.vx}")
-        # in essence you could do the exact inverse of: 
-        # self.parameters, self.logger = powertrain(steering(rotational_matrix(wheel_slip(tire_model(wheel_angular(road(suspension(chassis(self.parameters, self.logger))))))),steering=steering)throttle=throttle, brake=brake)
 
-        return [self.parameters.x_a.x,
-                self.parameters.x_a.y,
-                self.parameters.x_a.z,
-                self.parameters.x_a.roll,
-                self.parameters.x_a.pitch,
-                self.parameters.x_a.yaw,
-                self.parameters.x_a.vx,
-                self.parameters.x_a.vy,
-                self.parameters.x_a.vz,
-                self.parameters.x_a.wx,
-                self.parameters.x_a.wy,
-                self.parameters.x_a.wz,
-                self.parameters.x_a.acc_x,
-                self.parameters.x_a.acc_y,
-                self.parameters.x_a.acc_z,
-                self.parameters.gear,
-                self.parameters.slip_x[0],
-                self.parameters.slip_x[1],
-                self.parameters.slip_x[2],
-                self.parameters.slip_x[3],
-                self.parameters.wheel_w_vel[0],
-                self.parameters.wheel_w_vel[1]] 
+        return self.parameters
