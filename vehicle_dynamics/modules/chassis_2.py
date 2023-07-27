@@ -180,7 +180,9 @@ def chassis_2(parameters: Initialization, logger: logging.Logger):
     cc = parameters.x_a.wy * (np.sin(parameters.x_a.pitch) *
                               np.sin(parameters.x_a.roll)*np.cos(parameters.x_a.roll)*(Iy-Iz))
     dd = (Iy*np.cos(parameters.x_a.roll)**2+Iz*np.sin(parameters.x_a.roll)**2)
+  
     #######################################################################################################################
+    bb =0
     wy_dot = (aa + bb - cc)/dd
 
     wz_dot = (Mz - h * (Fx * np.sin(parameters.x_a.pitch) + Fy * np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll)))/(
@@ -244,7 +246,9 @@ def main():
     parameters.x_a.acc_y = sim_data[0].Vhcl_PoI_Acc_y
     parameters.x_a.acc_z = sim_data[0].Vhcl_PoI_Acc_z
     parameters.x_a.roll = sim_data[0].Vhcl_Roll
-    parameters.x_a.pitch = sim_data[0].Vhcl_Pitch
+    parameters.x_a.pitch = 0
+    pitch_trans = [sim_data[i].Vhcl_Pitch - sim_data[0].Vhcl_Pitch for i in range(len(sim_data))]
+
     parameters.x_a.yaw = sim_data[0].Vhcl_Yaw
     cm_z_force = parameters.f_za.f_za
     parameters.x_a.acc_angular_v = [
@@ -275,12 +279,12 @@ def main():
 
     plt.figure()
     plt.title(function_name)
+    
     plt.plot(range_calc, [i["x_a.pitch"] for i in data], "--", label="pitch")
     plt.plot(range_calc, [i["x_a.yaw"] for i in data], "x", label="yaw")
     plt.plot(range_calc, [i["x_a.roll"] for i in data], "+", label="roll")
-    var_name = "Vhcl_Pitch"
-    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+    
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [i for j, i in enumerate(pitch_trans) if j % 10 == 0], label=pitch_trans)
     var_name = "Vhcl_Yaw"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
         sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
