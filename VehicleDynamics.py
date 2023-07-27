@@ -11,7 +11,7 @@ from vehicle_dynamics.structures.WheelHubForce import WheelHubForce
 from vehicle_dynamics.structures.AngularWheelPosition import AngularWheelPosition
 from vehicle_dynamics.structures.OutputStates import OutputStates
 
-from vehicle_dynamics.modules.chassis_2 import chassis_2 as chassis
+from vehicle_dynamics.modules.chassis import chassis as chassis
 from vehicle_dynamics.modules.powertrain import powertrain
 from vehicle_dynamics.modules.road import road
 from vehicle_dynamics.modules.rotational_matrix import rotational_matrix
