@@ -155,34 +155,42 @@ def chassis_2(parameters: Initialization, logger: logging.Logger):
           (fx_rr + fx_fr * np.cos(delta) + fy_fl * np.sin(delta) -
            fx_rl - fx_fl * np.cos(delta) - fy_fr * np.sin(delta))*l)
 
-    wx_dot = (h * (Fy * np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch) +
-                   parameters.car_parameters.m * parameters.gravity * np.sin(parameters.x_a.roll))
-              - parameters.car_parameters.c_roll * parameters.x_a.roll -
-              parameters.car_parameters.k_roll * parameters.x_a.wx +
-              parameters.x_a.wz * (Iy - Iz) * (parameters.x_a.wz * np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch) +
-              parameters.x_a.wx * np.sin(parameters.x_a.pitch) * np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll)) +
-              parameters.x_a.wz * parameters.x_a.wx * (Iy*np.cos(parameters.x_a.roll)**2 + Iz * np.sin(parameters.x_a.roll)**2))/(
-                  Ix * np.cos(parameters.x_a.pitch)**2 +
-                  Iy * np.sin(parameters.x_a.pitch)**2 * np.sin(parameters.x_a.roll)**2 +
-                  Iz * np.sin(parameters.x_a.pitch)**2 * np.cos(parameters.x_a.roll)**2)
+    a = Fy * np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch) + \
+        parameters.car_parameters.m * \
+        parameters.gravity * np.sin(parameters.x_a.roll)
+    b = parameters.car_parameters.c_roll * parameters.x_a.roll - \
+        parameters.car_parameters.k_roll * \
+        parameters.x_a.wx + parameters.x_a.wz * (Iy - Iz)
+    c = parameters.x_a.wz * np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch) + \
+        parameters.x_a.wx * np.sin(parameters.x_a.pitch) * \
+        np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll)
+    d = parameters.x_a.wz * parameters.x_a.wx * \
+        (Iy*np.cos(parameters.x_a.roll)**2 + Iz * np.sin(parameters.x_a.roll)**2)
 
-    wy_dot = (h*(parameters.car_parameters.m*parameters.gravity*np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll) - Fx * np.cos(parameters.x_a.pitch)*np.cos(parameters.x_a.roll)) - parameters.car_parameters.c_pitch * parameters.x_a.pitch - parameters.car_parameters.k_pitch * parameters.x_a.wx + parameters.x_a.wz * (parameters.x_a.wz * np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.pitch)*(Ix-Iy + np.cos(parameters.x_a.roll)
-              ** 2*(Iy-Iz)) - parameters.x_a.roll*np.cos(parameters.x_a.pitch)**2*Ix + np.sin(parameters.x_a.roll)**2 * np.sin(parameters.x_a.pitch)**2 * Iy + np.sin(parameters.x_a.pitch)**2*np.cos(parameters.x_a.roll)**2*Iz) - parameters.x_a.wy * (np.sin(parameters.x_a.pitch) ** 2 * np.sin(parameters.x_a.roll)*np.cos(parameters.x_a.roll)*(Iy-Iz)))/(Iy*np.cos(parameters.x_a.roll)**2+Iz*np.sin(parameters.x_a.roll)**2)
+    e = (Ix * np.cos(parameters.x_a.pitch)**2 + Iy * np.sin(parameters.x_a.pitch) ** 2 *
+         np.sin(parameters.x_a.roll)**2 + Iz * np.sin(parameters.x_a.pitch)**2 * np.cos(parameters.x_a.roll)**2)
 
-    wz_dot = (Mz - h * (Fx * np.sin(parameters.x_a.pitch) + Fy * np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll)))/(Ix*np.sin(
-        parameters.x_a.pitch)**2 + np.cos(parameters.x_a.pitch)**2 * (Iy * np.sin(parameters.x_a.roll)**2 + Iz * np.cos(parameters.x_a.roll)**2))
+    wx_dot = (h * a - b * c + d)/e
+    wx_dot = 0
 
+    aa = h * (parameters.car_parameters.m*parameters.gravity*np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll) - Fx * np.cos(parameters.x_a.pitch)*np.cos(parameters.x_a.roll)) - parameters.car_parameters.c_pitch * parameters.x_a.pitch - parameters.car_parameters.k_pitch * parameters.x_a.wx 
+    bb = parameters.x_a.wz * (parameters.x_a.wz * np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.pitch)*(Ix-Iy + np.cos(parameters.x_a.roll)**2 * (Iy-Iz))-parameters.x_a.wx*np.cos(parameters.x_a.pitch)**2*Ix + np.sin(parameters.x_a.roll)**2 * np.sin(parameters.x_a.pitch)**2 * Iy + np.sin(parameters.x_a.pitch)**2*np.cos(parameters.x_a.roll)**2*Iz)
+    cc = parameters.x_a.wy * (np.sin(parameters.x_a.pitch) ** 2 * np.sin(parameters.x_a.roll)*np.cos(parameters.x_a.roll)*(Iy-Iz))
+    dd = (Iy*np.cos(parameters.x_a.roll)**2+Iz*np.sin(parameters.x_a.roll)**2)
+    
+    wy_dot = (aa + bb - cc )/dd
+
+    wz_dot = (Mz - h * (Fx * np.sin(parameters.x_a.pitch) + Fy * np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll)))/(
+        Ix*np.sin(parameters.x_a.pitch)**2 + np.cos(parameters.x_a.pitch)**2 * (Iy * np.sin(parameters.x_a.roll)**2 + Iz * np.cos(parameters.x_a.roll)**2))
+    wz_dot = 0
     parameters.x_a.wx = parameters.x_a.wx + wx_dot * parameters.time_step
     parameters.x_a.wy = parameters.x_a.wy + wy_dot * parameters.time_step
     parameters.x_a.wz = parameters.x_a.wz + wz_dot * parameters.time_step
 
     # Angular position
-    parameters.x_a.roll = (parameters.x_a.wx *
-                           parameters.time_step) + parameters.x_a.roll
-    parameters.x_a.pitch = (
-        parameters.x_a.wy * parameters.time_step) + parameters.x_a.pitch
-    parameters.x_a.yaw = (parameters.x_a.wz *
-                          parameters.time_step) + parameters.x_a.yaw
+    parameters.x_a.roll = (parameters.x_a.wx * parameters.time_step) + parameters.x_a.roll
+    parameters.x_a.pitch = (parameters.x_a.wy * parameters.time_step) + parameters.x_a.pitch
+    parameters.x_a.yaw = (parameters.x_a.wz * parameters.time_step) + parameters.x_a.yaw
 
     # TODO: updated transformation to vehicle system
 
@@ -293,7 +301,7 @@ def main():
 
     plt.legend()
 
-    if False:
+    if True:
         plt.figure()
         plt.title(function_name)
         plt.plot(range_calc, [i["x_a.acc_x"]
