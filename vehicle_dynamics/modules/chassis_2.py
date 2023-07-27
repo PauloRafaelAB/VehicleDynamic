@@ -158,20 +158,24 @@ def chassis_2(parameters: Initialization, logger: logging.Logger):
     a = Fy * np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch) + \
         parameters.car_parameters.m * \
         parameters.gravity * np.sin(parameters.x_a.roll)
-    b = parameters.car_parameters.c_roll * parameters.x_a.roll - \
+    b = -parameters.car_parameters.c_roll * parameters.x_a.roll - \
         parameters.car_parameters.k_roll * \
-        parameters.x_a.wx + parameters.x_a.wz * (Iy - Iz)
-    c = parameters.x_a.wz * np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch) + \
+        parameters.x_a.wx 
+    
+    
+    
+    c = parameters.x_a.wz * (Iy - Iz)*( parameters.x_a.wz * np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch) + \
         parameters.x_a.wx * np.sin(parameters.x_a.pitch) * \
-        np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll)
+        np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll))
+    
     d = parameters.x_a.wz * parameters.x_a.wx * \
         (Iy*np.cos(parameters.x_a.roll)**2 + Iz * np.sin(parameters.x_a.roll)**2)
 
     e = (Ix * np.cos(parameters.x_a.pitch)**2 + Iy * np.sin(parameters.x_a.pitch) ** 2 *
          np.sin(parameters.x_a.roll)**2 + Iz * np.sin(parameters.x_a.pitch)**2 * np.cos(parameters.x_a.roll)**2)
 
-    wx_dot = (h * a - b * c + d)/e
-    wx_dot = 0
+    wx_dot = (h * a + b + c + d)/e
+    #wx_dot = 0
 
     aa = h * (parameters.car_parameters.m*parameters.gravity*np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll) - Fx * np.cos(parameters.x_a.pitch)
               * np.cos(parameters.x_a.roll)) - parameters.car_parameters.c_pitch * parameters.x_a.pitch - parameters.car_parameters.k_pitch * parameters.x_a.wy
@@ -185,9 +189,9 @@ def chassis_2(parameters: Initialization, logger: logging.Logger):
     bb =0
     wy_dot = (aa + bb - cc)/dd
 
-    wz_dot = (Mz - h * (Fx * np.sin(parameters.x_a.pitch) + Fy * np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll)))/(
+    wz_dot = (Mz - h * (Fx * np.sin(parameters.x_a.roll) + Fy * np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll)))/(
         Ix*np.sin(parameters.x_a.pitch)**2 + np.cos(parameters.x_a.pitch)**2 * (Iy * np.sin(parameters.x_a.roll)**2 + Iz * np.cos(parameters.x_a.roll)**2))
-    wz_dot = 0
+    #wz_dot = 0
     parameters.x_a.wx = parameters.x_a.wx + wx_dot * parameters.time_step
     parameters.x_a.wy = parameters.x_a.wy + wy_dot * parameters.time_step
     parameters.x_a.wz = parameters.x_a.wz + wz_dot * parameters.time_step
@@ -284,7 +288,7 @@ def main():
     plt.plot(range_calc, [i["x_a.yaw"] for i in data], "x", label="yaw")
     plt.plot(range_calc, [i["x_a.roll"] for i in data], "+", label="roll")
     
-    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [i for j, i in enumerate(pitch_trans) if j % 10 == 0], label=pitch_trans)
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [i for j, i in enumerate(pitch_trans) if j % 10 == 0], label="pitch_trans")
     var_name = "Vhcl_Yaw"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
         sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
