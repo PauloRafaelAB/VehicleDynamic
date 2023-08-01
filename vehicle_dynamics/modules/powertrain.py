@@ -8,6 +8,7 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
+from tqdm import tqdm
 
 
 def find_nearest(array, value):
@@ -70,8 +71,6 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
     engine_torque = throttle * torque_available
     # Gearbox up or down shifting
 
-    # print(f"{parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]} {parameters.x_a.vx} {parameters.gear} {int(throttle * 10)} ")
-
     if parameters.x_a.vx > parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]:
         parameters.gear = parameters.gear + 1
         if parameters.gear >= parameters.car_parameters.gear_ratio.size:
@@ -122,7 +121,7 @@ def main():
     sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
     data = []
-    for i in range(len(sim_data)):
+    for i in tqdm(range(len(sim_data))):
         parameters.x_a.vx = sim_data[i].Vhcl_PoI_Vel_1_x
         parameters.wheel_w_vel = np.array([sim_data[i].Wheel_w_vel_FL,
                                            sim_data[i].Wheel_w_vel_RL,
@@ -136,11 +135,31 @@ def main():
     var_name = "gear_no"
     plt.step([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
     plt.legend()
+
     plt.figure()
     plt.title(function_name)
-    var_name = "Vhcl_PoI_Vel_1_x"
+    # var_name = "Vhcl_PoI_Vel_1_x"
+    # plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
+    plt.plot([i["powertrain_net_torque"] for i in data], "--", label="powertrain_net_torque")
+    plt.twinx()
+    plt.plot([sim_data[i].gas_pedal for i in range(len(sim_data))], label="gas pedal")
+
+    plt.legend()
+    plt.figure()
+    plt.title(function_name)
+    # var_name = "Vhcl_PoI_Vel_1_x"
+    # plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
+    plt.plot([i["rpm"] for i in data], "--", label="rpm")
+    plt.twinx()
+    plt.plot([sim_data[i].gas_pedal for i in range(len(sim_data))], label="gas pedal")
+    plt.legend()
+    plt.figure()
+    plt.title(function_name)
+    var_name = "engine_rotv"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
-    plt.plot([i["x_a.vx"] for i in data], "--", label="vx calculated")
+    plt.plot([(i["rpm"] / 30) * np.pi for i in data], "--", label="rpm")
+    # plt.twinx()
+    #plt.plot([sim_data[i].gas_pedal for i in range(len(sim_data))], label="gas pedal")
     plt.legend()
     plt.show()
 
