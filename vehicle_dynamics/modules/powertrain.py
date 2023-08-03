@@ -53,14 +53,39 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
 
     """
 
-    # Update Engine RPM
+    # Update Converter RPM
+    # Based on page 103/104 from Vehicle Dynamics and control (Rajesh Rajamani)
+    ## Based on the whell velocity and engine rpm the torque on the 
+    converter_w = parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * np.mean(parameters.wheel_w_vel)  # Wheel vx to converter angular velocity
+    
+    engine_w = parameters.rpm*np.pi/30
 
-    parameters.rpm = parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * np.mean(parameters.wheel_w_vel) * 30 / np.pi  # Wheel vx to engine RPM
+        
+    if converter_w/engine_w  <0.9:
+    
+        ## I do not know if this parameters are fixed of they change from car to car. I believe they change.
+        tp_cta= 3.4325
+        tp_ctb=-3.0
+        tp_ctc=2.22e-3
+        tp_ctd=-4.6041e-3
+    
+        pump_torque = tp_cta+tp_ctb*engine_w**2 +tp_ctc*engine_w*converter_w+tp_ctd*converter_w**2
+        
+        tt_cta = 5.7656e-3
+        tt_ctb = 2.2210e-3
+        tt_ctc = -5.4323e-3
+        
+        converter_torque = tt_cta*engine_w**2 +tt_ctb*engine_w*converter_w+tt_ctc*converter_w**2
 
-    if parameters.rpm < parameters.car_parameters.rpm_table[0]:
-        parameters.rpm = parameters.car_parameters.rpm_table[0] 
-    elif parameters.rpm > parameters.car_parameters.rpm_table[-1]:
-        parameters.rpm = parameters.car_parameters.rpm_table[-1]
+    else:
+        
+        tt_cta = -6.7644e-3
+        tt_ctb = 0.3107e-3
+        tt_ctc = -25.2441e-3
+        
+        converter_torque = tt_cta*engine_w**2 +tt_ctb*engine_w*converter_w+tt_ctc*converter_w**2
+        pump_torque = converter_torque
+
 
     # Calculate torque provided by the engine based on the engine RPM
     # how much torque is available thoughout the rpm range
@@ -69,8 +94,19 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
     torque_available = torque_interpolation(parameters.rpm)
     # find the torque delivered by te engine
     engine_torque = throttle * torque_available
+    
+    engine_wdot = (engine_torque-pump_torque)/parameters.car_parameters.engine_inertia
+    
+    parameters.rpm = (engine_w + engine_wdot*parameters.time_step)*30/np.pi
+    
+    # Check engine RPM 
+    if parameters.rpm < parameters.car_parameters.rpm_table[0]:
+        parameters.rpm = parameters.car_parameters.rpm_table[0] 
+    elif parameters.rpm > parameters.car_parameters.rpm_table[-1]:
+        parameters.rpm = parameters.car_parameters.rpm_table[-1]
+       
+    
     # Gearbox up or down shifting
-
     if parameters.x_a.vx > parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]:
         parameters.gear = parameters.gear + 1
         if parameters.gear >= parameters.car_parameters.gear_ratio.size:
@@ -80,8 +116,8 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
         if parameters.gear < 1:
             parameters.gear = 1
 
-    traction_torque = (engine_torque * parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * parameters.car_parameters.diff_ni * parameters.car_parameters.transmition_ni) - ((
-        ((parameters.car_parameters.engine_inertia + parameters.car_parameters.axel_inertia + parameters.car_parameters.gearbox_inertia) * (parameters.gear ** 2)) + (
+    traction_torque = (converter_torque * parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * parameters.car_parameters.diff_ni * parameters.car_parameters.transmition_ni) - ((
+        ((parameters.car_parameters.axel_inertia + parameters.car_parameters.gearbox_inertia) * (parameters.gear ** 2)) + (
             parameters.car_parameters.shaft_inertia * parameters.car_parameters.gear_ratio[parameters.gear] * (parameters.car_parameters.diff ** 2)) + parameters.car_parameters.wheel_inertia) * parameters.x_a.acc_x)
 
     # --------------------Break Torque -------------------------
@@ -144,14 +180,6 @@ def main():
     plt.twinx()
     plt.plot([sim_data[i].gas_pedal for i in range(len(sim_data))], label="gas pedal")
 
-    plt.legend()
-    plt.figure()
-    plt.title(function_name)
-    # var_name = "Vhcl_PoI_Vel_1_x"
-    # plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
-    plt.plot([i["rpm"] for i in data], "--", label="rpm")
-    plt.twinx()
-    plt.plot([sim_data[i].gas_pedal for i in range(len(sim_data))], label="gas pedal")
     plt.legend()
     plt.figure()
     plt.title(function_name)

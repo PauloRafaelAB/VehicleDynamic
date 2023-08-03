@@ -1,6 +1,6 @@
 vehicle_model:
   parameters:
-    min_rpm: 883.18
+    min_rpm: 1000
     rpm_table: [1000, 1800, 5500, 6000, 7000, 8300]
     torque_max: [200, 328, 400, 450, 400, 250]            # [Nm]
     gear_ratio: [0, 3.1, 2.59, 1.96, 1.24, 0.98, .91, 0.84, 0.84]
