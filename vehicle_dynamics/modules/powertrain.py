@@ -64,7 +64,7 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
     if converter_w/engine_w  <0.9:
     
         ## I do not know if this parameters are fixed of they change from car to car. I believe they change.
-        tp_cta= 3.4325
+        tp_cta= 3.4325 # es that I do not know what mean
         tp_ctb=-3.0
         tp_ctc=2.22e-3
         tp_ctd=-4.6041e-3
