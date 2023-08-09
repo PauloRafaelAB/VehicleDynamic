@@ -72,7 +72,7 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
         pump_torque = tp_cta+tp_ctb*engine_w**2 +tp_ctc*engine_w*converter_w+tp_ctd*converter_w**2
         
         tt_cta = 5.7656e-3
-        tt_ctb = 2.2210e-3
+        tt_ctb = 0.3107e-3
         tt_ctc = -5.4323e-3
         
         converter_torque = tt_cta*engine_w**2 +tt_ctb*engine_w*converter_w+tt_ctc*converter_w**2
@@ -80,7 +80,7 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
     else:
         
         tt_cta = -6.7644e-3
-        tt_ctb = 0.3107e-3
+        tt_ctb = 23.0024e-3
         tt_ctc = -25.2441e-3
         
         converter_torque = tt_cta*engine_w**2 +tt_ctb*engine_w*converter_w+tt_ctc*converter_w**2
