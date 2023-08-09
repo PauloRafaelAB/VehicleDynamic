@@ -136,3 +136,5 @@ Tire.py
 torque_interpolation.py
 __pycache__/
 
+.vscode/
+
