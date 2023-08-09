@@ -12,7 +12,7 @@ from vehicle_dynamics.structures.AngularWheelPosition import AngularWheelPositio
 from vehicle_dynamics.structures.OutputStates import OutputStates
 
 from vehicle_dynamics.modules.chassis import chassis as chassis
-from vehicle_dynamics.modules.powertrain import powertrain
+from vehicle_dynamics.modules.powertrain import Powertrain
 from vehicle_dynamics.modules.road import road
 from vehicle_dynamics.modules.rotational_matrix import rotational_matrix
 from vehicle_dynamics.modules.steering import steering
@@ -41,9 +41,10 @@ class VehicleDynamics(object):
         self.logger = LocalLogger("MainLogger").logger
         self.logger.setLevel("INFO")
         self.parameters = Initialization(param_path, freq, state_0, initial_gear, self.logger)
+        self.powertrain = Powertrain(parameters)
 
     def tick(self, throttle, brake, steering_angle):
-        self.parameters, self.logger = powertrain(self.parameters, self.logger, throttle, brake)
+        self.parameters, self.logger = self.powertrain.powertrain(self.parameters, self.logger, throttle, brake)
         self.parameters, self.logger = steering(self.parameters, self.logger, steering_angle)
         self.parameters, self.logger = rotational_matrix(self.parameters, self.logger) 
         self.parameters, self.logger = wheel_slip(self.parameters, self.logger) 
