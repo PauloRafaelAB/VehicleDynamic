@@ -76,7 +76,7 @@ class Powertrain(object):
             tp_ctd = -4.6041e-3
             es = 1
 
-            pump_torque = tp_cta * es + tp_ctb * engine_w**2 + tp_ctc * engine_w * converter_w + tp_ctd * converter_w**2
+            pump_torque = tp_cta * es + tp_ctb * engine_w ** 2 + tp_ctc * engine_w * converter_w + tp_ctd * converter_w ** 2
 
             tt_cta = 5.7656e-3
             tt_ctb = 0.3107e-3
@@ -102,7 +102,7 @@ class Powertrain(object):
 
         engine_wdot = (engine_torque - pump_torque) / parameters.car_parameters.engine_inertia
 
-        parameters.engine_w = (engine_w + engine_wdot * parameters.time_step) * 30 / np.pi
+        parameters.engine_w = (engine_w + engine_wdot * parameters.time_step) 
 
         # Check engine engine_w 
         if parameters.engine_w < parameters.car_parameters.min_engine_w:
@@ -159,6 +159,7 @@ def main():
                                            sim_data[i].Wheel_w_vel_RR])
         data.append(test_function(parameters, logger, throttle = sim_data[i].gas_pedal, brake = sim_data[i].brake_pedal)[0].get_data())  
 
+    """
     plt.figure()
     plt.title(function_name)
     plt.step([i["gear"] for i in data], "--g", label="gear_no_calcu")
@@ -167,21 +168,20 @@ def main():
     plt.legend()
 
     plt.figure()
-    plt.title(function_name)
-    # var_name = "Vhcl_PoI_Vel_1_x"
-    # plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
-    plt.plot([i["powertrain_net_torque"] for i in data], "--", label="powertrain_net_torque")
-    plt.twinx()
-    plt.plot([sim_data[i].gas_pedal for i in range(len(sim_data))], label="gas pedal")
-
-    plt.legend()
+        plt.title(function_name)
+        # var_name = "Vhcl_PoI_Vel_1_x"
+        # plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
+        plt.plot([i["powertrain_net_torque"] for i in data], "--", label="powertrain_net_torque")
+        plt.twinx()
+        plt.plot([sim_data[i].gas_pedal for i in range(len(sim_data))], label="gas pedal")
+    
+        plt.legend()
+    """
     plt.figure()
     plt.title(function_name)
     var_name = "engine_rotv"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
-    plt.plot([(i["engine_w"] / 30) * np.pi for i in data], "--", label="engine_w")
-    # plt.twinx()
-    #plt.plot([sim_data[i].gas_pedal for i in range(len(sim_data))], label="gas pedal")
+    plt.plot([(i["engine_w"]) for i in data], "--", label="engine_w")
     plt.legend()
     plt.show()
 
