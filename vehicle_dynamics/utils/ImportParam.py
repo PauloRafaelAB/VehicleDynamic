@@ -12,9 +12,10 @@ class ImportParam(object):
         # =====================================
         # Engine Coeficients
         # =====================================
-        self.min_rpm = param['vehicle_model']['parameters']['min_rpm']
-        self.rpm_table = np.array(
-            param['vehicle_model']['parameters']['rpm_table'])
+        self.min_engine_w = param['vehicle_model']['parameters']['min_engine_w']
+        self.max_engine_w = param['vehicle_model']['parameters']['max_engine_w']
+        self.engine_w_table = np.array(
+            param['vehicle_model']['parameters']['engine_w_table'])
         self.torque_max = np.array(
             param['vehicle_model']['parameters']['torque_max'])
         self.gear_ratio = np.array(

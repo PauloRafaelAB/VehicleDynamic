@@ -23,7 +23,7 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
     Powertrain is a function that calculates the current Torque delivered by the engine to the wheels
 
     Required Parameters from Param:
-        1.rpm_table,
+        1.engine_w_table,
         2.torque_max_table,
         3.gear_ratio,
         4.diff,
@@ -47,18 +47,18 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
         6. vx
 
     Returns:
-        1. Engine_rpm
+        1. Engine_w
         2. Gear
         3. Torque of the engine on the wheels
 
     """
 
-    # Update Converter RPM
+    # Update Converter engine_w
     # Based on page 103/104 from Vehicle Dynamics and control (Rajesh Rajamani)
-    ## Based on the whell velocity and engine rpm the torque on the 
+    ## Based on the whell velocity and engine engine_w the torque on the 
     converter_w = parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * np.mean(parameters.wheel_w_vel)  # Wheel vx to converter angular velocity
     
-    engine_w = parameters.rpm*np.pi/30
+    engine_w = parameters.engine_w
 
         
     if converter_w/engine_w  <0.9:
@@ -87,23 +87,23 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
         pump_torque = converter_torque
 
 
-    # Calculate torque provided by the engine based on the engine RPM
-    # how much torque is available thoughout the rpm range
-    torque_interpolation = interp1d(parameters.car_parameters.rpm_table, parameters.car_parameters.torque_max_table)
-    # Max torque available at rpm
-    torque_available = torque_interpolation(parameters.rpm)
+    # Calculate torque provided by the engine based on the engine engine_w
+    # how much torque is available thoughout the engine_w range
+    torque_interpolation = interp1d(parameters.car_parameters.engine_w_table, parameters.car_parameters.torque_max_table)
+    # Max torque available at engine_w
+    torque_available = torque_interpolation(parameters.engine_w)
     # find the torque delivered by te engine
     engine_torque = throttle * torque_available
     
     engine_wdot = (engine_torque-pump_torque)/parameters.car_parameters.engine_inertia
     
-    parameters.rpm = (engine_w + engine_wdot*parameters.time_step)*30/np.pi
+    parameters.engine_w = (engine_w + engine_wdot*parameters.time_step)*30/np.pi
     
-    # Check engine RPM 
-    if parameters.rpm < parameters.car_parameters.rpm_table[0]:
-        parameters.rpm = parameters.car_parameters.rpm_table[0] 
-    elif parameters.rpm > parameters.car_parameters.rpm_table[-1]:
-        parameters.rpm = parameters.car_parameters.rpm_table[-1]
+    # Check engine engine_w 
+    if parameters.engine_w < parameters.car_parameters.engine_w_table[0]:
+        parameters.engine_w = parameters.car_parameters.engine_w_table[0] 
+    elif parameters.engine_w > parameters.car_parameters.engine_w_table[-1]:
+        parameters.engine_w = parameters.car_parameters.engine_w_table[-1]
        
     
     # Gearbox up or down shifting
@@ -133,14 +133,6 @@ def powertrain(parameters: Initialization, logger: logging.Logger, throttle: flo
     return parameters, logger
 
 
-"""
-VhclCtrl Gas  # engine rpm
-VhclCtrl Brake  # Brake pedal
-Vhcl PoI_Acc_1 x  # x acceleration
-PT IF W < pos > rotv  # wheel angular velocity
-Vehicle.GearNo  # gear
-# Vehicle.Engine_rotv # eng rpm >>engine_rotv 
-"""
 
 
 def main():
@@ -185,7 +177,7 @@ def main():
     plt.title(function_name)
     var_name = "engine_rotv"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
-    plt.plot([(i["rpm"] / 30) * np.pi for i in data], "--", label="rpm")
+    plt.plot([(i["engine_w"] / 30) * np.pi for i in data], "--", label="engine_w")
     # plt.twinx()
     #plt.plot([sim_data[i].gas_pedal for i in range(len(sim_data))], label="gas pedal")
     plt.legend()

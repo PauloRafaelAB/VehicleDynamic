@@ -34,7 +34,7 @@ class Initialization(object):
         # Steering_angle [t]
         self.delta = 0
         self.gravity = 9.81
-        self.rpm = self.car_parameters.min_rpm
+        self.engine_w = self.car_parameters.min_engine_w
         self.gear = initial_gear                    # gear selector
         self.throttle = 0.0                         # thorttle position (0< throttle <1)
         self.brake = 0.0                            # Brake pedal position (0< brake <1)
@@ -120,7 +120,7 @@ class Initialization(object):
                 "slip_x3": self.slip_x[3],
                 "wheel_w_vel0": self.wheel_w_vel[0],
                 "wheel_w_vel1": self.wheel_w_vel[1],
-                "rpm": self.rpm,
+                "engine_w": self.engine_w,
                 "powertrain_net_torque": self.powertrain_net_torque,
                 "last_delta": self.last_delta,
                 "wheel_load_z": self.f_zr.wheel_load_z,
