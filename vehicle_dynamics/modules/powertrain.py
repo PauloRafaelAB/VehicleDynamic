@@ -67,6 +67,26 @@ class Powertrain(object):
 
         engine_w = parameters.engine_w
 
+        k = 0.005 # shoul be a table
+        w_ratio = converter_w / engine_w
+        pump_torque = (k*w_ratio/engine_w)*2
+        torque_ratio = 1
+        converter_torque = torque_ratio * w_ratio * pump_torque
+
+        # Calculate torque provided by the engine based on the engine engine_w
+        # how much torque is available thoughout the engine_w range
+        # Max torque available at engine_w
+        
+        torque_available = self.torque_interpolation(parameters.engine_w)
+        # find the torque delivered by te engine
+        engine_torque = throttle * torque_available
+
+        engine_wdot = (engine_torque - pump_torque) / parameters.car_parameters.engine_inertia
+
+        parameters.engine_w = (engine_w + engine_wdot * parameters.time_step) 
+
+
+        """ 
         if converter_w / engine_w < 0.9:
 
             # I do not know if this parameters are fixed of they change from car to car. I believe they change.
@@ -74,7 +94,7 @@ class Powertrain(object):
             tp_ctb = -3.0
             tp_ctc = 2.22e-3
             tp_ctd = -4.6041e-3
-            es = 1
+            es = 1e8
 
             pump_torque = tp_cta * es + tp_ctb * engine_w ** 2 + tp_ctc * engine_w * converter_w + tp_ctd * converter_w ** 2
 
@@ -89,27 +109,19 @@ class Powertrain(object):
             tt_cta = -6.7644e-3
             tt_ctb = 23.0024e-3
             tt_ctc = -25.2441e-3
-
-            converter_torque = tt_cta * engine_w**2 + tt_ctb * engine_w * converter_w + tt_ctc * converter_w**2
-            pump_torque = converter_torque
-
-        # Calculate torque provided by the engine based on the engine engine_w
-        # how much torque is available thoughout the engine_w range
-        # Max torque available at engine_w
-        torque_available = self.torque_interpolation(parameters.engine_w)
-        # find the torque delivered by te engine
-        engine_torque = throttle * torque_available
-
-        engine_wdot = (engine_torque - pump_torque) / parameters.car_parameters.engine_inertia
-
-        parameters.engine_w = (engine_w + engine_wdot * parameters.time_step) 
-
+ 
+        converter_torque = tt_cta * engine_w**2 + tt_ctb * engine_w * converter_w + tt_ctc * converter_w**2
+        pump_torque = converter_torque
+        """
+        
         # Check engine engine_w 
         if parameters.engine_w < parameters.car_parameters.min_engine_w:
             parameters.engine_w = parameters.car_parameters.min_engine_w
         elif parameters.engine_w > parameters.car_parameters.max_engine_w:
             parameters.engine_w = parameters.car_parameters.max_engine_w
 
+        # TODO: Blending Function - the speed ratio is changed gradually from one to another gear ratio within a shift duration time
+        
         # Gearbox up or down shifting
         if parameters.x_a.vx > parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]:
             parameters.gear = parameters.gear + 1
