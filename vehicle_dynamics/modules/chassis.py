@@ -113,7 +113,7 @@ def chassis(parameters: Initialization, logger: logging.Logger):
 # =============================================================================
 
     # Angular position, velocity, acceleration of the chassis
-    delta = 0  # wheel angle
+    delta = parameters.last_delta  # wheel angle
     Ix = parameters.car_parameters.i_x_s
     Iy = parameters.car_parameters.i_y_s
     Iz = parameters.car_parameters.i_z
@@ -182,7 +182,6 @@ def chassis(parameters: Initialization, logger: logging.Logger):
                           parameters.time_step) + parameters.x_a.yaw
 
     # TODO: updated transformation to vehicle system
-
     vehicle_fixed2inertial_system = np.array([[np.cos(parameters.x_a.pitch) * np.cos(parameters.x_a.yaw), np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.cos(parameters.x_a.yaw) - np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.yaw), np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.cos(parameters.x_a.yaw) + np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.yaw)],
                                               [np.cos(parameters.x_a.pitch) * np.sin(parameters.x_a.yaw), np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(parameters.x_a.yaw) + np.cos(parameters.x_a.roll) * np.cos(
                                                   parameters.x_a.yaw), np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(parameters.x_a.yaw) - np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.yaw)],
@@ -251,7 +250,7 @@ def main():
         parameters.angular_rates = np.array([parameters.x_a.wx,
                                              parameters.x_a.wy,
                                              parameters.x_a.wz])
-
+        parameters.last_delta = sim_data[i].Steering_angle/10
         return_values = test_function(parameters, logger)
 
         data.append(return_values[0].get_data())
@@ -264,13 +263,13 @@ def main():
 
     plt.plot(range_calc, [i["x_a.roll"] for i in data], "--", label="roll")
     plt.plot(range_calc, [i["x_a.pitch"] for i in data], "x", label="pitch")
-    plt.plot(range_calc, [i["x_a.yaw"] for i in data], "+", label="yaw")
+    #plt.plot(range_calc, [i["x_a.yaw"] for i in data], "+", label="yaw")
    
     var_name = "Vhcl_Roll"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
         sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [i for j, i in enumerate(pitch_trans) if j % 10 == 0], label="pitch_trans")
-    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [i for j, i in enumerate(yaw_trans) if j % 10 == 0], label="yaw_trans")
+    #plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [i for j, i in enumerate(yaw_trans) if j % 10 == 0], label="yaw_trans")
     
 
     plt.legend()

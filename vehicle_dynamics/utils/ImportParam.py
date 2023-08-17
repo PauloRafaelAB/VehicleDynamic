@@ -30,6 +30,8 @@ class ImportParam(object):
             param['vehicle_model']['parameters']['b_bias'])
         self.torque_max_table = np.array(
             param['vehicle_model']['parameters']['torque_max'])
+        self.engine_torque_drag = np.array(
+            param['vehicle_model']['parameters']['engine_torque_drag'])
         # =====================================
         # Powertrain parameters
         # =====================================
