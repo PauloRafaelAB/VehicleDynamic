@@ -41,7 +41,7 @@ class VehicleDynamics(object):
         self.logger = LocalLogger("MainLogger").logger
         self.logger.setLevel("INFO")
         self.parameters = Initialization(param_path, freq, state_0, initial_gear, self.logger)
-        self.powertrain = Powertrain(parameters)
+        self.powertrain = Powertrain(self.parameters)
 
     def tick(self, throttle, brake, steering_angle):
         self.parameters, self.logger = self.powertrain.powertrain(self.parameters, self.logger, throttle, brake)
