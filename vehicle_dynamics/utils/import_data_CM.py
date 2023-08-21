@@ -14,10 +14,9 @@ def import_data_CM(path):
 
 
 def main():
-    path = "../../exampledata/2_acc_brake/SimulationData.pickle"
+    path = "../../exampledata/acc_brake/SimulationData.pickle"
     data = import_data_CM(path)
     print(data)
-
 
 if __name__ == '__main__':
     main()

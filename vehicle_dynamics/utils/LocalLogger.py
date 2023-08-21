@@ -6,7 +6,7 @@ class LocalLogger(logging.Logger):
     """Logger util for the package"""
     loggers = set()
 
-    def __init__(self, name, format="%(asctime)s | %(levelname)s | %(message)s", level=logging.INFO):
+    def __init__(self, name, format="%(asctime)s | %(levelname)s | %(funcName)s %(lineno)d | %(message)s", level=logging.INFO):
         # Initial construct.
         self.format = format
         self.level = level

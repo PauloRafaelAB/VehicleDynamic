@@ -2,17 +2,17 @@ from vehicle_dynamics.utils.ImportParam import ImportParam
 from vehicle_dynamics.structures.StateVector import StateVector
 from vehicle_dynamics.structures.WheelHubForce import WheelHubForce
 from vehicle_dynamics.structures.Displacement import Displacement
+from vehicle_dynamics.utils.Initialization import Initialization
+from vehicle_dynamics.utils.import_data_CM import import_data_CM
+from vehicle_dynamics.utils.LocalLogger import LocalLogger
 
+import matplotlib.pyplot as plt
 import numpy as np
 import logging
 import yaml
 
 
-def suspension(param: ImportParam,
-               f_zr: WheelHubForce,
-               displacement: Displacement,
-               vehicle_fixed2inertial_system: np.ndarray,
-               logger: logging.Logger) -> np.ndarray:  # previsious forces, ax,ay 
+def suspension(parameters: Initialization, logger: logging.Logger):
     """
      suspension is a function that calculates the current wheel loads (z)
 
@@ -24,48 +24,93 @@ def suspension(param: ImportParam,
          1. f_zr
              1.01 wheel_load_z
         2.displacement
-            2.01 za
-            2.02 zs
-            2.03 l_stat
-            2.04 za_dot
+            2.01 za    :  position of the connection point of the suspension with the dampner spring system
+            2.02 zs    :  Z velocity of the wheel
+            2.03 l_stat:  constant
+            2.04 za_dot:  velocity of the chassis point
         3.vehicle_fixed2inertial_system
      Returns:
          1. f_zr.wheel_load_z
 
      """
     # Forces on the vehicle chassis at the pivot points Ai
-    # Bardini pag. 265 eq. 11-21  
+    # Bardini pag. 265 eq. 11-21
 
-    f_zr.wheel_load_z = -(param.eq_stiff * (displacement.za - displacement.zs + displacement.l_stat) + param.dumper * (displacement.za_dot)) * vehicle_fixed2inertial_system @ np.array([[0], [0], [1]])[2]
+    A = (parameters.car_parameters.eq_stiff * (-parameters.displacement.za + parameters.displacement.zs +
+         parameters.displacement.l_stat)) + (parameters.car_parameters.dumper * parameters.displacement.za_dot)
+    B = parameters.vehicle_fixed2inertial_system @ np.array([[0], [0], [1]])
+    parameters.f_zr.wheel_load_z = (A * B)[2]
 
-    logger.debug("whell load z", f_zr.wheel_load_z)
+    logger.debug(f"wheel load z {parameters.f_zr.wheel_load_z}")
 
+    return parameters, logger
     return f_zr
 
 
-
-def variable_initialization(param, data, logger):
-
-    return param, f_zr, displacement, vehicle_fixed2inertial_system, logger
-
-
 def main():
-    SIM_ITER = 1000
-    logger = LocalLogger("suspension").logger
+    SIM_TIME = 22
+    test_function = suspension
+    function_name = test_function.__name__
+    logger = LocalLogger(function_name).logger
+    logger.setLevel('DEBUG')
 
-    path = "../../exampledata/2_acc_brake/SimulationData.pickle"
-    param = ImportParam("../../bmw_m8.yaml")
-    logger.info("loaded Params")
+    parameters = Initialization("../../Audi_r8.yaml", logger=logger)
+    logger.info("loaded Parameters")
 
-    data = import_data_CM(path)
+    path_to_simulation_data = "../../exampledata/chassis debug data/SimulationData.pickle"
+    sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
+    data = []
+    for i in range(len(sim_data)):
+        parameters.x_a.roll = sim_data[i].Vhcl_Roll
+        parameters.x_a.pitch = sim_data[i].Vhcl_Pitch
+        parameters.x_a.yaw = sim_data[i].Vhcl_Yaw
 
-    exit()
+        wheel_load_z = [sim_data[i].wheel_load_z_FL, sim_data[i].wheel_load_z_RL,
+                        sim_data[i].wheel_load_z_FR, sim_data[i].wheel_load_z_RR]
 
-    chassis_variables = [chassis(*variable_initialization(param, data)) for i in range(SIM_ITER)]
+        parameters.displacement = Displacement(l_stat=(parameters.car_parameters.m * parameters.car_parameters.wd * parameters.gravity) / parameters.car_parameters.eq_stiff,
+                                               za=wheel_load_z / parameters.car_parameters.eq_stiff,
+                                               za_dot=np.zeros(4),
+                                               zr_dot=np.zeros(4),
+                                               zr_2dot=np.zeros(4))
+        parameters.vehicle_fixed2inertial_system = np.array([[np.cos(parameters.x_a.pitch) * np.cos(parameters.x_a.yaw), np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.cos(parameters.x_a.yaw) - np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.yaw), np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.cos(parameters.x_a.yaw) + np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.yaw)],
+                                                             [np.cos(parameters.x_a.pitch) * np.sin(parameters.x_a.yaw), np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(parameters.x_a.yaw) + np.cos(parameters.x_a.roll) * np.cos(
+                                                                 parameters.x_a.yaw), np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(parameters.x_a.yaw) - np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.yaw)],
+                                                             [-np.sin(parameters.x_a.pitch), np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.pitch), np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch)]])  # Bardini pag 260
 
-    plt.title("suspension")
-    plt.plot(chassis_variables)
+        data.append(test_function(parameters, logger)[0].get_data())
+
+    plt.figure()
+    plt.title(function_name)
+    plt.subplot(221)
+    var_name = "wheel_load_z_FL"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+    plt.plot([i["wheel_load_z"][0]
+             for i in data], "--", label="wheel_load_z 0 ")
+    plt.legend()
+    plt.subplot(222)
+    var_name = "wheel_load_z_RL"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+    plt.plot([i["wheel_load_z"][1]
+             for i in data], "--", label="wheel_load_z 1")
+    plt.legend()
+    plt.subplot(223)
+    var_name = "wheel_load_z_FR"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+    plt.plot([i["wheel_load_z"][2]
+             for i in data], "--", label="wheel_load_z 2")
+    plt.legend()
+    plt.subplot(224)
+    var_name = "wheel_load_z_RR"
+    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+    plt.plot([i["wheel_load_z"][3]
+             for i in data], "--", label="wheel_load_z 3 ")
+    plt.legend()
     plt.show()
 
 

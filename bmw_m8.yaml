@@ -1,7 +1,7 @@
 vehicle_model:
   parameters:
-    min_rpm: 1200
-    rpm_table: [1000, 1800, 5500, 6000, 7000, 8000]
+    min_engine_w: 104
+    engine_w_table: [104, 188, 575, 628, 733, 840]
     torque_max: [200, 550, 550, 500, 450, 380]            # [Nm]
     gear_ratio: [0, 5, 3.2, 2.14, 1.72, 1.31, 1, 0.82, 0.64]
     gear_selection: [[0.0, 0.0, 5.555555556, 8.333333333, 11.11111111, 13.88888889, 16.66666667, 20.83333333, 27.7777777],
@@ -64,7 +64,7 @@ vehicle_model:
     # 					suspension parameters
     eq_stiff: [40900., 32600., 40900., 32600.]  # suspension spring rate (front i = 1 or 3)  (rear i= 2,4) [N/m]   
     dumper: [4360., 3870.,4360., 3870]  # suspension damping rate (front i = 1 or 3)  (rear = 1 = 2,4)[N s/m]  
-    anti_roll_stiffness: 2882. # Anti roll bar stiffness [Nm/rad]
+    k_roll: 2882. # Anti roll bar stiffness [Nm/rad]
     
 
     # 					geometric parameters

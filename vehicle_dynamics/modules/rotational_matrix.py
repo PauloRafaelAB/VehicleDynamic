@@ -1,15 +1,13 @@
 from vehicle_dynamics.utils.ImportParam import ImportParam
 from vehicle_dynamics.structures.StateVector import StateVector
+from vehicle_dynamics.utils.Initialization import Initialization
+
 import numpy as np
 import logging
 import yaml
 
 
-def rotational_matrix(x_a: StateVector,
-                      angular_vel_2inercial_sys_in_vehicle_coord: np.ndarray,
-                      rotationalmatrix: np.ndarray,
-                      angular_rates: np.ndarray,
-                      logger: logging.Logger) -> np.ndarray:   # ONDE ESTÁ ATUALIZANDO OS ANGULOS?-------------------------------------------------------------
+def rotational_matrix(parameters: Initialization, logger: logging.Logger):
     """
     rotational_matrix calculates the Eutler angle conversion from vehicle system to inertial system. 
 
@@ -27,18 +25,43 @@ def rotational_matrix(x_a: StateVector,
 
     """
 
-# For the angular velocity of the chassis we have:   Bardini Pag. 261 Eq. 11.5
-    rotationalmatrix = [[-np.sin(x_a.pitch), 0, 1],
-                        [np.cos(x_a.pitch) * np.sin(x_a.roll), np.cos(x_a.roll), 0],
-                        [np.cos(x_a.pitch) * np.cos(x_a.roll), - np.sin(x_a.roll), 0]]
+    # For the angular velocity of the chassis we have:   Bardini Pag. 261 Eq. 11.5
+    parameters.rotationalmatrix = [[-np.sin(parameters.x_a.pitch), 0, 1],
+                                   [np.cos(parameters.x_a.pitch) * np.sin(parameters.x_a.roll), np.cos(parameters.x_a.roll), 0],
+                                   [np.cos(parameters.x_a.pitch) * np.cos(parameters.x_a.roll), - np.sin(parameters.x_a.roll), 0]]
 
     # Pitch_dot, roll_dot, yaw_dot -- Bardini Pag. 261 Eq. 11.4
-    angular_rates = np.array([x_a.wx,
-                              x_a.wy,
-                              x_a.wz])  # It is already calculated in the rotationalmatrix CALCULATE Only once please
+    parameters.angular_rates = np.array([parameters.x_a.wx,
+                                         parameters.x_a.wy,
+                                         parameters.x_a.wz])  # It is already calculated in the parameters.rotationalmatrix CALCULATE Only once please
 
     # Coordinate representation of the absolute velocity of point v with respect to coordinate system “E”, described in coordinates of coordinate system “v” bardni. Pag 260
-    angular_vel_2inercial_sys_in_vehicle_coord = rotationalmatrix @ angular_rates  # Bardini Pag. 261 Eq. 11.4    
+    parameters.angular_vel_2inercial_sys_in_vehicle_coord = parameters.rotationalmatrix @ parameters.angular_rates  # Bardini Pag. 261 Eq. 11.4    
 
-    return angular_vel_2inercial_sys_in_vehicle_coord, rotationalmatrix
+    return parameters, logger 
 
+
+def main():
+    SIM_ITER = 1000
+    test_function = rotational_matrix
+    function_name = function.__name__
+
+    logger = LocalLogger(function_name).logger
+
+    parameters = Initialization("../../bmw_m8.yaml")
+    logger.info("loaded Parameters")
+
+    path_to_simulation_data = "../../exampledata/2_acc_brake/SimulationData.pickle"
+
+    data = import_data_CM(path_to_simulation_data)
+    logger.info("loaded SimulationData")
+
+    data = [test_function(parameters, logger)[0] for i in range(SIM_ITER)]
+
+    plt.title(function_name)
+    plt.plot(data)
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()
