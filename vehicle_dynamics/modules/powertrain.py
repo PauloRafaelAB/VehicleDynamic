@@ -26,9 +26,13 @@ class Powertrain(object):
         self.torque_interpolation = interp1d(
             parameters.car_parameters.engine_w_table, parameters.car_parameters.torque_max_table)
         self.torque_drag_interpolation = interp1d(parameters.car_parameters.engine_torque_drag[:,0],parameters.car_parameters.engine_torque_drag[:,1])
+        self.GRACE_PERIOD = 500
+        self.current_grace_period = 0
 
     def gear_change(self, parameters: Initialization, logger: logging.Logger,throttle:float):
-        
+        if self.current_grace_period>0:
+            self.current_grace_period -=1
+            return False
         # Gearbox up or down shifting
         if parameters.x_a.vx > parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]:
             prev_gear = parameters.gear
@@ -36,6 +40,7 @@ class Powertrain(object):
             current_gear = parameters.gear
             if parameters.gear >= parameters.car_parameters.gear_ratio.size:
                 parameters.gear = parameters.car_parameters.gear_ratio.size - 1
+            self.current_grace_period = self.GRACE_PERIOD
             return prev_gear, current_gear
         elif parameters.x_a.vx <= 0.8 * parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear - 1]:
             prev_gear = parameters.gear
@@ -43,6 +48,8 @@ class Powertrain(object):
             current_gear = parameters.gear
             if parameters.gear < 1:
                 parameters.gear = 1
+            self.current_grace_period = self.GRACE_PERIOD
+
             return prev_gear, current_gear
         return False
         # Returning the gear selected 
@@ -195,7 +202,7 @@ def main():
     plt.figure()
     plt.title("engine w(rad/s)")
     plt.plot([(i["engine_w"]) for i in data], "r-", label= "engine_w (rad/s)")
-    plt.legend(loc= 1)
+    plt.legend(loc= 2)
     plt.grid()
     plt.twinx()
     plt.step([i["gear"] for i in data], "-g", label= "gear")
