@@ -23,7 +23,7 @@ time = np.linspace(0, end_time, points)
 steering = np.zeros(points)
 throttle = np.linspace(0, 1, int(5000)).tolist()
 throttle.extend(np.ones(5000).tolist())
-brake = np.ones(points)
+brake = np.zeros(points)
 
 manoeuvre = Manoeuvre(steering, throttle, brake, time)
 
