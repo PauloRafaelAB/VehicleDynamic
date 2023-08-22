@@ -4,6 +4,7 @@ Created on Thu Oct 13 09:45:43 2022
 
 @author: Paulo R.A. Bloemer, Maikol Funk Drechsler, Yuri Poledna
 """
+from matplotlib.pyplot import axes
 from vehicle_dynamics.structures.OutputStates import OutputStates
 from vehicle_dynamics.utils.plot_function import plot_function
 from vehicle_dynamics.structures.Manoeuvre import Manoeuvre
@@ -35,3 +36,4 @@ for i in tqdm.tqdm(range(points)):
     output_states.set_states(vehicle_dynamics.tick(*manoeuvre[i]))
 
 plot_function(output_states, manoeuvre)
+
