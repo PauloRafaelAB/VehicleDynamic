@@ -7,6 +7,7 @@ def plot_function(output_states, manoeuvre):
     x_position = [i.x for i in states]
     pitch = [i.pitch for i in states]
     vx = [i.vx for i in states]
+    vy = [i.vy for i in states]
 
     gear = output_states[:].gear
     plt.plot(manoeuvre.time, x_position, '4k', label='x position')
@@ -21,4 +22,19 @@ def plot_function(output_states, manoeuvre):
     plt.legend(loc=1)
     plt.grid()
     
+    plt.figure()
+    plt.plot(manoeuvre.time, [i.roll for i in states],label = " roll")
+    plt.plot(manoeuvre.time, [i.pitch for i in states],label = "pitch")
+    plt.plot(manoeuvre.time, [i.yaw for i in states],label = "yaw")
+
+   
+    plt.plot(manoeuvre.time, vy, '--y', label='vy')
+    
+    plt.legend(loc=0)
+    plt.twinx()
+    plt.plot(manoeuvre.time, manoeuvre.steering, '--m', label='steer')
+    plt.plot(manoeuvre.time, manoeuvre.throttle, '--c', label='throttle')
+    plt.legend()
+    plt.xlabel('time (s)')
+    plt.title('Euler Angles ')
     plt.show()

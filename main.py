@@ -15,15 +15,17 @@ import numpy as np
 import tqdm
 
 frequency = 1000
-end_time = 10.0
+end_time = 20
 points = int(end_time * frequency)
 
 time = np.linspace(0, end_time, points)
 
 # initialize manuever -> gas pedal, brake pedal and steering wheel angle 
-steering = np.zeros(points)
-throttle = np.linspace(0, 1, int(5000)).tolist()
-throttle.extend(np.ones(5000).tolist())
+a = np.zeros(points)
+#a = np.sin(time) #np.append(a,-np.ones(10000))
+steering =  a # np.zeros(points)
+throttle = np.ones(20000).tolist()#linspace(0.0, 1, int(5000)).tolist()
+#throttle.extend(np.ones(15000).tolist())
 brake = np.zeros(points)
 
 manoeuvre = Manoeuvre(steering, throttle, brake, time)
@@ -32,8 +34,35 @@ output_states = OutputStates()
 
 vehicle_dynamics = VehicleDynamics(state_0 = np.zeros(15), initial_gear = 1, freq=frequency, param_path = "Audi_R8.yaml")
 
+THROTTLE_GRACE_PERIOD = 10
+current_throttle_grace = 0
 for i in tqdm.tqdm(range(points)):
     output_states.set_states(vehicle_dynamics.tick(*manoeuvre[i]))
+    vx = output_states[-1].x_a.vx
+
+    try:
+        if current_throttle_grace>0:
+            current_throttle_grace-=1
+            manoeuvre.throttle[i+1] = last_changed_velocity
+            continue
+
+        if vx >=11:
+            
+            manoeuvre.throttle[i+1] =manoeuvre.throttle[i]*0.6
+            last_changed_velocity =manoeuvre.throttle[i+1]
+            current_throttle_grace = THROTTLE_GRACE_PERIOD
+        elif vx <= 9:
+            manoeuvre.throttle[i+1] =manoeuvre.throttle[i]*1.2
+            current_throttle_grace = THROTTLE_GRACE_PERIOD
+            last_changed_velocity = manoeuvre.throttle[i+1]
+        if manoeuvre.throttle[i+1]>1:
+            manoeuvre.throttle[i+1]=1
+            last_changed_velocity=1
+    except IndexError:
+        pass
+        
+
+
 
 plot_function(output_states, manoeuvre)
 

@@ -69,8 +69,8 @@ def chassis_translation(parameters: Initialization, logger: logging.Logger):
     # Equation 11-46 >> 11-12, Pag. 273
     # TODO: check gravity diretion
 
-    drag_x = (-parameters.drag * (np.sqrt(parameters.x_a.vx **
-                                          2 + parameters.x_a.vy**2) * parameters.x_a.vx))
+    drag_x =0# (-parameters.drag * (np.sqrt(parameters.x_a.vx **
+              #                            2 + parameters.x_a.vy**2) * parameters.x_a.vx))
     # + ((parameters.x_a.wz * parameters.x_a.vy) - (parameters.x_a.wy * parameters.x_a.vz))
     parameters.x_a.acc_x = (
         (sum_f_wheel[0] + drag_x) / parameters.car_parameters.m)
@@ -156,38 +156,38 @@ def main():
     plt.figure()
     plt.title(function_name)
     plt.plot(range_calc, [i["x_a.acc_x"]
-                          for i in data], "--", label="acc_x")
+                          for i in data], "--b", label="acc_x")
     plt.plot(range_calc, [i["x_a.acc_y"]
-                          for i in data], "*", label="acc_y")
-    # plt.plot(range_calc, [i["x_a.acc_z"] for i in data], "o", label="acc_z")
+                          for i in data], "--m", label="acc_y")
+    plt.plot(range_calc, [i["x_a.acc_z"] for i in data], "--c", label="acc_z")
     var_name = "Vhcl_PoI_Acc_x"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"b", label=var_name)
     var_name = "Vhcl_PoI_Acc_y"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"m", label=var_name)
     var_name = "Vhcl_PoI_Acc_z"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"c", label=var_name)
 
     plt.legend()
 
     plt.figure()
     plt.title(function_name)
-    plt.plot([i["x_a.vx"] for i in data], "--", label="x_a.vx")
+    plt.plot([i["x_a.vx"] for i in data], "--b", label="x_a.vx")
     var_name = "Vhcl_PoI_Vel_x"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], "b",label=var_name)
 
-    plt.plot([i["x_a.vy"] for i in data], "--", label="x_a.vy")
+    plt.plot([i["x_a.vy"] for i in data], "--m", label="x_a.vy")
     var_name = "Vhcl_PoI_Vel_y"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], "m",label=var_name)
 
-    plt.plot([i["x_a.vz"] for i in data], "--", label="x_a.vz")
+    plt.plot([i["x_a.vz"] for i in data], "--c", label="x_a.vz")
     var_name = "Vhcl_PoI_Vel_z"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], label=var_name)
+        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"c", label=var_name)
 
     plt.legend()
 
