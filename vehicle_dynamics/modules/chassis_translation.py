@@ -99,13 +99,14 @@ def chassis_translation(parameters: Initialization, logger: logging.Logger):
 
     # TODO Check eq 11 - 47
     crossproduct_r_f = np.zeros(((3, 4)))
+    return parameters, logger
 
 
 def main():
     from tqdm import tqdm
     import matplotlib.pyplot as plt
     import pdb
-    test_function = chassis
+    test_function = chassis_translation
     function_name = test_function.__name__
 
     logger = LocalLogger(function_name).logger
