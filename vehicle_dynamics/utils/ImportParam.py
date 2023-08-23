@@ -110,7 +110,7 @@ class ImportParam(object):
         self.engine_inertia = param['vehicle_model']['parameters']['engine_inertia']
         self.max_brake_torque = param['vehicle_model']['parameters']['max_brake_torque']
         # moment of inertia for sprung mass in roll [kg m^2]  iXS
-        self.i_x_s = param['vehicle_model']['parameters']['i_phi_s']
+        self.i_x_s = param['vehicle_model']['parameters']['i_x_s']
         # moment of inertia for sprung mass in pitch [kg m^2]  iYS
         self.i_y_s = param['vehicle_model']['parameters']['i_y_s']
         # moment of inertia for sprung mass in yaw [kg m^2]  iZZ

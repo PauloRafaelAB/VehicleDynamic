@@ -62,30 +62,29 @@ vehicle_model:
     unsprung_mass: [70.,70.,70.,70.] # unsprung mass vector [kg]  
     
     # Body inertias
-    i_phi_s: 818.05  # moment of inertia for sprung mass in roll [kg m^2] 618.05
+    i_x_s: 818.05  # moment of inertia for sprung mass in roll [kg m^2] 618.05
     i_y_s: 1277.  # moment of inertia for sprung mass in pitch [kg m^2] 1277.
-    i_z: 1921.3   # moment of inertia for sprung mass in yaw [kg m^2] 1921.3
+    i_z: 8021.3   # moment of inertia for sprung mass in yaw [kg m^2] 1921.3
     
     # 					suspension parameters
     eq_stiff: [60000., 70000., 60000., 70000.]  # suspension spring rate (front i = 1 or 3)  (rear i= 2,4) [N/m]   
     dumper: [2500., 3000.,2500., 30000]  # suspension damping rate (front i = 1 or 3)  (rear = 1 = 2,4)[N s/m]  
-    k_roll: 1000. # Anti roll bar stiffness [Nm/rad]
-    c_roll: 81100
-    k_pitch: 9000
+    k_roll: 8000. # Anti roll bar stiffness [Nm/rad]
+    c_roll: 51100 # 81100
+    k_pitch: 9000 #  Pitch stiffness [Nm/rad]
     c_pitch: 40000
-    
 
     # 					geometric parameters
     track_width: 1.638     # [m] CM 1.82
     wheel_base: 2.651 # [m] CM 2.75
-    lv: 1.240 # x-distance from Vehicle CoG to the front axle [m]
-    lh: 1.510    # x-distance from Vehicle Cog to the rear axle [m]
+    lv: 1.240   # x-distance from Vehicle CoG to the front axle [m] 1.240
+    lh: 1.411    # x-distance from Vehicle Cog to the rear axle [m] 1.510
     sl: 0.6    # y-distance from Vehicle CoG to the left chassis point [m]
-    sr: .6    # y-distance from Vehicle CoG to the right chassis point  [m]
-    sz: 0.03  # z-distance from Vehicle CoG to the chassis point [m]
-    hub_fl: [0.866,-0.816, 0.298] # 
-    hub_rl: [-0.866,0.791,-0.314] #
-    hub_fr: [0.866,-0.816,-0.298] #
-    hub_rr: [-0.866,0.791,-0.314] #
+    sr: 0.6    # y-distance from Vehicle CoG to the right chassis point  [m]
+    sz: 0.2  # z-distance from Vehicle CoG to the chassis point [m]
+    hub_fl: [1.240,-0.5, 0.298] # [0.866,-0.816, 0.298]
+    hub_rl: [-1.411,0.45,-0.314] # [-0.866,0.791,-0.314]
+    hub_fr: [1.240,-0.5,-0.298] # [0.866,-0.816,-0.298]
+    hub_rr: [-1.411,0.45,-0.314] # [-0.866,0.791,-0.314]
     
      

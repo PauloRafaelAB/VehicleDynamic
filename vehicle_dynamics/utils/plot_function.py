@@ -18,7 +18,7 @@ def plot_function(output_states, manoeuvre):
     plt.step(manoeuvre.time, gear, 'k', label='gear')
     plt.xlabel('time (s)')
     plt.title('Logitudinal dynamic')
-    plt.legend(loc=0)
+    plt.legend(loc=1)
     plt.grid()
     
     plt.show()
