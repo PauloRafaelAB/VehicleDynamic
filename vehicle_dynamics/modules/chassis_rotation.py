@@ -13,7 +13,7 @@ import numpy as np
 import logging
 
 
-def chassis(parameters: Initialization, logger: logging.Logger):
+def chassis_rotation(parameters: Initialization, logger: logging.Logger):
     """
     Chassis is a function that calculates the current status of the chassis
 

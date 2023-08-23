@@ -11,7 +11,8 @@ from vehicle_dynamics.structures.WheelHubForce import WheelHubForce
 from vehicle_dynamics.structures.AngularWheelPosition import AngularWheelPosition
 from vehicle_dynamics.structures.OutputStates import OutputStates
 
-from vehicle_dynamics.modules.chassis import chassis as chassis
+from vehicle_dynamics.modules.chassis_translation import chassis_translation
+from vehicle_dynamics.modules.chassis_rotation import chassis_rotation
 from vehicle_dynamics.modules.powertrain import Powertrain
 from vehicle_dynamics.modules.road import road
 from vehicle_dynamics.modules.rotational_matrix import rotational_matrix
@@ -52,6 +53,7 @@ class VehicleDynamics(object):
         self.parameters, self.logger = wheel_angular(self.parameters, self.logger) 
         self.parameters, self.logger = road(self.parameters, self.logger) 
         self.parameters, self.logger = suspension(self.parameters, self.logger) 
-        self.parameters, self.logger = chassis(self.parameters, self.logger)  
+        self.parameters, self.logger = chassis_translation(self.parameters, self.logger)  
+        self.parameters, self.logger = chassis_rotation(self.parameters, self.logger)  
 
         return self.parameters
