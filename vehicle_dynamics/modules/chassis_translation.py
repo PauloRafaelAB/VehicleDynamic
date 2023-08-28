@@ -69,14 +69,11 @@ def chassis_translation(parameters: Initialization, logger: logging.Logger):
     # Equation 11-46 >> 11-12, Pag. 273
     # TODO: check gravity diretion
 
-    drag_x =0# (-parameters.drag * (np.sqrt(parameters.x_a.vx **
-              #                            2 + parameters.x_a.vy**2) * parameters.x_a.vx))
-    # + ((parameters.x_a.wz * parameters.x_a.vy) - (parameters.x_a.wy * parameters.x_a.vz))
+    drag_x =(-parameters.drag * (np.sqrt(parameters.x_a.vx **2 + parameters.x_a.vy**2) * parameters.x_a.vx))
+    + ((parameters.x_a.wz * parameters.x_a.vy) - (parameters.x_a.wy * parameters.x_a.vz))
     parameters.x_a.acc_x = (
-        (sum_f_wheel[0] + drag_x) / parameters.car_parameters.m)
-    # + ((parameters.x_a.wx * parameters.x_a.vz) - (parameters.x_a.wz * parameters.x_a.vx))
-    parameters.x_a.acc_y = ((sum_f_wheel[1]) / parameters.car_parameters.m)
-    # ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
+        (sum_f_wheel[0] + drag_x) / parameters.car_parameters.m) + ((parameters.x_a.wx * parameters.x_a.vz) - (parameters.x_a.wz * parameters.x_a.vx))
+    parameters.x_a.acc_y = ((sum_f_wheel[1]) / parameters.car_parameters.m) #+ ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
     parameters.x_a.acc_z = (
         (sum_f_wheel[2] - parameters.car_parameters.m * parameters.gravity) / parameters.car_parameters.m)
 
@@ -114,7 +111,7 @@ def main():
     parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
 
-    path_to_simulation_data = "../../exampledata/lanechange/SimulationData.pickle"
+    path_to_simulation_data = "../../exampledata/Lanechange_new/SimulationData.pickle"
     sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
     data = []
@@ -153,6 +150,27 @@ def main():
 
     logger.info("calc end")
 
+    if True:
+        plt.figure()
+        plt.title(function_name)
+        var_name = "wheel_load_y_FL"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+            sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], "b",label=var_name)
+
+        var_name = "wheel_load_y_FR"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+            sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], "m",label=var_name)
+        
+        plt.title(function_name)
+        var_name = "wheel_load_y_RL"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+            sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], "c",label=var_name)
+
+        var_name = "wheel_load_y_RR"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+            sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], "g",label=var_name)
+
+        plt.legend()
     plt.figure()
     plt.title(function_name)
     plt.plot(range_calc, [i["x_a.acc_x"]
@@ -190,7 +208,7 @@ def main():
         sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"c", label=var_name)
 
     plt.legend()
-
+    
     plt.show()
 
 

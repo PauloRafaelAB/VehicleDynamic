@@ -151,7 +151,7 @@ def main():
     parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
 
-    path_to_simulation_data = "../../exampledata/lanechange/SimulationData.pickle"
+    path_to_simulation_data = "../../exampledata/lanechange_new/SimulationData.pickle"
     sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
     data = []

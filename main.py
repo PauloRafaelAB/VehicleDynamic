@@ -21,9 +21,8 @@ points = int(end_time * frequency)
 time = np.linspace(0, end_time, points)
 
 # initialize manuever -> gas pedal, brake pedal and steering wheel angle 
-a = np.zeros(points)
-#a = np.sin(time) #np.append(a,-np.ones(10000))
-steering =  a # np.zeros(points)
+#a = np.ones(points)* 0.3
+steering =  np.ones(20000).tolist()
 throttle = np.ones(20000).tolist()#linspace(0.0, 1, int(5000)).tolist()
 #throttle.extend(np.ones(15000).tolist())
 brake = np.zeros(points)
@@ -48,11 +47,11 @@ for i in tqdm.tqdm(range(points)):
 
         if vx >=11:
             
-            manoeuvre.throttle[i+1] =manoeuvre.throttle[i]*0.6
+            manoeuvre.throttle[i+1] =manoeuvre.throttle[i]*0.5
             last_changed_velocity =manoeuvre.throttle[i+1]
             current_throttle_grace = THROTTLE_GRACE_PERIOD
         elif vx <= 9:
-            manoeuvre.throttle[i+1] =manoeuvre.throttle[i]*1.2
+            manoeuvre.throttle[i+1] =manoeuvre.throttle[i]*1.1
             current_throttle_grace = THROTTLE_GRACE_PERIOD
             last_changed_velocity = manoeuvre.throttle[i+1]
         if manoeuvre.throttle[i+1]>1:
@@ -61,7 +60,7 @@ for i in tqdm.tqdm(range(points)):
     except IndexError:
         pass
         
-
+      
 
 
 plot_function(output_states, manoeuvre)
