@@ -18,7 +18,8 @@ setup(
         'numpy',
         'matplotlib',
         'scipy',
-        "pyyaml"
+        "pyyaml",
+        "tqdm"
     ],
 
     keywords=['python', 'vehicle dynamics'],
