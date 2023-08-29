@@ -28,7 +28,8 @@ class Initialization(object):
         logger.info("Imported YAML car parameters")    
 
         self.time_step = 1. / freq
-
+        self.OPTIMIZATION_MODE = False
+        self.prev_gear = 1
         # Steering_angle [t-1]
         self.last_delta = 0
         # Steering_angle [t]
