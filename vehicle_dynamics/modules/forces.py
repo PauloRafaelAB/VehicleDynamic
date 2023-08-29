@@ -1,6 +1,25 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from vehicle_dynamics.utils.import_data_CM import import_data_CM
+
+"""
+    Forces is a module that import the calculated forces in 
+    Car Marker to use a benchmark.
+
+    Required Arguments:
+        1. wheel_load_x_FL
+        2. wheel_load_x_FR
+        3. wheel_load_x_RL
+        4. wheel_load_x_RR
+        5. wheel_load_y_FL
+        6. wheel_load_y_FR
+        7. wheel_load_y_RL
+        1. wheel_load_y_RR
+        1. wheel_load_z_FL
+        1. wheel_load_z_FR
+        1. wheel_load_z_RL
+        1. wheel_load_z_RR
+    """
 path_to_simulation_data = "../../exampledata/acc_brake/SimulationData.pickle"
 sim_data = import_data_CM(path_to_simulation_data)
 

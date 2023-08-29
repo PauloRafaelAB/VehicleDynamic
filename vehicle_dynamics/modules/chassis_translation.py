@@ -8,15 +8,10 @@ import logging
 
 def chassis_translation(parameters: Initialization, logger: logging.Logger):
     """
-    Chassis is a function that calculates the current status of the chassis
+    Chassis is a function that calculates the current position of the chassis
 
-    Required Parameters from Param:
+    Required Parameters from car_parameters:
         1. m
-        2. lv
-        3. lh
-        4. sl
-        5. sr
-        6. gravity
     Required Arguments:
         1. x_a
             1.01 roll
@@ -33,13 +28,12 @@ def chassis_translation(parameters: Initialization, logger: logging.Logger):
         2. time_step
         3. x_rf.wheel_forces_transformed_force2vehicle_sys
         4. drag
-        5. position_chassi_force
-        6. strut2chassi_xyz
-        7. angular_rates
-        8. polar_inertia_v
-        9. logger
+        5. 
+        6. gravity
+        7.
+        8. logger
 
-    Returns:
+    Returns: (parameters)
         1. x_a
             1. [x_a.x, x_a.y, x_a.z] 
             1. x_a.acc
@@ -53,27 +47,20 @@ def chassis_translation(parameters: Initialization, logger: logging.Logger):
             11.x_a.roll
             12.x_a.pitch
             13.x_a.yaw
-        2. displacement
-            1. displacement.za
 
     """
-    "Equations of motion Bardini, pag 272 ---- need initialize values"
-
-    'sum of  wheel forces for calculating translation of the vehicle'
-
+    
+    # sum of wheel forces for calculating translation of the vehicle
     sum_f_wheel = np.sum(
         parameters.x_rf.wheel_forces_transformed_force2vehicle_sys, axis=1)
-
-    # logger.debug(f"FORCES IN THE VEHICLE  {np.shape(parameters.x_rf.wheel_forces_transformed_force2vehicle_sys)}")
-    # logger.debug(f"Sum wheel {sum_f_wheel}") # Sum wheel (3,)
-    # Equation 11-46 >> 11-12, Pag. 273
-    # TODO: check gravity diretion
-
+    
+    # Bardini Eq. 11-46 >> 11-12, pag. 273
     drag_x =(-parameters.drag * (np.sqrt(parameters.x_a.vx **2 + parameters.x_a.vy**2) * parameters.x_a.vx))
     + ((parameters.x_a.wz * parameters.x_a.vy) - (parameters.x_a.wy * parameters.x_a.vz))
     parameters.x_a.acc_x = (
         (sum_f_wheel[0] + drag_x) / parameters.car_parameters.m) + ((parameters.x_a.wx * parameters.x_a.vz) - (parameters.x_a.wz * parameters.x_a.vx))
-    parameters.x_a.acc_y = ((sum_f_wheel[1]) / parameters.car_parameters.m) #+ ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
+    parameters.x_a.acc_y = ((sum_f_wheel[1]) / parameters.car_parameters.m) + ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
+    # TODO: check z acceleration
     parameters.x_a.acc_z = (
         (sum_f_wheel[2] - parameters.car_parameters.m * parameters.gravity) / parameters.car_parameters.m)
 
@@ -90,12 +77,7 @@ def chassis_translation(parameters: Initialization, logger: logging.Logger):
         (parameters.x_a.vy * parameters.time_step)
     parameters.x_a.z = parameters.x_a.z + \
         (parameters.x_a.vz * parameters.time_step)
-    # logger.debug(f"shape position_chassi_force {np.shape(parameters.position_chassi_force)} {np.shape(parameters.strut2chassi_xyz)}")
 
-    # parameters.strut2chassi_xyz = parameters.strut2chassi_xyz.T  # na duvida do que isso significa, conferir a matemagica
-
-    # TODO Check eq 11 - 47
-    crossproduct_r_f = np.zeros(((3, 4)))
     return parameters, logger
 
 

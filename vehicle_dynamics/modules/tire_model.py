@@ -15,7 +15,7 @@ def tire_model(parameters: Initialization, logger: logging.Logger):
     using the Magic Formula
 
 
-    Required Parameters from Param:
+    Required Parameters from car_parameters:
         1. d # tyre coeficients 
         2. c # 
         3. b # 
