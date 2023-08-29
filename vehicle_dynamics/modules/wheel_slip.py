@@ -20,7 +20,7 @@ def wheel_slip(parameters: Initialization, logger: logging.Logger):
                 1.02 vy
             4. wheel_w_vel
 
-        Returns:
+        Returns: (parameters)
             1. slip_x
             2. slip_y
 

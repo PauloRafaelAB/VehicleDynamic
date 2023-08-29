@@ -18,7 +18,7 @@ def wheel_angular(parameters: Initialization, logger: logging.Logger):
     """
     wheel_angular velocities velocities are used to calcule slip
 
-    Required Parameters from Param:
+    Required Parameters from car_parameters:
         1. r_dyn #dynamic radius
         2. iw # wheel inertia
 

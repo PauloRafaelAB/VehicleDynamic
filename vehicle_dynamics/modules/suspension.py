@@ -16,7 +16,7 @@ def suspension(parameters: Initialization, logger: logging.Logger):
     """
      suspension is a function that calculates the current wheel loads (z)
 
-     Required Parameters from Param:
+     Required Parameters from car_parameters:
          1. eq_stiff
          2. dumper
 

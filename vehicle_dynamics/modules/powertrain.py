@@ -19,8 +19,44 @@ def find_nearest(array, value):
 
 
 class Powertrain(object):
-    """docstring for Powertrain"""
+    """
+        Powertrain is a class calculates the current Torque delivered by the engine to the wheels.
+        For that is necesary select the proper gear and find the torque 
+        converter multiplicator.
+        gear_change() fuction uses engine angular velocity and car linear speed (vx)
+        torque_converter() multiplication is based on input and output rotation ratio.
 
+        Required Parameters from car_parameters:
+            1.engine_w_table,
+            2.torque_max_table,
+            3.gear_ratio,
+            4.diff,
+            5.diff_ni,
+            6.transmition_ni,
+            7.gear_selection,
+            8.engine_inertia,
+            9.axel_inertia,
+            10.gearbox_inertia,
+            11.shaft_inertia,
+            12.wheel_inertia,
+            13.max_brake_torque,
+            14.brake_bias,
+
+        Required Arguments:
+            1. throttle
+            2. brake
+            3. acc_x
+            4.gear[t-1]
+            5. vx
+
+        Returns: (parameters)
+            1. Engine_w
+            2. Gear
+            3. Torque of the engine on the wheels
+            4. prev_gear
+            5. current_gear
+
+    """
     def __init__(self, parameters: Initialization):
         super(Powertrain, self).__init__()
         self.torque_interpolation = interp1d(
@@ -52,44 +88,8 @@ class Powertrain(object):
 
             return prev_gear, current_gear
         return False
-        # Returning the gear selected 
 
     def powertrain(self, parameters: Initialization, logger: logging.Logger, throttle: float, brake: float):
-        
-        """
-        Powertrain is a function that calculates the current Torque delivered by the engine to the wheels
-
-        Required Parameters from Param:
-            1.engine_w_table,
-            2.torque_max_table,
-            3.gear_ratio,
-            4.diff,
-            5.diff_ni,
-            6.transmition_ni,
-            7.gear_selection,
-            8.engine_inertia,
-            9.axel_inertia,
-            10.gearbox_inertia,
-            11.shaft_inertia,
-            12.wheel_inertia,
-            13.max_brake_torque,
-            14.brake_bias,
-
-        Required Arguments:
-            1. throttle
-            2. brake
-            3. acc_x
-            4.
-            5. gear[t-1]
-            6. vx
-
-        Returns:
-            1. Engine_w
-            2. Gear
-            3. Torque of the engine on the wheels
-
-        """
-
         # Update Converter engine_w
         # Based on page 3 from Generating Proper Integrated Dynamic Models for Vehicle Mobility (Loucas S. Louca)
         # Based on the whell velocity and engine engine_w the torque on the
@@ -98,21 +98,19 @@ class Powertrain(object):
         is_gear_changed = self.gear_change(parameters,logger, throttle)
         if is_gear_changed:
             (prev_gear, current_gear) = is_gear_changed
-            #change gear rpm
+            
             engine_w = engine_w * (parameters.car_parameters.gear_ratio[current_gear]/parameters.car_parameters.gear_ratio[prev_gear]) 
             # add torque convereter speed ratio
 
         # Calculate torque provided by the engine based on the engine engine_w
-        # how much torque is available thoughout the engine_w range
-        # Max torque available at engine_w
         torque_available = self.torque_interpolation(parameters.engine_w)
         engine_drag = self.torque_drag_interpolation(parameters.engine_w)
-
 
         # find the torque delivered by te engine
         engine_torque = (throttle * torque_available)+engine_drag
 
         engine_wdot = (engine_torque) / parameters.car_parameters.engine_inertia
+        
         parameters.engine_w = (engine_w + engine_wdot * parameters.time_step)
         
         # Check engine engine_w
@@ -123,13 +121,11 @@ class Powertrain(object):
 
         # TODO: Blending Function - the speed ratio is changed gradually from one to another gear ratio within a shift duration time
         
-        
         converter_torque = 1
         
         # traction torque
         method_a = True
         if method_a:
-
             # Where traction_troque calculation is coming form? (Gillespie) equation 2-7
             a = engine_torque * converter_torque * ( parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * parameters.car_parameters.diff_ni * parameters.car_parameters.transmition_ni)
             c = (parameters.car_parameters.axel_inertia + parameters.car_parameters.gearbox_inertia)
@@ -149,7 +145,6 @@ class Powertrain(object):
                                                                 (parameters.car_parameters.engine_inertia * parameters.car_parameters.gear_ratio[parameters.gear]**2+
                                                                 parameters.car_parameters.i_d_shaft) * engine_wdot))
         
-
         # --------------------Break Torque -------------------------
         brake_torque = brake * parameters.car_parameters.max_brake_torque
 

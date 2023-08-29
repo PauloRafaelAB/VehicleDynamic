@@ -16,7 +16,7 @@ def steering(parameters: Initialization, logger: logging.Logger, steering_angle:
     of the frontal wheel based on the vehicle coordinate system,
     where the output delta is steering angle of the frontal wheels.
 
-    Required Parameters from Param:
+    Required Parameters from car_parameters:
         1. steering_ratio
         2. steering_min
         3. steering_max
