@@ -76,6 +76,7 @@ class Powertrain(object):
             current_gear = parameters.gear
             if parameters.gear >= parameters.car_parameters.gear_ratio.size:
                 parameters.gear = parameters.car_parameters.gear_ratio.size - 1
+                return False
             self.current_grace_period = self.GRACE_PERIOD
             return prev_gear, current_gear
         elif parameters.x_a.vx <= 0.8 * parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear - 1]:
@@ -107,27 +108,49 @@ class Powertrain(object):
         engine_drag = self.torque_drag_interpolation(parameters.engine_w)
 
         # find the torque delivered by te engine
-        engine_torque = (throttle * torque_available)+engine_drag
-
-        engine_wdot = (engine_torque) / parameters.car_parameters.engine_inertia
-        
-        parameters.engine_w = (engine_w + engine_wdot * parameters.time_step)
+        engine_torque = (throttle * torque_available)+ engine_drag
         
         # Check engine engine_w
         if parameters.engine_w < parameters.car_parameters.min_engine_w:
             parameters.engine_w = parameters.car_parameters.min_engine_w
         elif parameters.engine_w > parameters.car_parameters.max_engine_w:
             parameters.engine_w = parameters.car_parameters.max_engine_w
+            
+        # TODO: define the best way to acess speed of output side of the torque converter
+        turbine_w = parameters.final_ratio* parameters.x_a.vx
+        
+        method_carmaker = True # Torque converter method CM
 
-        # TODO: Blending Function - the speed ratio is changed gradually from one to another gear ratio within a shift duration time
-        
-        converter_torque = 1
-        
-        # traction torque
+        if method_carmaker:
+            k_in_funct = interp1d(parameters.car_parameters.speed_ratio_TC, parameters.car_parameters.torque_converter_ratio)
+            k_out_funct = interp1d(parameters.car_parameters.torque_converter_efficiency, np.array(np.linspace(0.,1.,len(parameters.car_parameters.torque_converter_efficiency))))
+            s = turbine_w/parameters.engine_w
+            k_in = k_in_funct(s)
+            k_out = k_out_funct(s)
+
+
+            converter_torque_in = k_in * (engine_w **2)
+            torque_converter_out = k_out *( turbine_w**2)
+
+            
+        else:
+
+            if  (turbine_w/ engine_w) < 0.9:
+                converter_torque_in = 0.0024* engine_w **2 - 0.00051*engine_w*turbine_w -0.000032*turbine_w**2
+                torque_converter_out = -0.0039*engine_w**2 - 0.00237* engine_w*turbine_w -0.000035*turbine_w**2
+            else:
+                converter_torque_in = -0.0067*engine_w**2 + 0.032*engine_w*turbine_w-0.025*turbine_w
+                torque_converter_out = - converter_torque_in
+            
+        # Engine speed
+        engine_wdot = (converter_torque_in) / parameters.car_parameters.engine_inertia
+        parameters.engine_w = (engine_w + engine_wdot * parameters.time_step)
+
         method_a = True
         if method_a:
             # Where traction_troque calculation is coming form? (Gillespie) equation 2-7
-            a = engine_torque * converter_torque * ( parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * parameters.car_parameters.diff_ni * parameters.car_parameters.transmition_ni)
+            #  converter_torque_multiplicator
+            a = torque_converter_out  * ( parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * parameters.car_parameters.diff_ni * parameters.car_parameters.transmition_ni)
             c = (parameters.car_parameters.axel_inertia + parameters.car_parameters.gearbox_inertia)
             d = (parameters.car_parameters.gear_ratio[parameters.gear] ** 2)
             e = (parameters.car_parameters.shaft_inertia * parameters.car_parameters.gear_ratio[parameters.gear] * (parameters.car_parameters.diff ** 2))

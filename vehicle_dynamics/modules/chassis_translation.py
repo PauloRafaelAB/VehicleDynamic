@@ -132,7 +132,7 @@ def main():
 
     logger.info("calc end")
 
-    if True:
+    if False:
         plt.figure()
         plt.title(function_name)
         var_name = "wheel_load_y_FL"
