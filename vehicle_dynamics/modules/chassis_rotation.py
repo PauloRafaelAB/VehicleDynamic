@@ -141,7 +141,7 @@ def main():
     parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
 
-    path_to_simulation_data = "../../exampledata/lanechange_new/SimulationData.pickle"
+    path_to_simulation_data = "../../exampledata/Lane_change_continue/SimulationData.pickle"
     sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
     data = []
@@ -156,7 +156,7 @@ def main():
         sim_data[0].Vhcl_RollVel, sim_data[0].Vhcl_PitchVel, sim_data[0].Vhcl_YawVel]
 
     sum_wheels = []
-    range_calc = range(1, 15000)
+    range_calc = range(1, 18000)
     for i in tqdm(range_calc):
         forces_in_x = [sim_data[i].wheel_load_x_FL, sim_data[i].wheel_load_x_RL,
                        sim_data[i].wheel_load_x_FR, sim_data[i].wheel_load_x_RR]
