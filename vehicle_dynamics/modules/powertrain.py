@@ -23,7 +23,7 @@ class Powertrain(object):
         Powertrain is a class calculates the current Torque delivered by the engine to the wheels.
         For that is necesary select the proper gear and find the torque 
         converter multiplicator.
-        gear_change() fuction uses engine angular velocity and car linear speed (vx)
+        gear_change() function uses engine angular velocity and car linear speed (vx)
         torque_converter() multiplication is based on input and output rotation ratio.
 
         Required Parameters from car_parameters:
@@ -197,6 +197,7 @@ def main():
     logger.info("loaded Parameters")
 
     parameters = Initialization("../../Audi_r8.yaml", logger=logger)
+    parameters.OPTIMIZATION_MODE = True
 
     powertrain = Powertrain(parameters)
     test_function = powertrain.powertrain
@@ -243,35 +244,31 @@ def main():
         plt.plot([sim_data[i].gas_pedal for i in simulation_range],"--", label="gas pedal")
         plt.legend()
 
-    plt.figure()
-    plt.title("engine w(rad/s)")
-    plt.plot([(i["engine_w"]) for i in data], "r-", label= "engine_w (rad/s)")
-    plt.legend(loc=5)
-    plt.grid()
-    plt.twinx()
-
-    var_name = "gear_no"
-    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], 
-             [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], "g--", label=var_name)
-    plt.step([i["gear"] for i in data], "-g", label= "gear")
-    plt.plot([sim_data[i].Vhcl_PoI_Vel_x for i in simulation_range],"--", label="vx")
-    plt.plot([sim_data[i].gas_pedal for i in simulation_range], ":",label="gas pedal")
-    #plt.plot([sim_data[i].brake_pedal for i in simulation_range],":", label="brake_pedal")
-    #plt.plot([sim_data[i].brake_pedal for i in simulation_range],":", label="brake_pedal")
-    plt.legend(loc=1)
-    
-    if False:
         plt.figure()
-        plt.title("net torque x vx")
+        plt.title("engine w(rad/s)")
+        plt.plot([(i["engine_w"]) for i in data], "r-", label= "engine_w (rad/s)")
+        plt.legend(loc=5)
+        plt.grid()
+        plt.twinx()
+
+        var_name = "gear_no"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], 
+                [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], "g--", label=var_name)
+        plt.step([i["gear"] for i in data], "-g", label= "gear")
+        plt.plot([sim_data[i].Vhcl_PoI_Vel_x for i in simulation_range],"--", label="vx")
+        plt.plot([sim_data[i].gas_pedal for i in simulation_range], ":",label="gas pedal")
+        #plt.plot([sim_data[i].brake_pedal for i in simulation_range],":", label="brake_pedal")
+        #plt.plot([sim_data[i].brake_pedal for i in simulation_range],":", label="brake_pedal")
+        plt.legend(loc=1)
+    
+    if True:
+        plt.figure()
+        plt.title(function_name)
         plt.plot([i["powertrain_net_torque"] for i in data], "g-", label="powertrain_net_torque")
         plt.grid()
         plt.legend()
         plt.twinx()
-        plt.plot([sim_data[i].Vhcl_PoI_Vel_x for i in simulation_range],"--", label="vx")
-        plt.legend()
-        
-        plt.figure()
-        plt.title(function_name)
+        #plt.plot([sim_data[i].Vhcl_PoI_Vel_x for i in simulation_range],"--", label="vx")
         var_name = "engine_rotv"
         plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(
             sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label=var_name)

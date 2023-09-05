@@ -52,7 +52,7 @@ def main():
     test_function = suspension
     function_name = test_function.__name__
     logger = LocalLogger(function_name).logger
-    logger.setLevel('DEBUG')
+    logger.setLevel('INFO')
 
     parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")

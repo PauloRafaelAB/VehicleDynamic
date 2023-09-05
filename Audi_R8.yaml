@@ -7,7 +7,7 @@ vehicle_model:
     
     gear_ratio: [0, 3.13, 2.59, 1.96, 1.24, 0.98, .91, 0.84, 0.84]
     gear_selection: [[0.0, 0.0, 5.555555556, 8.333333333, 11.11111111, 13.88888889, 16.66666667, 20.83333333, 27.7777777],
-      [0.0, 0.777777778, 10.555555556, 8.333333333, 11.11111111, 13.88888889, 16.66666667, 20.83333333, 27.77777778],
+      [0.0, 0.777777778, 5.555555556, 8.333333333, 11.11111111, 13.88888889, 16.66666667, 20.83333333, 27.77777778],
       [0.0, 5.555555556, 9.722222222, 13.88888889, 18.05555556, 22.22222222, 27.77777778, 30.55555556, 41.66666667],
       [0.0, 8.333333333, 13.88888889, 19.44444444, 25, 30.55555556, 38.88888889, 43.05555556, 55.55555556],
       [0.0, 11.11111111, 18.05555556, 25, 31.94444444, 38.88888889, 50, 55.55555556, 69.44444444],
@@ -66,7 +66,7 @@ vehicle_model:
     # Body inertias
     
     i_x_s: 818.05  # moment of inertia for sprung mass in roll [kg m^2] 618.05
-    i_y_s: 4277.  # moment of inertia for sprung mass in pitch [kg m^2] 1277.
+    i_y_s: 2277.  # moment of inertia for sprung mass in pitch [kg m^2] 1277.
     i_z: 1921.3   # moment of inertia for sprung mass in yaw [kg m^2] 1921.3
     
     
@@ -89,7 +89,7 @@ vehicle_model:
     lh: 1.411    # x-distance from Vehicle Cog to the rear axle [m] 1.510
     sl: 0.6    # y-distance from Vehicle CoG to the left chassis point [m]
     sr: .6    # y-distance from Vehicle CoG to the right chassis point  [m]
-    sz: 0.03  # z-distance from Vehicle CoG to the chassis point [m]
+    sz: 0.1  # z-distance from Vehicle CoG to the chassis point [m]
     hub_fl: [0.866,-0.816, 0.298] # 
     hub_rl: [-0.866,0.791,-0.314] #
     hub_fr: [0.866,-0.816,-0.298] #

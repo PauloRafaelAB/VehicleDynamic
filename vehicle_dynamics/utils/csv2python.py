@@ -14,7 +14,7 @@ import pickle
 # Specify the path to your CSV file
 data = {}
 
-path = "../../exampledata/aut_straight_shift_log/"
+path = "../../exampledata/Lane_change_continue/"
 
 files_in_dir = os.listdir(path)
 
