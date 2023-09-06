@@ -80,15 +80,18 @@ def chassis_rotation(parameters: Initialization, logger: logging.Logger):
     # Abel Castro, pag. 6 eq-17 
     Fx = sum_f_wheel[0]
     Fy = sum_f_wheel[1]
+    
     fy_fl = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[1, 0]
     fy_rl = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[1, 1]
     fy_fr = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[1, 2]
     fy_rr = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[1, 3]
+    
     fx_fl = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[0, 0]
     fx_rl = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[0, 1]
     fx_fr = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[0, 2]
     fx_rr = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[0, 3]
 
+    delta = 0
     
     Mz = ((fy_fl + fy_fr) * parameters.car_parameters.lv * np.cos(delta) - (fy_rl + fy_rr) * parameters.car_parameters.lh + (fx_fl + fx_fr) * parameters.car_parameters.lv * np.sin(delta) + (fx_rr + fx_fr * np.cos(delta) + fy_fl * np.sin(delta) - fx_rl - fx_fl * np.cos(delta) - fy_fr * np.sin(delta)) * l)
 
@@ -109,16 +112,22 @@ def chassis_rotation(parameters: Initialization, logger: logging.Logger):
     dd = (Iy * np.cos(parameters.x_a.roll)**2 + Iz * np.sin(parameters.x_a.roll)**2)
 
     wy_dot = (aa + bb - cc) / dd
+    
+    
     wz_dot = (Mz - h * (Fx * np.sin(parameters.x_a.roll) + Fy * np.sin(parameters.x_a.pitch) * np.cos(parameters.x_a.roll))) / (Ix * (np.sin(parameters.x_a.pitch)**2) + (np.cos(parameters.x_a.pitch)**2) * (Iy * (np.sin(parameters.x_a.roll)**2) + Iz * (np.cos(parameters.x_a.roll)**2)))
-
+    #wz_dot = Mz/Iz
+    
+    
+    
     parameters.x_a.wx = parameters.x_a.wx + wx_dot * parameters.time_step
     parameters.x_a.wy = parameters.x_a.wy + wy_dot * parameters.time_step
-    parameters.x_a.wz = parameters.x_a.wz + wz_dot * parameters.time_step
+    parameters.x_a.wz = parameters.x_a.wz + (wz_dot * parameters.time_step)
 
     # Angular position
     parameters.x_a.roll = (parameters.x_a.wx * parameters.time_step) + parameters.x_a.roll
     parameters.x_a.pitch = (parameters.x_a.wy * parameters.time_step) + parameters.x_a.pitch
     parameters.x_a.yaw = (parameters.x_a.wz * parameters.time_step) + parameters.x_a.yaw
+    
     parameters.x_a.yaw = ((np.pi+parameters.x_a.yaw)%(2*np.pi))-np.pi
     # TODO check mat mul ordem
     parameters.displacement.za[0] = (- parameters.car_parameters.lv * np.sin(parameters.x_a.pitch)) + (parameters.car_parameters.sl * np.sin(parameters.x_a.roll))
@@ -126,7 +135,7 @@ def chassis_rotation(parameters: Initialization, logger: logging.Logger):
     parameters.displacement.za[2] = (- parameters.car_parameters.lv * np.sin(parameters.x_a.pitch)) - (parameters.car_parameters.sr * np.sin(parameters.x_a.roll))
     parameters.displacement.za[3] = (+ parameters.car_parameters.lh * np.sin(parameters.x_a.pitch)) - (parameters.car_parameters.sr * np.sin(parameters.x_a.roll))
 
-    return parameters, logger
+    return parameters, logger, Mz,wz_dot
 
 
 def main():
@@ -148,7 +157,7 @@ def main():
 
     parameters.x_a.roll = sim_data[0].Vhcl_Roll
     parameters.x_a.pitch = 0
-    pitch_trans = [sim_data[i].Vhcl_Pitch - sim_data[0].Vhcl_Pitch for i in range(len(sim_data))]
+    pitch_trans = [sim_data[i].Vhcl_Pitch for i in range(len(sim_data))] # - sim_data[0].Vhcl_Pitch
     parameters.x_a.yaw = 0
     yaw_trans = [sim_data[i].Vhcl_Yaw - sim_data[0].Vhcl_Yaw for i in range(len(sim_data))]
     cm_z_force = parameters.f_za.f_za
@@ -157,6 +166,9 @@ def main():
 
     sum_wheels = []
     range_calc = range(1, 18000)
+    Mz=[]
+    wz_dot= []
+    
     for i in tqdm(range_calc):
         forces_in_x = [sim_data[i].wheel_load_x_FL, sim_data[i].wheel_load_x_RL,
                        sim_data[i].wheel_load_x_FR, sim_data[i].wheel_load_x_RR]
@@ -167,20 +179,26 @@ def main():
         parameters.x_rf.wheel_forces_transformed_force2vehicle_sys = np.array(
             [forces_in_x, forces_in_y, forces_in_z])
 
-        parameters.last_delta = sim_data[i].Steering_angle
+        parameters.last_delta = sim_data[i].Steering_angle* parameters.car_parameters.steering_ratio
 
         return_values = test_function(parameters, logger)
 
         data.append(return_values[0].get_data())
-
+        
+        Mz.append(return_values[2])
+        wz_dot.append(return_values[3])
+        
     logger.info("calc end")
+    
+    
+    
 
     plt.figure()
     plt.title(function_name)
 
     plt.plot(range_calc, [i["x_a.roll"] for i in data], "--c", label="roll")
     plt.plot(range_calc, [i["x_a.pitch"] for i in data], "--k", label="pitch")
-    plt.plot(range_calc, [i["x_a.yaw"] for i in data], "--g", label="yaw")
+    plt.plot(range_calc, [i["x_a.yaw"] for i in data], "-ob", label="yaw")    
 
     var_name = "Vhcl_Roll"
     plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
@@ -195,21 +213,32 @@ def main():
     plt.plot(range_calc, [i["x_a.wx"] for i in data], "--c", label="wx - roll")
     plt.plot(range_calc, [i["x_a.wy"] for i in data], "--k", label="wy - pitch")
     plt.plot(range_calc, [i["x_a.wz"] for i in data], "--g", label="wz - yaw")
-
-    var_name = "Vhcl_RollVel"
-    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], "c", label=var_name)
-    var_name = "Vhcl_PitchVel"
-    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], "k", label=var_name)
-    var_name = "Vhcl_YawVel"
-    plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
-        sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], "g", label=var_name)
+    #plt.plot(range_calc, wz_dot, "-*r", label="wzdot - yaw")
+    #plt.plot(range_calc, [i["x_a.yaw"] for i in data], "-ob", label="yaw")
+    if True:
+        var_name = "Vhcl_RollVel"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+            sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], "c", label=var_name)
+        var_name = "Vhcl_PitchVel"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+            sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], "k", label=var_name)
+        var_name = "Vhcl_YawVel"
+        plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 10 == 0], [getattr(
+            sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0], "g", label=var_name)
 
     plt.legend()
 
-    plt.show()
 
+    plt.twinx()
+    
+    plt.plot(range_calc, Mz, "--b", label="Mz")
+
+    plt.legend()
+    
+    plt.show()
+    
+    print(sum(Mz))
+    
 
 if __name__ == '__main__':
     main()
