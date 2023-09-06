@@ -135,7 +135,7 @@ def chassis_rotation(parameters: Initialization, logger: logging.Logger):
     parameters.displacement.za[2] = (- parameters.car_parameters.lv * np.sin(parameters.x_a.pitch)) - (parameters.car_parameters.sr * np.sin(parameters.x_a.roll))
     parameters.displacement.za[3] = (+ parameters.car_parameters.lh * np.sin(parameters.x_a.pitch)) - (parameters.car_parameters.sr * np.sin(parameters.x_a.roll))
 
-    return parameters, logger, Mz,wz_dot
+    return parameters, logger#, Mz, wz_dot
 
 
 def main():
