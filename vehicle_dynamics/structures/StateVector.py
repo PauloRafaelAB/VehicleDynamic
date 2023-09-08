@@ -17,3 +17,6 @@ class StateVector(object):
         self.acc_x = acc_x
         self.acc_y = acc_y
         self.acc_z = acc_z
+        self.wx_dot = 0
+        self.wy_dot = 0
+        self.wz_dot = 0

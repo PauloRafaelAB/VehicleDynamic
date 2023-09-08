@@ -44,7 +44,7 @@ def suspension(parameters: Initialization, logger: logging.Logger):
     logger.debug(f"wheel load z {parameters.f_zr.wheel_load_z}")
 
     return parameters, logger
-    return f_zr
+
 
 
 def main():

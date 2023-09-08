@@ -104,24 +104,24 @@ def chassis_rotation(parameters: Initialization, logger: logging.Logger):
 
     e = (Ix * (np.cos(parameters.x_a.pitch)**2) + Iy * (np.sin(parameters.x_a.pitch)**2) * (np.sin(parameters.x_a.roll)**2) + Iz * (np.sin(parameters.x_a.pitch)**2) * (np.cos(parameters.x_a.roll)**2))
 
-    wx_dot = (h * a + b + c + d) / e
+    parameters.x_a.wx_dot = (h * a + b + c + d) / e
 
     aa = h * (parameters.car_parameters.m * parameters.gravity * np.sin(parameters.x_a.pitch) * np.cos(parameters.x_a.roll) - Fx * np.cos(parameters.x_a.pitch) * np.cos(parameters.x_a.roll)) - parameters.car_parameters.c_pitch * parameters.x_a.pitch - parameters.car_parameters.k_pitch * parameters.x_a.wy
     bb = parameters.x_a.wz * (parameters.x_a.wz * np.sin(parameters.x_a.pitch) * np.cos(parameters.x_a.pitch) * (Ix - Iy + np.cos(parameters.x_a.roll)**2 * (Iy - Iz)) - parameters.x_a.wx * np.cos(parameters.x_a.pitch)**2 * Ix + np.sin(parameters.x_a.roll)**2 * np.sin(parameters.x_a.pitch)**2 * Iy + np.sin(parameters.x_a.pitch)**2 * np.cos(parameters.x_a.roll)**2 * Iz)
     cc = parameters.x_a.wy * (np.sin(parameters.x_a.pitch) * np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.roll) * (Iy - Iz))
     dd = (Iy * np.cos(parameters.x_a.roll)**2 + Iz * np.sin(parameters.x_a.roll)**2)
 
-    wy_dot = (aa + bb - cc) / dd
+    parameters.x_a.wy_dot = (aa + bb - cc) / dd
     
     
-    wz_dot = (Mz - h * (Fx * np.sin(parameters.x_a.roll) + Fy * np.sin(parameters.x_a.pitch) * np.cos(parameters.x_a.roll))) / (Ix * (np.sin(parameters.x_a.pitch)**2) + (np.cos(parameters.x_a.pitch)**2) * (Iy * (np.sin(parameters.x_a.roll)**2) + Iz * (np.cos(parameters.x_a.roll)**2)))
+    parameters.x_a.wz_dot = (Mz - h * (Fx * np.sin(parameters.x_a.roll) + Fy * np.sin(parameters.x_a.pitch) * np.cos(parameters.x_a.roll))) / (Ix * (np.sin(parameters.x_a.pitch)**2) + (np.cos(parameters.x_a.pitch)**2) * (Iy * (np.sin(parameters.x_a.roll)**2) + Iz * (np.cos(parameters.x_a.roll)**2)))
     #wz_dot = Mz/Iz
     
     
     
-    parameters.x_a.wx = parameters.x_a.wx + wx_dot * parameters.time_step
-    parameters.x_a.wy = parameters.x_a.wy + wy_dot * parameters.time_step
-    parameters.x_a.wz = parameters.x_a.wz + (wz_dot * parameters.time_step)
+    parameters.x_a.wx = parameters.x_a.wx + parameters.x_a.wx_dot * parameters.time_step
+    parameters.x_a.wy = parameters.x_a.wy + parameters.x_a.wy_dot * parameters.time_step
+    parameters.x_a.wz = parameters.x_a.wz + (parameters.x_a.wz_dot * parameters.time_step)
 
     # Angular position
     parameters.x_a.roll = (parameters.x_a.wx * parameters.time_step) + parameters.x_a.roll

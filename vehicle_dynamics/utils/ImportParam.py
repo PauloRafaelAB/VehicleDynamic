@@ -79,12 +79,12 @@ class ImportParam(object):
         # "https://gitlab.lrz.de/tum-cps/commonroad-vehicle-models/-/blob/master/PYTHON/vehiclemodels/vehicle_parameters.py "
 
         # steering constraints
-        # minimum steering angle [rad]
-        self.steering_min = param['vehicle_model']['parameters']['steering_min']
+        # max steering wheel angle [rad]
+        self.steering_lock = param['vehicle_model']['parameters']['steering_lock']
         # maximum steering angle [rad]
-        self.steering_max = param['vehicle_model']['parameters']['steering_max']
+        #self.steering_max = param['vehicle_model']['parameters']['steering_max']
         # minimum steering velocity [rad/s]
-        self.steering_v_min = param['vehicle_model']['parameters']['steering_v_min']
+        #self.steering_v_min = param['vehicle_model']['parameters']['steering_v_min']
         # maximum steering velocity [rad/s]
         self.steering_v_max = param['vehicle_model']['parameters']['steering_v_max']
 

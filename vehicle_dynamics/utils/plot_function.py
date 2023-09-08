@@ -22,6 +22,42 @@ def plot_function(output_states, manoeuvre):
     plt.legend(loc=5)
     plt.grid()
     
+    
+    plt.figure()
+    plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[1,0] for i in output_states[:].x_rf],"*", label = "Forces on the wheel 0r")
+    plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[1,1] for i in output_states[:].x_rf],"*",label = "Forces on the wheel 1f")
+    plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[1,2] for i in output_states[:].x_rf],label = "Forces on the wheel 2r")
+    plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[1,3] for i in output_states[:].x_rf],label = "Forces on the wheel 3f")
+    plt.legend(loc=0)
+    plt.plot(manoeuvre.time, manoeuvre.steering, '--m', label='steer')
+    plt.legend(loc=3)
+    plt.xlabel('time (s)')
+    plt.title("Fy")
+
+    plt.figure()
+    plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[0,0] for i in output_states[:].x_rf],"*", label = "Forces on the wheel 0r")
+    plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[0,1] for i in output_states[:].x_rf],"*",label = "Forces on the wheel 1f")
+    plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[0,2] for i in output_states[:].x_rf],label = "Forces on the wheel 2r")
+    plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[0,3] for i in output_states[:].x_rf],label = "Forces on the wheel 3f")
+    plt.legend(loc=0)
+    plt.plot(manoeuvre.time, manoeuvre.steering, '--m', label='steer')
+    plt.legend(loc=3)
+    plt.xlabel('time (s)')
+    plt.title("Fx")
+    
+      
+    plt.figure()
+    #plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[2,0] for i in output_states[:].x_rf],"*", label = "Forces on the wheel 0r")
+    plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[2,1] for i in output_states[:].x_rf],"*",label = "Forces on the wheel 1f")
+    #plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[2,2] for i in output_states[:].x_rf],label = "Forces on the wheel 2r")
+    plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[2,3] for i in output_states[:].x_rf],label = "Forces on the wheel 3f")
+    plt.legend(loc=0)
+    #plt.plot(manoeuvre.time, manoeuvre.steering, '--m', label='steer')
+    plt.legend(loc=3)
+    plt.xlabel('time (s)')
+    plt.title("Fz")
+    
+    
     plt.figure()
     plt.plot(manoeuvre.time, [i.roll for i in states],label = " roll")
     plt.plot(manoeuvre.time, [i.pitch for i in states],label = "pitch")
@@ -34,4 +70,27 @@ def plot_function(output_states, manoeuvre):
     plt.legend(loc=3)
     plt.xlabel('time (s)')
     plt.title('Euler Angles ')
+    
+    
+    
+    plt.figure()
+    var_name="acc_x"
+    plt.plot(manoeuvre.time, [getattr(i,var_name) for i in states],label = var_name)
+    var_name="acc_y"
+    plt.plot(manoeuvre.time, [getattr(i,var_name) for i in states],label = var_name)
+
+    plt.legend(loc=0)
+    plt.twinx()
+    plt.plot(manoeuvre.time, manoeuvre.steering, '--m', label='steer')
+    plt.plot(manoeuvre.time, manoeuvre.throttle, '--c', label='throttle')
+    plt.legend(loc=3)
+    plt.xlabel('time (s)')
+    plt.title('Euler Angles')
+    
+    plt.figure()
+    var_name="wx"
+    plt.plot(manoeuvre.time, [getattr(i,var_name) for i in states],"*",label = var_name)
+    var_name="wy"
+    plt.plot(manoeuvre.time, [getattr(i,var_name) for i in states],label = var_name)
+    plt.legend()
     plt.show()

@@ -50,26 +50,48 @@ def chassis_translation(parameters: Initialization, logger: logging.Logger):
 
     """
     
-    # sum of wheel forces for calculating translation of the vehicle
+    cos = np.cos
+    sin = np.sin
+    vx = parameters.x_a.vx
+    vy = parameters.x_a.vy
+    Ψ = parameters.x_a.yaw
+    θ = parameters.x_a.pitch
+    Ф = parameters.x_a.roll
+    Ψdot = parameters.x_a.wz
+    θdot = parameters.x_a.wy
+    Фdot = parameters.x_a.wz
+    Ψdotdot = parameters.x_a.wz_dot
+    θdotdot = parameters.x_a.wy_dot
+    Фdotdot = parameters.x_a.wx_dot
+    h = parameters.car_parameters.sz
+    m=parameters.car_parameters.m
     sum_f_wheel = np.sum(
         parameters.x_rf.wheel_forces_transformed_force2vehicle_sys, axis=1)
     
+    
+    parameters.x_a.acc_x = (sum_f_wheel[0])/m+ vy*Ψdot+h*(sin(θ)*cos(Ф)*(Ψdot**2+θdot**2+Фdot**2)-sin(Ф)*Ψdotdot-2*cos(Ф)*Фdot*Ψdot-cos(θ)*cos(Ф)*θdotdot+ 2*cos(θ)*sin(Ф)*θdot*Фdot+sin(θ)*sin(Ф)*Фdotdot)
+      
+    
+    
+    # sum of wheel forces for calculating translation of the vehicle
+    
+    
     # Bardini Eq. 11-46 >> 11-12, pag. 273
-    drag_x =(-parameters.drag * (np.sqrt(parameters.x_a.vx **2 + parameters.x_a.vy**2) * parameters.x_a.vx))
-    + ((parameters.x_a.wz * parameters.x_a.vy) - (parameters.x_a.wy * parameters.x_a.vz))
-    parameters.x_a.acc_x = (
-        (sum_f_wheel[0] + drag_x) / parameters.car_parameters.m) + ((parameters.x_a.wx * parameters.x_a.vz) - (parameters.x_a.wz * parameters.x_a.vx))
-    parameters.x_a.acc_y = ((sum_f_wheel[1]) / parameters.car_parameters.m) + ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
+    #drag_x =(-parameters.drag * (np.sqrt(parameters.x_a.vx **2 + parameters.x_a.vy**2) * parameters.x_a.vx))+ ((parameters.x_a.wz * parameters.x_a.vy) - (parameters.x_a.wy * parameters.x_a.vz))
+    #parameters.x_a.acc_x = ((sum_f_wheel[0] + drag_x) / parameters.car_parameters.m) + ((parameters.x_a.wx * parameters.x_a.vz) - (parameters.x_a.wz * parameters.x_a.vx))
+    #parameters.x_a.acc_y = ((sum_f_wheel[1]) / parameters.car_parameters.m) + ((parameters.x_a.wy * parameters.x_a.vx) - (parameters.x_a.wx * parameters.x_a.vy))
+    
+    parameters.x_a.acc_y = ((sum_f_wheel[1]) / parameters.car_parameters.m) - (parameters.x_a.wz * parameters.x_a.vx) + h *(-np.sin(parameters.x_a.pitch)*np.cos(parameters.x_a.roll)*parameters.x_a.wz_dot -
+                                                                                np.sin(parameters.x_a.roll)*parameters.x_a.wz**2 -2*np.cos(parameters.x_a.pitch)*np.cos(parameters.x_a.roll)*parameters.x_a.wy*parameters.x_a.wz+
+                                                                                np.sin(parameters.x_a.pitch)*np.sin(parameters.x_a.roll)*parameters.x_a.wx*parameters.x_a.wz - np.sin(parameters.x_a.roll)*parameters.x_a.wx**2 + 
+                                                                                np.cos(parameters.x_a.roll)*parameters.x_a.wx_dot)
     # TODO: check z acceleration
     parameters.x_a.acc_z = (
         (sum_f_wheel[2] - parameters.car_parameters.m * parameters.gravity) / parameters.car_parameters.m)
 
-    parameters.x_a.vx = parameters.x_a.vx + \
-        (parameters.x_a.acc_x * parameters.time_step)
-    parameters.x_a.vy = parameters.x_a.vy + \
-        (parameters.x_a.acc_y * parameters.time_step)
-    parameters.x_a.vz = parameters.x_a.vz + \
-        (parameters.x_a.acc_z * parameters.time_step)
+    parameters.x_a.vx = parameters.x_a.vx + (parameters.x_a.acc_x * parameters.time_step)
+    parameters.x_a.vy = parameters.x_a.vy + (parameters.x_a.acc_y * parameters.time_step)
+    parameters.x_a.vz = parameters.x_a.vz + (parameters.x_a.acc_z * parameters.time_step)
 
     parameters.x_a.x = parameters.x_a.x + \
         (parameters.x_a.vx * parameters.time_step)

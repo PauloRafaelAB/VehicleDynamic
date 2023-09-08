@@ -47,7 +47,6 @@ class VehicleDynamics(object):
     def tick(self, throttle, brake, steering_angle):
         self.parameters, self.logger = self.powertrain.powertrain(self.parameters, self.logger, throttle, brake)
         self.parameters, self.logger = steering(self.parameters, self.logger, steering_angle)
-        self.parameters, self.logger = rotational_matrix(self.parameters, self.logger) 
         self.parameters, self.logger = wheel_slip(self.parameters, self.logger) 
         self.parameters, self.logger = tire_model(self.parameters, self.logger) 
         self.parameters, self.logger = wheel_angular(self.parameters, self.logger) 

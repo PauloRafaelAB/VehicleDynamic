@@ -53,11 +53,11 @@ vehicle_model:
     front_area: 2.057 #Front Area of Car
     air_density: 1.2  # Air Dencity 
     # 				Steering contrains
-    steering_min: -0.910 # minimum steering angle [rad]
-    steering_max: 0.910 # maximum steering angle [rad]
-    steering_v_min: -0.4 # minimum steering velocity [rad/s]
+    steering_lock: 12.56 # maximum steering angle [rad] 
+    #steering_max: 0.910 # maximum steering angle [rad] 
+    #steering_v_min: -0.4 # minimum steering velocity [rad/s] 
     steering_v_max: 0.4  # maximum steering velocity [rad/s]   
-    steering_ratio: 4. 
+    steering_ratio: 16. 
     # 					Masses
     mass: 1644 #1644.1274 # Vehicle Mass 1424.2 
     m_s: [350.,400.,350.,400.]  # sprung mass [kg]

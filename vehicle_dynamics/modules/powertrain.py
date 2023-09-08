@@ -70,6 +70,7 @@ class Powertrain(object):
         if self.current_grace_period > 0:
             self.current_grace_period -= 1
             return False
+        
         # Gearbox up or down shifting
         if parameters.x_a.vx > parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]:
             prev_gear = parameters.gear
@@ -89,6 +90,7 @@ class Powertrain(object):
             self.current_grace_period = self.GRACE_PERIOD
 
             return prev_gear, current_gear
+        
         return False
 
     def powertrain(self, parameters: Initialization, logger: logging.Logger, throttle: float, brake: float):
@@ -103,6 +105,8 @@ class Powertrain(object):
 
         if is_gear_changed:
             (prev_gear, current_gear) = is_gear_changed
+            
+            ## What does this do? 
             engine_w = engine_w * (parameters.car_parameters.gear_ratio[current_gear] / parameters.car_parameters.gear_ratio[prev_gear]) 
             # add torque convereter speed ratio
 
@@ -120,7 +124,7 @@ class Powertrain(object):
         # find the torque delivered by te engine
         engine_torque = (throttle * torque_available)+ engine_drag
         
-        # TODO: define the best way to acess speed of output side of the torque converter
+        # Acess speed of output side of the torque converter
         turbine_w = parameters.final_ratio* parameters.x_a.vx
         
         method_carmaker = True # Torque converter method CM
