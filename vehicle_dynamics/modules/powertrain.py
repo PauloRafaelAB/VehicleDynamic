@@ -65,30 +65,44 @@ class Powertrain(object):
         self.GRACE_PERIOD = 500
         self.current_grace_period = 0
 
-    def gear_change(self, parameters: Initialization, logger: logging.Logger,throttle:float):
-        if self.current_grace_period>0:
-            self.current_grace_period -=1
-            return False
-        # Gearbox up or down shifting
-        if parameters.x_a.vx > parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]:
-            prev_gear = parameters.gear
-            parameters.gear = parameters.gear + 1
-            current_gear = parameters.gear
-            if parameters.gear >= parameters.car_parameters.gear_ratio.size:
-                parameters.gear = parameters.car_parameters.gear_ratio.size - 1
+    
+    if False:
+        def shiftting_logic_CM(self, parameters: Initialization, logger: logging.Logger,throttle:float):
+            if self.current_grace_period>0:
+                self.current_grace_period -=1
                 return False
-            self.current_grace_period = self.GRACE_PERIOD
-            return prev_gear, current_gear
-        elif parameters.x_a.vx <= 0.8 * parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear - 1]:
-            prev_gear = parameters.gear
-            parameters.gear = parameters.gear - 1
-            current_gear = parameters.gear
-            if parameters.gear < 1:
-                parameters.gear = 1
-            self.current_grace_period = self.GRACE_PERIOD
+            # Gearbox up or down shifting
+            #for parameters.car_parameters.shifting_logic
+            #TODO: find the current gear
+            # find throttle position
+            # compare engine rpm, if rpm < min rpm, gear = gear -1
+            # if engine rpm > engina rpm max, gear = gear + 1 
+    else:
+        def gear_change(self, parameters: Initialization, logger: logging.Logger,throttle:float):
+            if self.current_grace_period>0:
+                self.current_grace_period -=1
+                return False
+            # Gearbox up or down shifting
+            if parameters.x_a.vx > parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]:
+                prev_gear = parameters.gear
+                parameters.gear = parameters.gear + 1
+                current_gear = parameters.gear
+                if parameters.gear >= parameters.car_parameters.gear_ratio.size:
+                    parameters.gear = parameters.car_parameters.gear_ratio.size - 1
+                    return False
+                self.current_grace_period = self.GRACE_PERIOD
+                return prev_gear, current_gear
+            elif parameters.x_a.vx <= 0.8 * parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear - 1]:
+                prev_gear = parameters.gear
+                parameters.gear = parameters.gear - 1
+                current_gear = parameters.gear
+                if parameters.gear < 1:
+                    parameters.gear = 1
+                self.current_grace_period = self.GRACE_PERIOD
 
-            return prev_gear, current_gear
-        return False
+                return prev_gear, current_gear
+            return False
+    
 
     def powertrain(self, parameters: Initialization, logger: logging.Logger, throttle: float, brake: float):
         # Update Converter engine_w
@@ -115,7 +129,7 @@ class Powertrain(object):
         engine_drag = self.torque_drag_interpolation(engine_w)
 
         # find the torque delivered by te engine
-        engine_torque = (throttle * torque_available)+ engine_drag
+        engine_torque = (throttle * torque_available) + engine_drag
         
         # TODO: define the best way to acess speed of output side of the torque converter
         turbine_w = parameters.final_ratio* parameters.x_a.vx
@@ -129,7 +143,7 @@ class Powertrain(object):
             if s >1 or s<=0:
                 s = 0
             k_in = k_in_funct(s)
-            k_out = k_out_funct(s)
+            k_out = k_out_funct(s) # Converter_torque_multiplicator
  
             converter_torque_in = k_in * (engine_w **2)
 
@@ -158,7 +172,7 @@ class Powertrain(object):
         method_a = True
         if method_a:
             # Where traction_troque calculation is coming form? (Gillespie) equation 2-7
-            # Converter_torque_multiplicator
+            
             a = engine_torque *k_out * ( parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * parameters.car_parameters.diff_ni * parameters.car_parameters.transmition_ni)
             c = (parameters.car_parameters.axel_inertia + parameters.car_parameters.gearbox_inertia)
             d = (parameters.car_parameters.gear_ratio[parameters.gear] ** 2)
