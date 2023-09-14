@@ -74,14 +74,14 @@ def steering(parameters: Initialization, logger: logging.Logger, steering_input:
     # Matrix E_T_R (wheel angles) is calculate at steering fuction      
     # Bardini pag 261 eq. 11-6 (TR1, TR3)
     
-    parameters.wheel_angle_front = [[np.cos(parameters.x_a.yaw + delta), -np.sin(parameters.x_a.yaw + delta), 0],
+    '''parameters.wheel_angle_front = [[np.cos(parameters.x_a.yaw + delta), -np.sin(parameters.x_a.yaw + delta), 0],
                                     [np.sin(parameters.x_a.yaw + delta), np.cos(parameters.x_a.yaw + delta), 0],
                                     [0, 0, 1]]
 
     # Eq.11-8    Schramm and Bardini Pag 261 (TR2, TR4)
     parameters.wheel_angle_rear = [[np.cos(parameters.x_a.yaw), - np.sin(parameters.x_a.yaw), 0],
                                    [np.sin(parameters.x_a.yaw), np.cos(parameters.x_a.yaw), 0],
-                                   [0, 0, 1]] 
+                                   [0, 0, 1]] '''
 
     # Wheel fixed coordinate(KR) rotation relativ to Kv(vehicle system) Bardni pag. 260 eq. 11-9
     parameters.VTR_front_axle = np.array([[np.cos(delta) * np.cos(parameters.x_a.pitch), -np.sin(delta) * np.cos(parameters.x_a.pitch), -np.sin(parameters.x_a.pitch)],

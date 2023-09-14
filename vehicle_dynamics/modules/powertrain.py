@@ -119,10 +119,10 @@ class Powertrain(object):
             
         # Calculate torque provided by the engine based on the engine engine_w
         torque_available = self.torque_interpolation(engine_w)
-        engine_drag = self.torque_drag_interpolation(engine_w)
+        #engine_drag = self.torque_drag_interpolation(engine_w)
 
         # find the torque delivered by te engine
-        engine_torque = (throttle * torque_available)+ engine_drag
+        engine_torque = (throttle * torque_available)#+ engine_drag
         
         # Acess speed of output side of the torque converter
         turbine_w = parameters.final_ratio* parameters.x_a.vx
@@ -166,7 +166,9 @@ class Powertrain(object):
         if method_a:
             # Where traction_troque calculation is coming form? (Gillespie) equation 2-7
             # Converter_torque_multiplicator
+            # TODO: Merge diff mi and transmission mi
             a = engine_torque *k_out * ( parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * parameters.car_parameters.diff_ni * parameters.car_parameters.transmition_ni)
+            # TODO: Merge axel and gearbox inertia
             c = (parameters.car_parameters.axel_inertia + parameters.car_parameters.gearbox_inertia)
             d = (parameters.car_parameters.gear_ratio[parameters.gear] ** 2)
             e = (parameters.car_parameters.shaft_inertia * parameters.car_parameters.gear_ratio[parameters.gear] * (parameters.car_parameters.diff ** 2))

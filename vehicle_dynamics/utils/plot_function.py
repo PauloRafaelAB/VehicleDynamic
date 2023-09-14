@@ -22,6 +22,23 @@ def plot_function(output_states, manoeuvre):
     plt.legend(loc=5)
     plt.grid()
     
+
+    plt.figure()
+    plt.plot(manoeuvre.time, output_states.slip_y,"*", label = "Slip y")
+    plt.plot(manoeuvre.time, output_states.slip_x, label = "Slip x")
+    plt.legend(loc=0)
+    plt.twinx()
+    plt.plot(manoeuvre.time, output_states.powertrain_net_torque,"--",label = "Torque")
+    plt.legend(loc=3)
+    plt.title("Fodeu")
+    
+    
+    plt.figure()
+    plt.plot(manoeuvre.time, output_states.last_delta, label = "Last delta")
+    plt.legend(loc=0)
+    plt.title("Delta")
+
+
     
     plt.figure()
     plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[1,0] for i in output_states[:].x_rf],"*", label = "Forces on the wheel 0r")
@@ -63,7 +80,7 @@ def plot_function(output_states, manoeuvre):
     plt.plot(manoeuvre.time, [i.pitch for i in states],label = "pitch")
     plt.plot(manoeuvre.time, [i.yaw for i in states],label = "yaw")
     plt.plot(manoeuvre.time, vy, '--y', label='vy')
-    plt.legend(loc=0)
+    plt.legend(loc=1)
     plt.twinx()
     plt.plot(manoeuvre.time, manoeuvre.steering, '--m', label='steer')
     plt.plot(manoeuvre.time, manoeuvre.throttle, '--c', label='throttle')

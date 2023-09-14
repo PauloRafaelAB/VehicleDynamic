@@ -62,8 +62,7 @@ def chassis_rotation(parameters: Initialization, logger: logging.Logger):
 
     """
 
-    sum_f_wheel = np.sum(
-        parameters.x_rf.wheel_forces_transformed_force2vehicle_sys, axis=1)
+    sum_f_wheel = np.sum(parameters.x_rf.wheel_forces_transformed_force2vehicle_sys, axis=1)
 
 # =============================================================================
 # TODO: make the delta angle an input for chassis
@@ -91,8 +90,7 @@ def chassis_rotation(parameters: Initialization, logger: logging.Logger):
     fx_fr = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[0, 2]
     fx_rr = parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[0, 3]
 
-    delta = 0
-    
+   
     Mz = ((fy_fl + fy_fr) * parameters.car_parameters.lv * np.cos(delta) - (fy_rl + fy_rr) * parameters.car_parameters.lh + (fx_fl + fx_fr) * parameters.car_parameters.lv * np.sin(delta) + (fx_rr + fx_fr * np.cos(delta) + fy_fl * np.sin(delta) - fx_rl - fx_fl * np.cos(delta) - fy_fr * np.sin(delta)) * l)
 
     a = Fy * np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch) + parameters.car_parameters.m * parameters.gravity * np.sin(parameters.x_a.roll)
@@ -128,7 +126,7 @@ def chassis_rotation(parameters: Initialization, logger: logging.Logger):
     parameters.x_a.pitch = (parameters.x_a.wy * parameters.time_step) + parameters.x_a.pitch
     parameters.x_a.yaw = (parameters.x_a.wz * parameters.time_step) + parameters.x_a.yaw
     
-    parameters.x_a.yaw = ((np.pi+parameters.x_a.yaw)%(2*np.pi))-np.pi
+    #parameters.x_a.yaw = ((np.pi+parameters.x_a.yaw)%(2*np.pi))-np.pi
     # TODO check mat mul ordem
     parameters.displacement.za[0] = (- parameters.car_parameters.lv * np.sin(parameters.x_a.pitch)) + (parameters.car_parameters.sl * np.sin(parameters.x_a.roll))
     parameters.displacement.za[1] = (+ parameters.car_parameters.lh * np.sin(parameters.x_a.pitch)) + (parameters.car_parameters.sl * np.sin(parameters.x_a.roll))
