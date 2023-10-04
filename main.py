@@ -20,7 +20,7 @@ points = int(end_time * frequency)
 time = np.linspace(0, end_time, points)
 
 # initialize manuever -> gas pedal, brake pedal and steering wheel angle 
-steering = 0.1 * np.ones(points)  
+steering = 0.0 * np.ones(points)  
 throttle = 1. *(np.ones(points))  
 brake = np.zeros(points)
 

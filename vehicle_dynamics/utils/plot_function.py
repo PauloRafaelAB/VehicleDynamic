@@ -65,7 +65,7 @@ def plot_function(output_states, manoeuvre):
       
     plt.figure()
     #plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[2,0] for i in output_states[:].x_rf],"*", label = "Forces on the wheel 0r")
-    plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[2,1] for i in output_states[:].x_rf],"*",label = "Forces on the wheel 1f")
+    #plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[2,1] for i in output_states[:].x_rf],"*",label = "Forces on the wheel 1f")
     #plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[2,2] for i in output_states[:].x_rf],label = "Forces on the wheel 2r")
     plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[2,3] for i in output_states[:].x_rf],label = "Forces on the wheel 3f")
     plt.legend(loc=0)

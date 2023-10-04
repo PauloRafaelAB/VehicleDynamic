@@ -45,12 +45,12 @@ def steering(parameters: Initialization, logger: logging.Logger, steering_input:
     
     # Convert Steering input [-1,1] to whell steering (delta)
     steering_angle = steering_input*parameters.car_parameters.steering_lock 
-    delta = steering_angle/parameters.car_parameters.steering_ratio
+    parameters.delta = steering_angle/parameters.car_parameters.steering_ratio
 
-    # Calculate the variation of the delta
+    '''# Calculate the variation of the delta
     delta_dot = float((parameters.last_delta - delta) / parameters.time_step)  # Delta derivated
 
-
+    
     # Restrain the limite of turning angle
     if (steering_angle <= - parameters.car_parameters.steering_lock and delta_dot <= 0):  # steering wheel limits
         delta_dot = 0
@@ -69,7 +69,7 @@ def steering(parameters: Initialization, logger: logging.Logger, steering_input:
         delta = steering_angle/parameters.car_parameters.steering_ratio + delta_dot *parameters.time_step
 
     parameters.last_delta = delta
-        
+    '''    
 
     # Matrix E_T_R (wheel angles) is calculate at steering fuction      
     # Bardini pag 261 eq. 11-6 (TR1, TR3)
@@ -84,9 +84,9 @@ def steering(parameters: Initialization, logger: logging.Logger, steering_input:
                                    [0, 0, 1]] '''
 
     # Wheel fixed coordinate(KR) rotation relativ to Kv(vehicle system) Bardni pag. 260 eq. 11-9
-    parameters.VTR_front_axle = np.array([[np.cos(delta) * np.cos(parameters.x_a.pitch), -np.sin(delta) * np.cos(parameters.x_a.pitch), -np.sin(parameters.x_a.pitch)],
-                                          [(np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.cos(delta)) + (np.cos(parameters.x_a.roll) * np.sin(delta)), (-np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(delta)) + (np.cos(parameters.x_a.roll) * np.cos(delta)), (np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.pitch))],
-                                          [(np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.cos(delta)) - (np.sin(parameters.x_a.roll) * np.sin(delta)), (-np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(delta)) - (np.sin(parameters.x_a.roll) * np.cos(delta)), np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch)]])
+    parameters.VTR_front_axle = np.array([[np.cos(parameters.delta) * np.cos(parameters.x_a.pitch), -np.sin(parameters.delta) * np.cos(parameters.x_a.pitch), -np.sin(parameters.x_a.pitch)],
+                                          [(np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.cos(parameters.delta)) + (np.cos(parameters.x_a.roll) * np.sin(parameters.delta)), (-np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(parameters.delta)) + (np.cos(parameters.x_a.roll) * np.cos(parameters.delta)), (np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.pitch))],
+                                          [(np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.cos(parameters.delta)) - (np.sin(parameters.x_a.roll) * np.sin(parameters.delta)), (-np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(parameters.delta)) - (np.sin(parameters.x_a.roll) * np.cos(parameters.delta)), np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch)]])
 
     # Bardni. Pag. 260 eq. 11-10
     parameters.VTR_rear_axle = np.array([[np.cos(parameters.x_a.pitch), 0, -np.sin(parameters.x_a.pitch)],
@@ -116,7 +116,7 @@ def main():
         parameters.x_a.roll = sim_data[i].Vhcl_Roll
         parameters.x_a.pitch = sim_data[i].Vhcl_Pitch
         parameters.x_a.yaw = sim_data[i].Vhcl_Yaw
-        steering_angle_calc = parameters.car_parameters.steering_ratio * sim_data[i].Steering_angle / (4 * np.pi)
+        steering_angle_calc = sim_data[i].Steering_angle/(4 * np.pi)
         data.append(test_function(parameters, logger, steering_angle_calc)[0].get_data())  
         steering_angle_v.append(steering_angle_calc)
     plt.figure()

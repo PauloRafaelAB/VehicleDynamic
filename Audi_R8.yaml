@@ -45,8 +45,8 @@ vehicle_model:
     magic_formula_e : 0.97 # Magic formula coefficient
     magic_formula_c : 1.9 # Magic formula coefficient
     magic_formula_b : 10. # Magic formula coefficient
-    r_stat: 0.5334 # Tire Radius Static [m]
-    r_dyn: [0.5334,0.5334,0.5334,0.5334]  # Tire Radius Dynamic [m]	
+    r_stat: 0.32675 # Tire Radius Static [m]
+    r_dyn: [0.32675,0.34455,0.32675,0.34455]  # Tire Radius Dynamic [m]	
     #                          	Resistance
     cd: 0.35  #Air Drag Coefficient
     row: 1.
