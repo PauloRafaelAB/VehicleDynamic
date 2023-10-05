@@ -50,6 +50,8 @@ def plot_function(output_states, manoeuvre):
     plt.legend(loc=3)
     plt.xlabel('time (s)')
     plt.title("Fy")
+    plt.twinx()
+    plt.step(manoeuvre.time, gear, 'k', label='gear')
 
     plt.figure()
     plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[0,0] for i in output_states[:].x_rf],"*", label = "Forces on the wheel 0r")
@@ -61,7 +63,8 @@ def plot_function(output_states, manoeuvre):
     plt.legend(loc=3)
     plt.xlabel('time (s)')
     plt.title("Fx")
-    
+    plt.twinx()
+    plt.step(manoeuvre.time, gear, 'k', label='gear')
       
     plt.figure()
     #plt.plot(manoeuvre.time, [i.wheel_forces_transformed_force2vehicle_sys[2,0] for i in output_states[:].x_rf],"*", label = "Forces on the wheel 0r")
@@ -73,6 +76,8 @@ def plot_function(output_states, manoeuvre):
     plt.legend(loc=3)
     plt.xlabel('time (s)')
     plt.title("Fz")
+    plt.twinx()
+    plt.step(manoeuvre.time, gear, 'k', label='gear')
     
     
     plt.figure()

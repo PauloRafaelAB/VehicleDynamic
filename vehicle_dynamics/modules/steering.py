@@ -84,7 +84,7 @@ def steering(parameters: Initialization, logger: logging.Logger, steering_input:
                                    [0, 0, 1]] '''
 
     # Wheel fixed coordinate(KR) rotation relativ to Kv(vehicle system) Bardni pag. 260 eq. 11-9
-    parameters.VTR_front_axle = np.array([[np.cos(parameters.delta) * np.cos(parameters.x_a.pitch), -np.sin(parameters.delta) * np.cos(parameters.x_a.pitch), -np.sin(parameters.x_a.pitch)],
+    """parameters.VTR_front_axle = np.array([[np.cos(parameters.delta) * np.cos(parameters.x_a.pitch), -np.sin(parameters.delta) * np.cos(parameters.x_a.pitch), -np.sin(parameters.x_a.pitch)],
                                           [(np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.cos(parameters.delta)) + (np.cos(parameters.x_a.roll) * np.sin(parameters.delta)), (-np.sin(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(parameters.delta)) + (np.cos(parameters.x_a.roll) * np.cos(parameters.delta)), (np.sin(parameters.x_a.roll) * np.cos(parameters.x_a.pitch))],
                                           [(np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.cos(parameters.delta)) - (np.sin(parameters.x_a.roll) * np.sin(parameters.delta)), (-np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.pitch) * np.sin(parameters.delta)) - (np.sin(parameters.x_a.roll) * np.cos(parameters.delta)), np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch)]])
 
@@ -94,7 +94,7 @@ def steering(parameters: Initialization, logger: logging.Logger, steering_input:
                                          [np.cos(parameters.x_a.roll) * np.sin(parameters.x_a.pitch), - np.sin(parameters.x_a.roll), np.cos(parameters.x_a.roll) * np.cos(parameters.x_a.pitch)]])
 
     "says rotational transformation to Kv is necessary (VTR_front_axel)>> def vehiclefixed2inertial_system"
-
+    """
     return parameters, logger 
 
 

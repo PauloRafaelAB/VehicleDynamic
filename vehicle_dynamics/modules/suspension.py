@@ -40,6 +40,7 @@ def suspension(parameters: Initialization, logger: logging.Logger):
          parameters.displacement.l_stat)) + (parameters.car_parameters.dumper * parameters.displacement.za_dot)
     B = parameters.vehicle_fixed2inertial_system @ np.array([[0], [0], [1]])
     parameters.f_zr.wheel_load_z = (A * B)[2]
+    parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[2, :] = parameters.f_zr.wheel_load_z
 
     logger.debug(f"wheel load z {parameters.f_zr.wheel_load_z}")
 
