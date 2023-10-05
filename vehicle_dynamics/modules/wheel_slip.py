@@ -34,9 +34,9 @@ def wheel_slip(parameters: Initialization, logger: logging.Logger):
     # x-position from Vehicle Cog to the rear axle [m]
     long_r = - parameters.car_parameters.lh
     # y-position from Vehicle CoG to the left chassis point [m]
-    lat_l = - parameters.car_parameters.sl
+    lat_l = parameters.car_parameters.sl
     # y-position from Vehicle CoG to the right chassis point  [m]
-    lat_r = parameters.car_parameters.sr
+    lat_r = - parameters.car_parameters.sr
 
     if (abs(parameters.car_parameters.r_dyn * parameters.wheel_w_vel).all() == 0) and (abs(parameters.x_a.vx) == 0):
         parameters.slip_x = np.zeros(4)
@@ -51,18 +51,18 @@ def wheel_slip(parameters: Initialization, logger: logging.Logger):
     if (parameters.x_a.vx == 0 and parameters.x_a.wz == 0):
         parameters.slip_y = np.zeros(4)
     else:
-        parameters.slip_y[0] = parameters.delta - np.arctan(
+        parameters.slip_y[0] = (parameters.delta - np.arctan(
             (parameters.x_a.vy + long_f * parameters.x_a.wz) /
-            (parameters.x_a.vx - lat_l * parameters.x_a.wz))  # Front Left
+            (parameters.x_a.vx - lat_l * parameters.x_a.wz)))  # Front Left
         
-        parameters.slip_y[1] = - np.arctan((parameters.x_a.vy + long_r * parameters.x_a.wz) / (
-            parameters.x_a.vx - lat_l * parameters.x_a.wz))  # Rear Left
+        parameters.slip_y[1] = (- np.arctan((parameters.x_a.vy + long_r * parameters.x_a.wz) / (
+            parameters.x_a.vx - lat_l * parameters.x_a.wz)))  # Rear Left
         
-        parameters.slip_y[2] = parameters.delta - np.arctan((parameters.x_a.vy + long_f*parameters.x_a.wz)/(
-            parameters.x_a.vx - lat_r*parameters.x_a.wz))  # Front Right
+        parameters.slip_y[2] = (parameters.delta - np.arctan((parameters.x_a.vy + long_f*parameters.x_a.wz)/(
+            parameters.x_a.vx - lat_r*parameters.x_a.wz)))  # Front Right
         
-        parameters.slip_y[3] = - np.arctan((parameters.x_a.vy + long_r*parameters.x_a.wz)/(
-            parameters.x_a.vx - lat_r*parameters.x_a.wz))  # Rear Right
+        parameters.slip_y[3] = (- np.arctan((parameters.x_a.vy + long_r*parameters.x_a.wz)/(
+            parameters.x_a.vx - lat_r*parameters.x_a.wz)))  # Rear Right
 
         #parameters.slip_y = 0
     logger.debug(f"SLIP X  {parameters.slip_x}")
@@ -160,7 +160,10 @@ def main():
     plt.step([i["slip_y3"] for i in data], "--", label="slip y RR")
 
     plt.plot([i["x_a.vy"] for i in data], "-", label="Vy")
-
+    plt.plot([i["x_a.wz"] for i in data], "--", label="Yaw Rate")
+    plt.plot([i["delta"] for i in data], label="delta")
+    plt.xlim(2000,15000)
+    plt.ylim(-.5,0.5)
     plt.legend()
 
     plt.show()
