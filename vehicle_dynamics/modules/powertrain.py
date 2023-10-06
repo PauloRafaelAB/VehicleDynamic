@@ -203,7 +203,7 @@ def main():
     logger.info("loaded Parameters")
 
     parameters = Initialization("../../Audi_r8.yaml", logger=logger)
-    parameters.OPTIMIZATION_MODE = True
+    parameters.OPTIMIZATION_MODE = False
 
     powertrain = Powertrain(parameters)
     test_function = powertrain.powertrain
@@ -215,6 +215,8 @@ def main():
     simulation_range = range(1, len(sim_data))
     for i in tqdm(simulation_range):
         parameters.x_a.vx = sim_data[i].Vhcl_PoI_Vel_1_x
+        parameters.wheel_w_vel = np.array(
+            [sim_data[i].Wheel_w_vel_FL, sim_data[i].Wheel_w_vel_RL, sim_data[i].Wheel_w_vel_FR, sim_data[i].Wheel_w_vel_RR])
         if parameters.OPTIMIZATION_MODE:
             parameters.gear = int(sim_data[i].gear_no)
             parameters.prev_gear = int(sim_data[i - 1].gear_no)
