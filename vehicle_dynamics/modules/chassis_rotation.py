@@ -121,6 +121,7 @@ def chassis_rotation(parameters: Initialization, logger: logging.Logger):
     parameters.x_a.pitch = (parameters.x_a.wy * parameters.time_step) + parameters.x_a.pitch
     parameters.x_a.yaw = (parameters.x_a.wz * parameters.time_step) + parameters.x_a.yaw
 
+    '''
     #parameters.x_a.yaw = ((np.pi+parameters.x_a.yaw)%(2*np.pi))-np.pi
     # TODO check mat mul ordem
     parameters.displacement.za[0] = (- parameters.car_parameters.lv * np.sin(parameters.x_a.pitch)) + (parameters.car_parameters.sl * np.sin(parameters.x_a.roll))
@@ -128,7 +129,12 @@ def chassis_rotation(parameters: Initialization, logger: logging.Logger):
     parameters.displacement.za[2] = (- parameters.car_parameters.lv * np.sin(parameters.x_a.pitch)) - (parameters.car_parameters.sr * np.sin(parameters.x_a.roll))
     parameters.displacement.za[3] = (+ parameters.car_parameters.lh * np.sin(parameters.x_a.pitch)) - (parameters.car_parameters.sr * np.sin(parameters.x_a.roll))
 
-    return parameters, logger, Mz, parameters.x_a.wz_dot
+
+    parameters.f_zr.wheel_load_z = (parameters.car_parameters.eq_stiff * (-parameters.displacement.za + parameters.displacement.zs +
+         parameters.displacement.l_stat)) + (parameters.car_parameters.dumper * parameters.displacement.za_dot)
+    parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[2, :] = parameters.f_zr.wheel_load_z
+    '''
+    return parameters, logger#, Mz, parameters.x_a.wz_dot
 
 
 def main():
@@ -149,7 +155,7 @@ def main():
     data = []
 
     parameters.x_a.roll = sim_data[0].Vhcl_Roll
-    parameters.x_a.pitch = 0
+    parameters.x_a.pitch = sim_data[0].Vhcl_Pitch
     pitch_trans = [sim_data[i].Vhcl_Pitch for i in range(len(sim_data))]  # - sim_data[0].Vhcl_Pitch
     parameters.x_a.yaw = 0
     yaw_trans = [sim_data[i].Vhcl_Yaw for i in range(len(sim_data))]  # sim_data[0].Vhcl_Yaw
@@ -225,8 +231,14 @@ def main():
     plt.legend()
 
     plt.figure()
-    plt.plot([[sim_data[i].wheel_load_x_FL, sim_data[i].wheel_load_x_RL,
-               sim_data[i].wheel_load_x_FR, sim_data[i].wheel_load_x_RR] for i in range(len(sim_data))])
+    plt.plot([sim_data[i].wheel_load_z_FL for i in range(len(sim_data))],"g")
+    plt.plot([sim_data[i].wheel_load_z_RL for i in range(len(sim_data))],"y")
+    plt.plot([sim_data[i].wheel_load_z_FR for i in range(len(sim_data))],"g--")
+    plt.plot([sim_data[i].wheel_load_z_RR for i in range(len(sim_data))],"y--")
+    plt.plot(range_calc, [i["f_zr.wheel_load_z"][0] for i in data], "k", label="Wheel load")
+    plt.plot(range_calc, [i["f_zr.wheel_load_z"][1] for i in data], "b", label="Wheel load")
+    plt.plot(range_calc, [i["f_zr.wheel_load_z"][2] for i in data], "k--", label="Wheel load")
+    plt.plot(range_calc, [i["f_zr.wheel_load_z"][3] for i in data], "b--", label="Wheel load")
 
     plt.show()
 

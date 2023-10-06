@@ -129,4 +129,5 @@ class Initialization(object):
                 "powertrain_net_torque": self.powertrain_net_torque,
                 "delta": self.delta,
                 "wheel_load_z": self.f_zr.wheel_load_z,
-                "wheel_w_vel": self.wheel_w_vel}
+                "wheel_w_vel": self.wheel_w_vel, 
+                "f_zr.wheel_load_z":self.f_zr.wheel_load_z}

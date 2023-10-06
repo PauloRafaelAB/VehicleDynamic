@@ -72,7 +72,8 @@ def chassis_translation(parameters: Initialization, logger: logging.Logger):
     parameters.x_a.acc_x = (sum_f_wheel[0])/m + vy*Ψdot + h*(sin(θ)*cos(Ф)*(Ψdot**2+θdot**2+Фdot**2)-sin(Ф)*Ψdotdot-2*cos(Ф)*Фdot*Ψdot-cos(θ)*cos(Ф)*θdotdot+ 2*cos(θ)*sin(Ф)*θdot*Фdot+sin(θ)*sin(Ф)*Фdotdot)
     parameters.x_a.acc_y = (sum_f_wheel[1])/m - vx*Ψdot + h*(-sin(θ)*cos(Ф)*Ψdotdot - sin(Ф)*Ψdot**2 - 2*cos(θ)*cos(Ф)*θdot*Ψdot + sin(θ)*sin(Ф)*Фdot*Ψdot - sin(Ф)*Фdot**2 + cos(Ф)*Фdotdot)
     parameters.x_a.acc_z = ((sum_f_wheel[2] - parameters.car_parameters.m * parameters.gravity) / parameters.car_parameters.m)
-       
+    
+
     parameters.x_a.vx = parameters.x_a.vx + (parameters.x_a.acc_x * parameters.time_step)
     parameters.x_a.vy = parameters.x_a.vy + (parameters.x_a.acc_y * parameters.time_step)
     parameters.x_a.vz = parameters.x_a.vz + (parameters.x_a.acc_z * parameters.time_step)

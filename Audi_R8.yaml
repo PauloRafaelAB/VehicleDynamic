@@ -27,7 +27,7 @@ vehicle_model:
     torque_converter_ratio: [2.3, 1, 1.]
     torque_converter_efficiency: [0.00750,0.00731,0.00717,0.00702,0.00669,0.00645,0.00612,0.00545,0.00440,0.00296,0.00001]
     max_brake_torque: 2000. # [n/m]
-    b_bias: [0.25,0.25,0.25,0.25]
+    b_bias: [0.25,0.25,0.25,0.25] # to be changed to brake and torque bias. #Powertrain line 195
     # 					inertias
     i_d_shaft: 0.1     # Drive shaft inertia[kgm2]
     i_clutch: .0 # clucth inertia	
@@ -71,8 +71,8 @@ vehicle_model:
     
     
     #           suspension parameters
-    eq_stiff: [60000., 70000., 60000., 70000.]  # suspension spring rate (front i = 1 or 3)  (rear i= 2,4) [N/m]   
-    dumper: [2500., 3000.,2500., 30000]  # suspension damping rate (front i = 1 or 3)  (rear = 1 = 2,4)[N s/m]  
+    eq_stiff: [12000., 14000., 12000., 14000.]  # suspension spring rate (front i = 1 or 3)  (rear i= 2,4) [N/m]   
+    dumper: [2500., 3000.,2500., 3000]  # suspension damping rate (front i = 1 or 3)  (rear = 1 = 2,4)[N s/m]  
     
     k_roll: 10000. # Anti roll bar stiffness [Nm/rad] 9000
     c_roll: 40100 # 81100

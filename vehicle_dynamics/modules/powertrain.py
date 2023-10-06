@@ -192,8 +192,8 @@ class Powertrain(object):
         if np.mean((traction_torque - brake_torque)) <= 0 and parameters.x_a.vx <= 0:
             parameters.powertrain_net_torque = np.zeros(4)
         else:
-            parameters.powertrain_net_torque = (
-                traction_torque - brake_torque) * parameters.car_parameters.brake_bias
+            # TODO: to be changed to brake and acc bias. 
+            parameters.powertrain_net_torque = (traction_torque - brake_torque) * parameters.car_parameters.brake_bias
         return parameters, logger
 
 
@@ -239,7 +239,7 @@ def main():
         plt.legend(loc=1)
         plt.legend()
 
-    if False:
+    if True:
         plt.figure()
         plt.title("powertrain_net_torque")
         plt.plot([i["powertrain_net_torque"] for i in data], "g-", label="powertrain_net_torque")
