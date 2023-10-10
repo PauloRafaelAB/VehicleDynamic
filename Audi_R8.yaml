@@ -23,9 +23,9 @@ vehicle_model:
     diff: 3.59 # Differential ratio
     diff_ni: 0.98
     transmition_ni: 0.95
-    speed_ratio_TC: [0,0.9,1.]
-    torque_converter_ratio: [2.3, 1, 1.]
-    torque_converter_efficiency: [0.00750,0.00731,0.00717,0.00702,0.00669,0.00645,0.00612,0.00545,0.00440,0.00296,0.00001]
+    speed_ratio_TC: [0,0.8,0.98, 1]
+    torque_converter_ratio: [2.1, 0.98, 0.98, 0.98]
+    torque_converter_factor: [0.00750,0.00731,0.00717,0.00702,0.00669,0.00645,0.00612,0.00545,0.00440,0.00296,0]
     max_brake_torque: 2000. # [n/m]
     b_bias: [0.25,0.25,0.25,0.25] # to be changed to brake and torque bias. #Powertrain line 195
     # 					inertias

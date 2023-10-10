@@ -46,6 +46,6 @@ output_states = OutputStates()
 vehicle_dynamics = VehicleDynamics(state_0 = np.zeros(15), initial_gear = 1, freq=frequency, param_path = "Audi_R8.yaml")
 
 for i in tqdm.tqdm(range(points)):
-    output_states.set_states(vehicle_dynamics.tick(*manoeuvre_carMaker[i]))
+    output_states.set_states(vehicle_dynamics.tick(*manoeuvre[i]))
 
 plot_function(output_states, manoeuvre_carMaker, sim_data)

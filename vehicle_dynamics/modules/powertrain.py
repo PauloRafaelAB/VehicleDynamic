@@ -63,9 +63,13 @@ class Powertrain(object):
         self.torque_interpolation = interp1d(
             parameters.car_parameters.engine_w_table, parameters.car_parameters.torque_max_table)
         self.torque_drag_interpolation = interp1d(parameters.car_parameters.engine_torque_drag[:, 0], parameters.car_parameters.engine_torque_drag[:, 1])
-        self.GRACE_PERIOD = 500
+        self.MIN_GEAR_CHANGE_INTERVAL = 500
+        self.CONVERTER_SYNC_TIME = 51
+        self.current_sync = 0
         self.current_grace_period = 0
 
+        self.k_out_funct = interp1d(parameters.car_parameters.speed_ratio_TC, parameters.car_parameters.torque_converter_ratio)
+        self.k_in_funct = interp1d(np.array(np.linspace(0.,1.,len(parameters.car_parameters.torque_converter_factor))), parameters.car_parameters.torque_converter_factor)
     def gear_change(self, parameters: Initialization, logger: logging.Logger, throttle: float):
         if self.current_grace_period > 0:
             self.current_grace_period -= 1
@@ -79,15 +83,16 @@ class Powertrain(object):
             if parameters.gear >= parameters.car_parameters.gear_ratio.size:
                 parameters.gear = parameters.car_parameters.gear_ratio.size - 1
                 return False
-            self.current_grace_period = self.GRACE_PERIOD
+            self.current_grace_period = self.MIN_GEAR_CHANGE_INTERVAL
             return prev_gear, current_gear
+        
         elif parameters.x_a.vx <= 0.8 * parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear - 1]:
             prev_gear = parameters.gear
             parameters.gear = parameters.gear - 1
             current_gear = parameters.gear
             if parameters.gear < 1:
                 parameters.gear = 1
-            self.current_grace_period = self.GRACE_PERIOD
+            self.current_grace_period = self.MIN_GEAR_CHANGE_INTERVAL
 
             return prev_gear, current_gear
         
@@ -97,77 +102,60 @@ class Powertrain(object):
         # Update Converter engine_w
         # Based on page 3 from Generating Proper Integrated Dynamic Models for Vehicle Mobility (Loucas S. Louca)
         # Based on the whell velocity and engine engine_w the torque on the
-        engine_w = parameters.engine_w
+
         if parameters.OPTIMIZATION_MODE:
             is_gear_changed = (parameters.prev_gear, parameters.gear)
         else:
             is_gear_changed = self.gear_change(parameters, logger, throttle)
 
         if is_gear_changed:
-            (prev_gear, current_gear) = is_gear_changed
-            
-            ## What does this do? 
-            engine_w = engine_w * (parameters.car_parameters.gear_ratio[current_gear] / parameters.car_parameters.gear_ratio[prev_gear]) 
-            # add torque convereter speed ratio
-
-
+            self.current_sync = self.CONVERTER_SYNC_TIME
+        if self.current_sync>0:
+            torque_converter_out = 0
+            self.current_sync-=1
+            throttle = 0 
+        
         # Check engine engine_w
-        if engine_w < parameters.car_parameters.min_engine_w:
-            engine_w = parameters.car_parameters.min_engine_w
-        elif engine_w > parameters.car_parameters.max_engine_w:
-            engine_w = parameters.car_parameters.max_engine_w
+        if parameters.engine_w < parameters.car_parameters.min_engine_w:
+            parameters.engine_w = parameters.car_parameters.min_engine_w
+        elif parameters.engine_w > parameters.car_parameters.max_engine_w:
+            parameters.engine_w = parameters.car_parameters.max_engine_w
             
         # Calculate torque provided by the engine based on the engine engine_w
-        torque_available = self.torque_interpolation(engine_w)
+        torque_available = self.torque_interpolation(parameters.engine_w)
         #engine_drag = self.torque_drag_interpolation(engine_w)
 
         # find the torque delivered by te engine
-        engine_torque = (throttle * torque_available)#+ engine_drag
+        engine_torque = (throttle * torque_available)
         
-        # Acess speed of output side of the torque converter
-        turbine_w = parameters.final_ratio* parameters.x_a.vx
+        final_ratio = parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff
         
-        method_carmaker = True # Torque converter method CM
+        turbine_w = final_ratio * np.mean(parameters.wheel_w_vel)
 
-        if method_carmaker:
-            k_out_funct = interp1d(parameters.car_parameters.speed_ratio_TC, parameters.car_parameters.torque_converter_ratio)
-            k_in_funct = interp1d(np.array(np.linspace(0.,1.,len(parameters.car_parameters.torque_converter_efficiency))), parameters.car_parameters.torque_converter_efficiency)
-            s = turbine_w/engine_w
-            if s >1 or s<=0:
-                s = 0
-            k_in = k_in_funct(s)
-            k_out = k_out_funct(s)
- 
-            converter_torque_in = k_in * (engine_w **2)
-
-            """ 
-            print('engine_w',engine_w)
-            print('converter_torque_in',converter_torque_in)
-            print("k in ", k_in) 
-            print(s)
-            """
-            torque_converter_out = k_out *( turbine_w**2)
-           
+        torque_converter_ratio = turbine_w / parameters.engine_w
+        
+        if torque_converter_ratio >= 0.9:
+            # Clutch Mode
+            parameters.engine_w = turbine_w
+            torque_converter_out = engine_torque
         else:
-            if  (turbine_w/engine_w) < 0.9:
-                converter_torque_in = 0.0024* engine_w **2 - 0.00051*engine_w*turbine_w -0.000032*turbine_w**2
-                torque_converter_out = -0.0039*engine_w**2 - 0.00237* engine_w*turbine_w -0.000035*turbine_w**2
-            else:
-                converter_torque_in = -0.0067*engine_w**2 + 0.032*engine_w*turbine_w-0.025*turbine_w
-                torque_converter_out = - converter_torque_in
+            torque_converter_ratio = 0 if torque_converter_ratio < 0 else torque_converter_ratio
+            # Torque Converter
+            k_in  = self.k_in_funct (torque_converter_ratio)
+            k_out = self.k_out_funct(torque_converter_ratio)
+
+            torque_converter_in  = k_in  * (parameters.engine_w ** 2)
+            torque_converter_out = k_out * (turbine_w ** 2)
             
-        # Engine speed
-        # TODO: has to take gear into account >> engine torque is define with gas pedal and drag_engine
-        #
-        engine_wdot = (engine_torque) / parameters.car_parameters.engine_inertia
-        parameters.engine_w = (engine_w + engine_wdot * parameters.time_step)
+            ###
+            engine_wdot = (engine_torque + torque_converter_in) / parameters.car_parameters.engine_inertia
+            parameters.engine_w = (parameters.engine_w + engine_wdot * parameters.time_step)
 
         method_a = True
         if method_a:
             # Where traction_troque calculation is coming form? (Gillespie) equation 2-7
-            # Converter_torque_multiplicator
             # TODO: Merge diff mi and transmission mi
-            a = engine_torque *k_out * ( parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * parameters.car_parameters.diff_ni * parameters.car_parameters.transmition_ni)
+            a = torque_converter_out * ( parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * parameters.car_parameters.diff_ni * parameters.car_parameters.transmition_ni)
             # TODO: Merge axel and gearbox inertia
             c = (parameters.car_parameters.axel_inertia + parameters.car_parameters.gearbox_inertia)
             d = (parameters.car_parameters.gear_ratio[parameters.gear] ** 2)
@@ -186,15 +174,19 @@ class Powertrain(object):
                                                                 parameters.car_parameters.i_d_shaft) * engine_wdot))
         
         # --------------------Break Torque -------------------------
-        brake_torque = brake * parameters.car_parameters.max_brake_torque
+        brake_torque = brake * parameters.car_parameters.max_brake_torque * parameters.car_parameters.brake_bias
 
         # -------------------- Total Torque -------------------------
-        if np.mean((traction_torque - brake_torque)) <= 0 and parameters.x_a.vx <= 0:
+        if np.mean((traction_torque - brake_torque)) <= 0 and parameters.x_a.vx <= 1e-6:
             parameters.powertrain_net_torque = np.zeros(4)
         else:
             # TODO: to be changed to brake and acc bias. 
-            parameters.powertrain_net_torque = (traction_torque - brake_torque) * parameters.car_parameters.brake_bias
+            parameters.powertrain_net_torque = traction_torque - brake_torque 
+        #logger.info(f"wheel_w_vel {np.mean(parameters.wheel_w_vel)} powertrain_net_torque: {parameters.powertrain_net_torque} engine_w {parameters.engine_w} brake_torque {brake_torque}")
         return parameters, logger
+
+"""    def engine_control_unit(self, parameters: Initialization, logger: logging.Logger, throttle: float, brake: float):
+        powertrain(parameters, logger, throttle, brake)"""
 
 
 def main():
@@ -215,8 +207,7 @@ def main():
     simulation_range = range(1, len(sim_data))
     for i in tqdm(simulation_range):
         parameters.x_a.vx = sim_data[i].Vhcl_PoI_Vel_1_x
-        parameters.wheel_w_vel = np.array(
-            [sim_data[i].Wheel_w_vel_FL, sim_data[i].Wheel_w_vel_RL, sim_data[i].Wheel_w_vel_FR, sim_data[i].Wheel_w_vel_RR])
+        parameters.wheel_w_vel = np.array([sim_data[i].Wheel_w_vel_FL, sim_data[i].Wheel_w_vel_RL, sim_data[i].Wheel_w_vel_FR, sim_data[i].Wheel_w_vel_RR])
         if parameters.OPTIMIZATION_MODE:
             parameters.gear = int(sim_data[i].gear_no)
             parameters.prev_gear = int(sim_data[i - 1].gear_no)
