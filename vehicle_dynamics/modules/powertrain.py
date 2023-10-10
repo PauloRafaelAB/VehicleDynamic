@@ -132,7 +132,7 @@ class Powertrain(object):
 
         final_ratio = parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff
 
-        turbine_w = np.mean(parameters.wheel_w_vel) / final_ratio
+        turbine_w = np.mean(parameters.wheel_w_vel) * final_ratio
 
         torque_converter_ratio = turbine_w / parameters.engine_w
 
@@ -141,7 +141,7 @@ class Powertrain(object):
             print("clutch Mode")
             parameters.engine_w = turbine_w
             torque_converter_out = engine_torque
-            k_in, k_out, torque_converter_in, torque_converter_out, torque_converter_in = (float("nan"), float("nan"), float("nan"), float("nan"), float("nan"))
+
         else:
             if torque_converter_ratio < 0:
                 torque_converter_ratio = 0 
@@ -151,6 +151,7 @@ class Powertrain(object):
 
             torque_converter_in = k_in * (parameters.engine_w ** 2)
             torque_converter_out = k_out * (turbine_w ** 2)
+            torque_converter_out = torque_converter_in * torque_converter_ratio
 
             engine_wdot = (engine_torque / parameters.car_parameters.engine_inertia) - torque_converter_in
             parameters.engine_w = parameters.engine_w + (engine_wdot * parameters.time_step)
@@ -177,6 +178,8 @@ class Powertrain(object):
             parameters.powertrain_net_torque = traction_torque - brake_torque 
 
         if parameters.DEBUG_MODE:
+            if torque_converter_ratio >= 0.9:
+                k_in, k_out, torque_converter_in, torque_converter_out, torque_converter_in = (float("nan"), float("nan"), float("nan"), float("nan"), float("nan"))
             return parameters, logger, k_in, k_out, torque_converter_in, torque_converter_out, engine_torque, torque_converter_in, turbine_w, final_ratio
         else:
             return parameters, logger
@@ -227,7 +230,7 @@ def main():
     plt.plot(torque_converter_in, label="torque_converter_in")
     plt.plot(torque_converter_out, label="torque_converter_out")
     plt.plot(engine_torque, label="engine_torque")
-    plt.plot([sum(i["powertrain_net_torque"]) for i in data], label="powertrain_net_torque")
+    plt.plot([(i["powertrain_net_torque"]) for i in data], label="powertrain_net_torque")
     plt.legend()
     plt.figure()
     plt.plot(turbine_w, label="turbine_w")
