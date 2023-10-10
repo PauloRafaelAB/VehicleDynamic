@@ -69,12 +69,13 @@ class Powertrain(object):
         self.current_grace_period = 0
 
         self.k_out_funct = interp1d(parameters.car_parameters.speed_ratio_TC, parameters.car_parameters.torque_converter_ratio)
-        self.k_in_funct = interp1d(np.array(np.linspace(0.,1.,len(parameters.car_parameters.torque_converter_factor))), parameters.car_parameters.torque_converter_factor)
+        self.k_in_funct = interp1d(np.array(np.linspace(0., 1., len(parameters.car_parameters.torque_converter_factor))), parameters.car_parameters.torque_converter_factor)
+
     def gear_change(self, parameters: Initialization, logger: logging.Logger, throttle: float):
         if self.current_grace_period > 0:
             self.current_grace_period -= 1
             return False
-        
+
         # Gearbox up or down shifting
         if parameters.x_a.vx > parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear]:
             prev_gear = parameters.gear
@@ -85,7 +86,7 @@ class Powertrain(object):
                 return False
             self.current_grace_period = self.MIN_GEAR_CHANGE_INTERVAL
             return prev_gear, current_gear
-        
+
         elif parameters.x_a.vx <= 0.8 * parameters.car_parameters.gear_selection[int(throttle * 10)][parameters.gear - 1]:
             prev_gear = parameters.gear
             parameters.gear = parameters.gear - 1
@@ -95,7 +96,7 @@ class Powertrain(object):
             self.current_grace_period = self.MIN_GEAR_CHANGE_INTERVAL
 
             return prev_gear, current_gear
-        
+
         return False
 
     def powertrain(self, parameters: Initialization, logger: logging.Logger, throttle: float, brake: float):
@@ -110,69 +111,59 @@ class Powertrain(object):
 
         if is_gear_changed:
             self.current_sync = self.CONVERTER_SYNC_TIME
-        if self.current_sync>0:
+        if self.current_sync > 0:
             torque_converter_out = 0
-            self.current_sync-=1
+            self.current_sync -= 1
             throttle = 0 
-        
+
         # Check engine engine_w
         if parameters.engine_w < parameters.car_parameters.min_engine_w:
             parameters.engine_w = parameters.car_parameters.min_engine_w
         elif parameters.engine_w > parameters.car_parameters.max_engine_w:
             parameters.engine_w = parameters.car_parameters.max_engine_w
-            
+
         # Calculate torque provided by the engine based on the engine engine_w
         torque_available = self.torque_interpolation(parameters.engine_w)
         #engine_drag = self.torque_drag_interpolation(engine_w)
 
         # find the torque delivered by te engine
         engine_torque = (throttle * torque_available)
-        
+
         final_ratio = parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff
-        
+
         turbine_w = final_ratio * np.mean(parameters.wheel_w_vel)
 
         torque_converter_ratio = turbine_w / parameters.engine_w
-        
+
         if torque_converter_ratio >= 0.9:
             # Clutch Mode
+            print("clutch Mode")
             parameters.engine_w = turbine_w
             torque_converter_out = engine_torque
+            k_in, k_out, torque_converter_in, torque_converter_out, torque_converter_in = (float("nan"), float("nan"), float("nan"), float("nan"), float("nan"))
         else:
             torque_converter_ratio = 0 if torque_converter_ratio < 0 else torque_converter_ratio
             # Torque Converter
-            k_in  = self.k_in_funct (torque_converter_ratio)
+            k_in = self.k_in_funct(torque_converter_ratio)
             k_out = self.k_out_funct(torque_converter_ratio)
 
-            torque_converter_in  = k_in  * (parameters.engine_w ** 2)
+            torque_converter_in = k_in * (parameters.engine_w ** 2)
             torque_converter_out = k_out * (turbine_w ** 2)
-            
-            ###
-            engine_wdot = (engine_torque + torque_converter_in) / parameters.car_parameters.engine_inertia
-            parameters.engine_w = (parameters.engine_w + engine_wdot * parameters.time_step)
 
-        method_a = True
-        if method_a:
-            # Where traction_troque calculation is coming form? (Gillespie) equation 2-7
-            # TODO: Merge diff mi and transmission mi
-            a = torque_converter_out * ( parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * parameters.car_parameters.diff_ni * parameters.car_parameters.transmition_ni)
-            # TODO: Merge axel and gearbox inertia
-            c = (parameters.car_parameters.axel_inertia + parameters.car_parameters.gearbox_inertia)
-            d = (parameters.car_parameters.gear_ratio[parameters.gear] ** 2)
-            e = (parameters.car_parameters.shaft_inertia * parameters.car_parameters.gear_ratio[parameters.gear] * (parameters.car_parameters.diff ** 2))
-            b = -(((c * d) + e + parameters.car_parameters.wheel_inertia) * parameters.x_a.acc_x)
-            
-            traction_torque = a+b
-        else:
-            # Traction torque accordint to Bardini pag 270, eq 11-41
-            # drive torque applied to the clutch
-            m_clutch = engine_torque - parameters.car_parameters.engine_inertia * engine_wdot
-            
-            traction_torque = -(parameters.car_parameters.diff *((parameters.car_parameters.gear_ratio[parameters.gear] * m_clutch)
-                                                                - (1/parameters.car_parameters.gear_ratio[parameters.gear])*
-                                                                (parameters.car_parameters.engine_inertia * parameters.car_parameters.gear_ratio[parameters.gear]**2+
-                                                                parameters.car_parameters.i_d_shaft) * engine_wdot))
-        
+            engine_wdot = (engine_torque / parameters.car_parameters.engine_inertia) - torque_converter_in
+            parameters.engine_w = parameters.engine_w + (engine_wdot * parameters.time_step)
+
+        # Where traction_troque calculation is coming form? (Gillespie) equation 2-7
+        # TODO: Merge diff mi and transmission mi
+        a = torque_converter_out * (parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff * parameters.car_parameters.diff_ni * parameters.car_parameters.transmition_ni)
+        # TODO: Merge axel and gearbox inertia
+        c = (parameters.car_parameters.axel_inertia + parameters.car_parameters.gearbox_inertia)
+        d = (parameters.car_parameters.gear_ratio[parameters.gear] ** 2)
+        e = (parameters.car_parameters.shaft_inertia * parameters.car_parameters.gear_ratio[parameters.gear] * (parameters.car_parameters.diff ** 2))
+        b = -(((c * d) + e + parameters.car_parameters.wheel_inertia) * parameters.x_a.acc_x)
+
+        traction_torque = a + b
+
         # --------------------Break Torque -------------------------
         brake_torque = brake * parameters.car_parameters.max_brake_torque * parameters.car_parameters.brake_bias
 
@@ -182,11 +173,11 @@ class Powertrain(object):
         else:
             # TODO: to be changed to brake and acc bias. 
             parameters.powertrain_net_torque = traction_torque - brake_torque 
-        #logger.info(f"wheel_w_vel {np.mean(parameters.wheel_w_vel)} powertrain_net_torque: {parameters.powertrain_net_torque} engine_w {parameters.engine_w} brake_torque {brake_torque}")
-        return parameters, logger
 
-"""    def engine_control_unit(self, parameters: Initialization, logger: logging.Logger, throttle: float, brake: float):
-        powertrain(parameters, logger, throttle, brake)"""
+        if parameters.DEBUG_MODE:
+            return parameters, logger, k_in, k_out, torque_converter_in, torque_converter_out, engine_torque, torque_converter_in
+        else:
+            return parameters, logger
 
 
 def main():
@@ -196,6 +187,7 @@ def main():
 
     parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     parameters.OPTIMIZATION_MODE = False
+    parameters.DEBUG_MODE = True
 
     powertrain = Powertrain(parameters)
     test_function = powertrain.powertrain
@@ -203,7 +195,8 @@ def main():
     path_to_simulation_data = "../../exampledata/aut_straight_shift_log/SimulationData.pickle"
     sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
-    data = []
+    data, k_in, k_out, torque_converter_in, torque_converter_out, engine_torque, torque_converter_in = [], [], [], [], [], [], []
+
     simulation_range = range(1, len(sim_data))
     for i in tqdm(simulation_range):
         parameters.x_a.vx = sim_data[i].Vhcl_PoI_Vel_1_x
@@ -211,28 +204,47 @@ def main():
         if parameters.OPTIMIZATION_MODE:
             parameters.gear = int(sim_data[i].gear_no)
             parameters.prev_gear = int(sim_data[i - 1].gear_no)
-        data.append(test_function(parameters, logger,
-                    throttle=sim_data[i].gas_pedal, brake=sim_data[i].brake_pedal)[0].get_data())
 
-    if True:
+        return_values = test_function(parameters, logger, throttle=sim_data[i].gas_pedal, brake=sim_data[i].brake_pedal)
+        data.append(return_values[0].get_data())
+        k_in.append(return_values[2])
+        k_out.append(return_values[3])
+        torque_converter_in.append(return_values[4])
+        torque_converter_out.append(return_values[5])
+        engine_torque.append(return_values[6])
+
+    plt.figure()
+    plt.figure()
+    plt.plot(k_in, label="k_in")
+    plt.plot(k_out, label="k_out")
+    plt.legend()
+
+    plt.figure()
+    plt.plot(torque_converter_in, label="torque_converter_in")
+    plt.plot(torque_converter_out, label="torque_converter_out")
+    plt.plot(engine_torque, label="engine_torque")
+    #plt.plot([sum(i["powertrain_net_torque"]) for i in data], label="powertrain_net_torque")
+    plt.legend()
+
+    if False:
         plt.figure()
         plt.title(function_name)
         plt.step([i["gear"] for i in data], "--g", label="gear_no_calcu")
-        plt.plot([sim_data[i].Vhcl_PoI_Vel_x for i in simulation_range],"--", label="vx")
+        plt.plot([sim_data[i].Vhcl_PoI_Vel_x for i in simulation_range], "--", label="vx")
         var_name = "gear_no"
         plt.step([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
-        #plt.figure()
+        # plt.figure()
         #plt.title("engine w(rad/s)")
         plt.legend(loc=5)
         plt.grid()
         plt.twinx()
-        plt.plot([sim_data[i].gas_pedal for i in simulation_range], ":",label="gas pedal")
-        plt.plot([sim_data[i].brake_pedal for i in simulation_range],":", label="brake_pedal")
-        plt.plot([sim_data[i].brake_pedal for i in simulation_range],":", label="brake_pedal")
+        plt.plot([sim_data[i].gas_pedal for i in simulation_range], ":", label="gas pedal")
+        plt.plot([sim_data[i].brake_pedal for i in simulation_range], ":", label="brake_pedal")
+        plt.plot([sim_data[i].brake_pedal for i in simulation_range], ":", label="brake_pedal")
         plt.legend(loc=1)
         plt.legend()
 
-    if True:
+    if False:
         plt.figure()
         plt.title("powertrain_net_torque")
         plt.plot([i["powertrain_net_torque"] for i in data], "g-", label="powertrain_net_torque")
@@ -240,7 +252,7 @@ def main():
         plt.legend()
         plt.grid()
         plt.twinx()
-        plt.plot([sim_data[i].gas_pedal for i in simulation_range],"--", label="gas pedal")
+        plt.plot([sim_data[i].gas_pedal for i in simulation_range], "--", label="gas pedal")
         plt.legend()
 
         plt.figure()
@@ -252,15 +264,15 @@ def main():
 
         var_name = "gear_no"
         plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], 
-                [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], "g--", label=var_name)
+                 [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], "g--", label=var_name)
         plt.step([i["gear"] for i in data], "-g", label= "gear")
-        plt.plot([sim_data[i].Vhcl_PoI_Vel_x for i in simulation_range],"--", label="vx")
-        plt.plot([sim_data[i].gas_pedal for i in simulation_range], ":",label="gas pedal")
+        plt.plot([sim_data[i].Vhcl_PoI_Vel_x for i in simulation_range], "--", label="vx")
+        plt.plot([sim_data[i].gas_pedal for i in simulation_range], ":", label="gas pedal")
         #plt.plot([sim_data[i].brake_pedal for i in simulation_range],":", label="brake_pedal")
         #plt.plot([sim_data[i].brake_pedal for i in simulation_range],":", label="brake_pedal")
         plt.legend(loc=1)
-    
-    if True:
+
+    if False:
         plt.figure()
         plt.title(function_name)
         plt.plot([i["powertrain_net_torque"] for i in data], "g-", label="powertrain_net_torque")
