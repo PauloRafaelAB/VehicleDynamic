@@ -124,14 +124,15 @@ class Powertrain(object):
 
         # Calculate torque provided by the engine based on the engine engine_w
         torque_available = self.torque_interpolation(parameters.engine_w)
-        #engine_drag = self.torque_drag_interpolation(engine_w)
+
+        engine_drag = self.torque_drag_interpolation(parameters.engine_w)
 
         # find the torque delivered by te engine
         engine_torque = (throttle * torque_available)
 
         final_ratio = parameters.car_parameters.gear_ratio[parameters.gear] * parameters.car_parameters.diff
 
-        turbine_w = final_ratio * np.mean(parameters.wheel_w_vel)
+        turbine_w = np.mean(parameters.wheel_w_vel) / final_ratio
 
         torque_converter_ratio = turbine_w / parameters.engine_w
 
@@ -142,7 +143,8 @@ class Powertrain(object):
             torque_converter_out = engine_torque
             k_in, k_out, torque_converter_in, torque_converter_out, torque_converter_in = (float("nan"), float("nan"), float("nan"), float("nan"), float("nan"))
         else:
-            torque_converter_ratio = 0 if torque_converter_ratio < 0 else torque_converter_ratio
+            if torque_converter_ratio < 0:
+                torque_converter_ratio = 0 
             # Torque Converter
             k_in = self.k_in_funct(torque_converter_ratio)
             k_out = self.k_out_funct(torque_converter_ratio)
@@ -175,7 +177,7 @@ class Powertrain(object):
             parameters.powertrain_net_torque = traction_torque - brake_torque 
 
         if parameters.DEBUG_MODE:
-            return parameters, logger, k_in, k_out, torque_converter_in, torque_converter_out, engine_torque, torque_converter_in
+            return parameters, logger, k_in, k_out, torque_converter_in, torque_converter_out, engine_torque, torque_converter_in, turbine_w, final_ratio
         else:
             return parameters, logger
 
@@ -195,8 +197,8 @@ def main():
     path_to_simulation_data = "../../exampledata/aut_straight_shift_log/SimulationData.pickle"
     sim_data = import_data_CM(path_to_simulation_data)
     logger.info("loaded SimulationData")
-    data, k_in, k_out, torque_converter_in, torque_converter_out, engine_torque, torque_converter_in = [], [], [], [], [], [], []
-
+    data, k_in, k_out, torque_converter_in, torque_converter_out, engine_torque, torque_converter_in, turbine_w = [], [], [], [], [], [], [], []
+    wheel_w_vel, final_ratio = [], []
     simulation_range = range(1, len(sim_data))
     for i in tqdm(simulation_range):
         parameters.x_a.vx = sim_data[i].Vhcl_PoI_Vel_1_x
@@ -212,7 +214,9 @@ def main():
         torque_converter_in.append(return_values[4])
         torque_converter_out.append(return_values[5])
         engine_torque.append(return_values[6])
-
+        turbine_w.append(return_values[8])
+        final_ratio.append(return_values[9])
+        wheel_w_vel.append(np.mean(np.array([sim_data[i].Wheel_w_vel_FL, sim_data[i].Wheel_w_vel_RL, sim_data[i].Wheel_w_vel_FR, sim_data[i].Wheel_w_vel_RR])))
     plt.figure()
     plt.figure()
     plt.plot(k_in, label="k_in")
@@ -223,9 +227,13 @@ def main():
     plt.plot(torque_converter_in, label="torque_converter_in")
     plt.plot(torque_converter_out, label="torque_converter_out")
     plt.plot(engine_torque, label="engine_torque")
-    #plt.plot([sum(i["powertrain_net_torque"]) for i in data], label="powertrain_net_torque")
+    plt.plot([sum(i["powertrain_net_torque"]) for i in data], label="powertrain_net_torque")
     plt.legend()
-
+    plt.figure()
+    plt.plot(turbine_w, label="turbine_w")
+    plt.plot(wheel_w_vel, label="wheel_w_vel")
+    plt.plot(final_ratio, label="final_ratio")
+    plt.legend()
     if False:
         plt.figure()
         plt.title(function_name)
@@ -244,10 +252,10 @@ def main():
         plt.legend(loc=1)
         plt.legend()
 
-    if False:
+    if True:
         plt.figure()
         plt.title("powertrain_net_torque")
-        plt.plot([i["powertrain_net_torque"] for i in data], "g-", label="powertrain_net_torque")
+        plt.plot([np.sum(i["powertrain_net_torque"]) for i in data], "g-", label="powertrain_net_torque")
         plt.plot([(i["engine_w"]) for i in data], "r-", label= "engine_w (rad/s)")
         plt.legend()
         plt.grid()
@@ -275,7 +283,7 @@ def main():
     if False:
         plt.figure()
         plt.title(function_name)
-        plt.plot([i["powertrain_net_torque"] for i in data], "g-", label="powertrain_net_torque")
+        plt.plot([np.sum(i["powertrain_net_torque"]) for i in data], "g-", label="powertrain_net_torque")
         plt.grid()
         plt.legend()
         plt.twinx()
