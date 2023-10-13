@@ -44,8 +44,6 @@ def wheel_slip(parameters: Initialization, logger: logging.Logger):
         # equation 11.30 Bardini
         parameters.slip_x = ((((parameters.car_parameters.r_dyn * parameters.wheel_w_vel) - parameters.x_a.vx) / np.maximum(
             np.absolute(parameters.car_parameters.r_dyn * parameters.wheel_w_vel), np.absolute(parameters.x_a.vx))))
-        # equation 11.31 Bardini
-        #parameters.slip_y = - np.arctan(parameters.x_a.vy / np.maximum(abs(parameters.car_parameters.r_dyn * parameters.wheel_w_vel), abs(parameters.x_a.vx)))
 
     # Refenrence from VTI Y Slip angle
     if (parameters.x_a.vx == 0 and parameters.x_a.wz == 0):

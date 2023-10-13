@@ -31,7 +31,7 @@ def plot_function(output_states, manoeuvre, sim_data):
     plt.twinx()
     plt.plot(manoeuvre.time, output_states.powertrain_net_torque,"--",label = "Torque")
     plt.legend(loc=3)
-    plt.title("Fodeu")
+    plt.title("Slip Angles")
     
     
     plt.figure()

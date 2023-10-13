@@ -94,12 +94,7 @@ class Initialization(object):
         self.wheel_vel_fix_coord_sys = np.zeros((4, 3), dtype=float)
         self.slip_x = np.zeros(4)
         self.slip_y = np.zeros(4)
-        # wheel hub inital eq-27
-        # self.wheel_hub_position = np.zeros((4,3))
-        # for i in range(4): 
-        #     self.wheel_hub_position[i] = self.position_chassi_force[i] + np.matmul(self.transpose_vehicle_fixed2inertial_system,np.array([0,0,self.displacement.l_stat[i]]))
-
-        self.powertrain_net_torque = 0
+        self.powertrain_net_torque = np.zeros(4)
         pass
 
     def get_data(self):
