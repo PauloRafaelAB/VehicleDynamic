@@ -46,7 +46,10 @@ class Initialization(object):
         self.drag = 0.5 * self.car_parameters.row * self.car_parameters.Cd * self.car_parameters.Front_area  # constant for air resistance
 
         # State initiate with the position, orientation and speed provided by the arguments, acc = 0; 
-        self.x_a = StateVector(*state_0)  # State_0
+        if isinstance(state_0,np.ndarray):
+            self.x_a = StateVector(*state_0)  # State_0
+        elif isinstance(state_0,StateVector):
+            self.x_a = state_0
 
         # Wheel initiate stoped 
         self.x_rr = AngularWheelPosition(pho_r=np.zeros(4), pho_r_dot = np.zeros(4), pho_r_2dot =np.zeros(4))

@@ -9,6 +9,7 @@ from vehicle_dynamics.utils.plot_function import plot_function
 from vehicle_dynamics.structures.Manoeuvre import Manoeuvre
 from vehicle_dynamics.utils.import_data_CM import import_data_CM
 
+from vehicle_dynamics.structures.StateVector import StateVector
 
 from VehicleDynamics import VehicleDynamics
 
@@ -35,17 +36,25 @@ points = len(sim_data)
 
 time = np.linspace(0, points / frequency, points)
 
-steering = [sim_data[i].Steering_angle / (4 * np.pi) for i in sim_data]
+steering = [sim_data[i].Steering_angle/12.56 for i in sim_data] #
 throttle = [sim_data[i].gas_pedal for i in sim_data]
 brake = [sim_data[i].brake_pedal for i in sim_data]
+
+i=0
+while time[i] <= 0.46:
+    brake[i] = 1.0
+    i=i+1
 
 manoeuvre_carMaker = Manoeuvre(steering, throttle, brake, time)
 
 output_states = OutputStates()
+intial_state= StateVector(x=sim_data[0].Vhcl_PoI_Pos_x,
+                          y=sim_data[0].Vhcl_PoI_Pos_y,
+                          yaw=sim_data[0].Vhcl_Yaw)
 
-vehicle_dynamics = VehicleDynamics(state_0 = np.zeros(15), initial_gear = 1, freq=frequency, param_path = "Audi_R8.yaml")
+vehicle_dynamics = VehicleDynamics(state_0 = intial_state, initial_gear = 1, freq=frequency, param_path = "Audi_R8.yaml")
 
 for i in tqdm.tqdm(range(points)):
-    output_states.set_states(vehicle_dynamics.tick(*manoeuvre[i]))
+    output_states.set_states(vehicle_dynamics.tick(*manoeuvre_carMaker[i]))
 
 plot_function(output_states, manoeuvre_carMaker, sim_data)

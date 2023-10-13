@@ -41,6 +41,10 @@ class ImportParam(object):
             param['vehicle_model']['parameters']['torque_converter_ratio'])
         self.torque_converter_factor = np.array(
             param['vehicle_model']['parameters']['torque_converter_factor'])
+        self.gear_max_rot = np.array(
+            param['vehicle_model']['parameters']['gear_max_rpm'])*np.pi/30
+        self.gear_min_rot = np.array(
+            param['vehicle_model']['parameters']['gear_min_rpm'])*np.pi/30
 
         # =====================================
         # Tire Data

@@ -44,8 +44,8 @@ def steering(parameters: Initialization, logger: logging.Logger, steering_input:
     
     
     # Convert Steering input [-1,1] to whell steering (delta)
-    steering_angle = steering_input*parameters.car_parameters.steering_lock 
-    parameters.delta = steering_angle/parameters.car_parameters.steering_ratio
+    steering_angle = steering_input * parameters.car_parameters.steering_lock 
+    parameters.delta = steering_angle / parameters.car_parameters.steering_ratio
 
     '''# Calculate the variation of the delta
     delta_dot = float((parameters.last_delta - delta) / parameters.time_step)  # Delta derivated

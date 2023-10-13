@@ -78,8 +78,11 @@ def chassis_translation(parameters: Initialization, logger: logging.Logger):
     parameters.x_a.vy = parameters.x_a.vy + (parameters.x_a.acc_y * parameters.time_step)
     parameters.x_a.vz = parameters.x_a.vz + (parameters.x_a.acc_z * parameters.time_step)
 
-    parameters.x_a.x = parameters.x_a.x + (parameters.x_a.vx * parameters.time_step)
-    parameters.x_a.y = parameters.x_a.y + (parameters.x_a.vy * parameters.time_step)
+    vxx, vxy = parameters.x_a.vx * np.cos(parameters.x_a.yaw), parameters.x_a.vy * np.sin(parameters.x_a.yaw)
+    vyx, vyy = parameters.x_a.vx * np.sin(parameters.x_a.yaw), parameters.x_a.vy * np.cos(parameters.x_a.yaw)
+
+    parameters.x_a.x = parameters.x_a.x + ((vxx+vxy) * parameters.time_step)
+    parameters.x_a.y = parameters.x_a.y + ((vyx+vyy) * parameters.time_step)
     parameters.x_a.z = parameters.x_a.z + (parameters.x_a.vz * parameters.time_step)
 
     return parameters, logger
