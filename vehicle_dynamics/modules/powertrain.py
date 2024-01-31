@@ -4,6 +4,7 @@ from vehicle_dynamics.utils.Initialization import Initialization
 from vehicle_dynamics.utils.import_data_CM import import_data_CM
 
 import logging
+import matplotlib.scale as mscale
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 import numpy as np
@@ -37,7 +38,7 @@ class Powertrain(object):
             8.engine_inertia,
             9.axel_inertia,
             10.gearbox_inertia,
-            11.shaft_inertia,
+            11.shaft_inertia,    
             12.wheel_inertia,
             13.max_brake_torque,
             14.brake_bias,
@@ -221,27 +222,28 @@ def main():
         data.append(test_function(parameters, logger,
                     throttle=sim_data[i].gas_pedal, brake=sim_data[i].brake_pedal)[0].get_data())
 
-    if True:
+    if False:
         plt.figure()
         plt.title(function_name)
-        plt.step([i["gear"] for i in data], "--g", label="gear_no_calcu")
-        plt.plot([sim_data[i].Vhcl_PoI_Vel_x for i in simulation_range],"--", label="vx")
+        plt.step([i["gear"] for i in data], "--g", label="gear_no")
+        #plt.plot([sim_data[i].Vhcl_PoI_Vel_x for i in simulation_range],"--", label="vx")
         var_name = "gear_no"
-        plt.step([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = var_name)
+        plt.step([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label = "CM_gear_no")
         #plt.figure()
         #plt.title("engine w(rad/s)")
+        plt.xlabel("Time [miliseconds]")
+        plt.ylabel("Gear")
         plt.legend(loc=5)
         plt.grid()
         plt.twinx()
-        plt.plot([sim_data[i].gas_pedal for i in simulation_range], ":",label="gas pedal")
-        plt.plot([sim_data[i].brake_pedal for i in simulation_range],":", label="brake_pedal")
-        plt.plot([sim_data[i].brake_pedal for i in simulation_range],":", label="brake_pedal")
+        plt.plot([sim_data[i].gas_pedal for i in simulation_range], ":",label="Gas pedal")
+        plt.plot([sim_data[i].brake_pedal for i in simulation_range],":", label="Brake Pedal")
         plt.legend(loc=1)
         plt.legend()
 
     if False:
         plt.figure()
-        plt.title("powertrain_net_torque")
+        plt.title("Powertrain Net Torque")
         plt.plot([i["powertrain_net_torque"] for i in data], "g-", label="powertrain_net_torque")
         plt.plot([(i["engine_w"]) for i in data], "r-", label= "engine_w (rad/s)")
         plt.legend()
@@ -274,11 +276,13 @@ def main():
         plt.grid()
         plt.legend()
         plt.twinx()
-        #plt.plot([sim_data[i].Vhcl_PoI_Vel_x for i in simulation_range],"--", label="vx")
+        plt.plot([sim_data[i].Vhcl_PoI_Vel_x for i in simulation_range],"--", label="vx")
         var_name = "engine_rotv"
         plt.plot([i for j, i in enumerate(sim_data.keys()) if j % 100 == 0], [getattr(
             sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 100 == 0], label=var_name)
-        plt.plot([(i["engine_w"]) for i in data], "--", label="engine_w")
+        
+        
+        plt.plot([(i["engine_w"]) for i in data], "--", label="Engine Angular Speed")
         plt.legend()
     plt.show()
 
