@@ -5,7 +5,7 @@ from vehicle_dynamics.structures.StrutForce import StrutForce
 from vehicle_dynamics.structures.WheelHubForce import WheelHubForce
 from vehicle_dynamics.structures.AngularWheelPosition import AngularWheelPosition
 from collections import namedtuple
-from copy import copy
+from copy import deepcopy,copy
 
 OutputState = namedtuple('OutputState', 'brake car_parameters compiled_wheel_forces crossproduct_r_f delta displacement drag engine_w f_za f_zr final_ratio gear get_data gravity last_delta polar_inertia_v position_chassi_force powertrain_net_torque prev_gear slip_x slip_y strut2chassi_xyz sum_f_wheel throttle time_step torque_converter_ratio_inter transpose_vehicle_fixed2inertial_system vehicle_fixed2inertial_system wheel_hub_velocity wheel_vel_fix_coord_sys wheel_w_vel x_a x_rf x_rr')
 
@@ -83,9 +83,9 @@ class OutputStates(object):
         self.wheel_hub_velocity.append(copy(parameters.wheel_hub_velocity))
         self.wheel_vel_fix_coord_sys.append(copy(parameters.wheel_vel_fix_coord_sys))
         self.wheel_w_vel.append(copy(parameters.wheel_w_vel))
-        self.x_a.append(copy(parameters.x_a))
-        self.x_rf.append(copy(parameters.x_rf))
-        self.x_rr.append(copy(parameters.x_rr))
+        self.x_a.append(deepcopy(parameters.x_a))
+        self.x_rf.append(deepcopy(parameters.x_rf))
+        self.x_rr.append(deepcopy(parameters.x_rr))
 
     def __getitem__(self, items):
         return OutputState(self.brake,

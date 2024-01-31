@@ -72,13 +72,17 @@ def chassis_translation(parameters: Initialization, logger: logging.Logger):
     parameters.x_a.acc_x = (sum_f_wheel[0])/m + vy*Ψdot + h*(sin(θ)*cos(Ф)*(Ψdot**2+θdot**2+Фdot**2)-sin(Ф)*Ψdotdot-2*cos(Ф)*Фdot*Ψdot-cos(θ)*cos(Ф)*θdotdot+ 2*cos(θ)*sin(Ф)*θdot*Фdot+sin(θ)*sin(Ф)*Фdotdot)
     parameters.x_a.acc_y = (sum_f_wheel[1])/m - vx*Ψdot + h*(-sin(θ)*cos(Ф)*Ψdotdot - sin(Ф)*Ψdot**2 - 2*cos(θ)*cos(Ф)*θdot*Ψdot + sin(θ)*sin(Ф)*Фdot*Ψdot - sin(Ф)*Фdot**2 + cos(Ф)*Фdotdot)
     parameters.x_a.acc_z = ((sum_f_wheel[2] - parameters.car_parameters.m * parameters.gravity) / parameters.car_parameters.m)
-       
+    
+
     parameters.x_a.vx = parameters.x_a.vx + (parameters.x_a.acc_x * parameters.time_step)
     parameters.x_a.vy = parameters.x_a.vy + (parameters.x_a.acc_y * parameters.time_step)
     parameters.x_a.vz = parameters.x_a.vz + (parameters.x_a.acc_z * parameters.time_step)
 
-    parameters.x_a.x = parameters.x_a.x + (parameters.x_a.vx * parameters.time_step)
-    parameters.x_a.y = parameters.x_a.y + (parameters.x_a.vy * parameters.time_step)
+    vxx, vxy = parameters.x_a.vx * np.cos(parameters.x_a.yaw), parameters.x_a.vy * np.sin(parameters.x_a.yaw)
+    vyx, vyy = parameters.x_a.vx * np.sin(parameters.x_a.yaw), parameters.x_a.vy * np.cos(parameters.x_a.yaw)
+
+    parameters.x_a.x = parameters.x_a.x + ((vxx+vxy) * parameters.time_step)
+    parameters.x_a.y = parameters.x_a.y + ((vyx+vyy) * parameters.time_step)
     parameters.x_a.z = parameters.x_a.z + (parameters.x_a.vz * parameters.time_step)
 
     return parameters, logger

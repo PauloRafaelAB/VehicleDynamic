@@ -46,27 +46,10 @@ def tire_model(parameters: Initialization, logger: logging.Logger):
 
     parameters.compiled_wheel_forces = np.array([parameters.x_rf.fx, parameters.x_rf.fy, parameters.f_zr.wheel_load_z])
 
-    """ for i in range(4):
-        if i % 2 == 0:
-            # TODO: check matrix operation 3x3 3x4>> define wheel_forces_transfomed matrix
-            parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[:, i] = (parameters.VTR_front_axle @ np.reshape(parameters.compiled_wheel_forces[:, i], (3, 1))).T  # Bardini pag. 267 eq.32
-        else: 
-            parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[:, i] = (parameters.VTR_rear_axle @ np.reshape(parameters.compiled_wheel_forces[:, i], (3, 1))).T
-            	"""
-    # 3x4 = 3x3 @ 3x4
-    # 3x1 = 3x3 @ 3x1
-    logger.debug(f"{parameters.VTR_front_axle},{parameters.compiled_wheel_forces.T[:, 0]}")
-    parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[:, 0] = parameters.VTR_front_axle @ parameters.compiled_wheel_forces[:, 0]
-    parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[:, 1] = parameters.VTR_rear_axle @ parameters.compiled_wheel_forces[:, 1]
-    parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[:, 2] = parameters.VTR_front_axle @ parameters.compiled_wheel_forces[:, 2]
-    parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[:, 3] = parameters.VTR_rear_axle @ parameters.compiled_wheel_forces[:, 3]
-
-    # forces on the vehicle chassis (Ai) >> Bardini pag 236  >> horizontal forces pag 264 f_za.f_za
-    #parameters.strut2chassi_xyz = parameters.compiled_wheel_forces
-
-    logger.debug(f"VTR FRONT AXLE {parameters.VTR_front_axle}")
-    logger.debug(f"Compiled wheel forces  {parameters.compiled_wheel_forces}")
-    logger.debug(f"Compiled wheel force to vehicle {parameters.x_rf.wheel_forces_transformed_force2vehicle_sys}")
+    delta = np.array([parameters.delta,0.0,parameters.delta,0.0])## FL, RL, FR, RR
+    for i in range(4):
+        parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[0, i] = parameters.x_rf.fx[i] * np.cos(delta[i]) + parameters.x_rf.fy[i] * np.sin(delta[i])
+        parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[1, i] = parameters.x_rf.fy[i] * np.cos(delta[i]) + parameters.x_rf.fx[i] * np.sin(delta[i]) 
 
     return parameters, logger 
 

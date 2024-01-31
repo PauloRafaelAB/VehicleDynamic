@@ -33,13 +33,23 @@ def suspension(parameters: Initialization, logger: logging.Logger):
          1. f_zr.wheel_load_z
 
      """
+    #parameters.x_a.yaw = ((np.pi+parameters.x_a.yaw)%(2*np.pi))-np.pi
+    # TODO check mat mul ordem
+    parameters.displacement.za[0] = (- parameters.car_parameters.lv * np.sin(parameters.x_a.pitch)) + (parameters.car_parameters.sl * np.sin(parameters.x_a.roll))
+    parameters.displacement.za[1] = (+ parameters.car_parameters.lh * np.sin(parameters.x_a.pitch)) + (parameters.car_parameters.sl * np.sin(parameters.x_a.roll))
+    parameters.displacement.za[2] = (- parameters.car_parameters.lv * np.sin(parameters.x_a.pitch)) - (parameters.car_parameters.sr * np.sin(parameters.x_a.roll))
+    parameters.displacement.za[3] = (+ parameters.car_parameters.lh * np.sin(parameters.x_a.pitch)) - (parameters.car_parameters.sr * np.sin(parameters.x_a.roll))
+    
+
     # Forces on the vehicle chassis at the pivot points Ai
     # Bardini pag. 265 eq. 11-21
+
 
     A = (parameters.car_parameters.eq_stiff * (-parameters.displacement.za + parameters.displacement.zs +
          parameters.displacement.l_stat)) + (parameters.car_parameters.dumper * parameters.displacement.za_dot)
     B = parameters.vehicle_fixed2inertial_system @ np.array([[0], [0], [1]])
     parameters.f_zr.wheel_load_z = (A * B)[2]
+    parameters.x_rf.wheel_forces_transformed_force2vehicle_sys[2, :] = parameters.f_zr.wheel_load_z
 
     logger.debug(f"wheel load z {parameters.f_zr.wheel_load_z}")
 

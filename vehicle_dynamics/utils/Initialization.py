@@ -29,6 +29,7 @@ class Initialization(object):
 
         self.time_step = 1. / freq
         self.OPTIMIZATION_MODE = False
+        self.DEBUG_MODE = False
         self.prev_gear = 1
         # Steering_angle [t-1]
         self.last_delta = 0
@@ -45,7 +46,10 @@ class Initialization(object):
         self.drag = 0.5 * self.car_parameters.row * self.car_parameters.Cd * self.car_parameters.Front_area  # constant for air resistance
 
         # State initiate with the position, orientation and speed provided by the arguments, acc = 0; 
-        self.x_a = StateVector(*state_0)  # State_0
+        if isinstance(state_0,np.ndarray):
+            self.x_a = StateVector(*state_0)  # State_0
+        elif isinstance(state_0,StateVector):
+            self.x_a = state_0
 
         # Wheel initiate stoped 
         self.x_rr = AngularWheelPosition(pho_r=np.zeros(4), pho_r_dot = np.zeros(4), pho_r_2dot =np.zeros(4))
@@ -90,12 +94,7 @@ class Initialization(object):
         self.wheel_vel_fix_coord_sys = np.zeros((4, 3), dtype=float)
         self.slip_x = np.zeros(4)
         self.slip_y = np.zeros(4)
-        # wheel hub inital eq-27
-        # self.wheel_hub_position = np.zeros((4,3))
-        # for i in range(4): 
-        #     self.wheel_hub_position[i] = self.position_chassi_force[i] + np.matmul(self.transpose_vehicle_fixed2inertial_system,np.array([0,0,self.displacement.l_stat[i]]))
-
-        self.powertrain_net_torque = 0
+        self.powertrain_net_torque = np.zeros(4)
         pass
 
     def get_data(self):
@@ -119,10 +118,15 @@ class Initialization(object):
                 "slip_x1": self.slip_x[1],
                 "slip_x2": self.slip_x[2],
                 "slip_x3": self.slip_x[3],
+                "slip_y0": self.slip_y[0],
+                "slip_y1": self.slip_y[1],
+                "slip_y2": self.slip_y[2],
+                "slip_y3": self.slip_y[3],
                 "wheel_w_vel0": self.wheel_w_vel[0],
                 "wheel_w_vel1": self.wheel_w_vel[1],
                 "engine_w": self.engine_w,
                 "powertrain_net_torque": self.powertrain_net_torque,
-                "last_delta": self.last_delta,
+                "delta": self.delta,
                 "wheel_load_z": self.f_zr.wheel_load_z,
-                "wheel_w_vel": self.wheel_w_vel}
+                "wheel_w_vel": self.wheel_w_vel, 
+                "f_zr.wheel_load_z":self.f_zr.wheel_load_z}

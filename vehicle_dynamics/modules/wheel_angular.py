@@ -56,7 +56,6 @@ def main():
     function_name = test_function.__name__
 
     logger = LocalLogger(function_name).logger
-    # logger.setLevel("DEBUG")
 
     parameters = Initialization("../../Audi_r8.yaml", logger=logger)
     logger.info("loaded Parameters")
@@ -66,11 +65,6 @@ def main():
     logger.info("loaded SimulationData")
     data = []
     for i in range(len(sim_data)):
-        """
-        parameters.x_rr.pho_r_2dot = np.array([sim_data[i].Wheel_w_vel_FL,
-                                               sim_data[i].Wheel_w_vel_RL,
-                                               sim_data[i].Wheel_w_vel_FR, 
-                                               sim_data[i].Wheel_w_vel_RR]) / 1000"""
 
         parameters.x_rf.fx = np.array([sim_data[i].Vhcl_Wheel_FL_Fx,
                                        sim_data[i].Vhcl_Wheel_RL_Fx,
