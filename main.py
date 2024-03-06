@@ -29,7 +29,7 @@ brake = np.zeros(points)
 
 manoeuvre = Manoeuvre(steering, throttle, brake, time)
 
-path_to_simulation_data = "exampledata/Lanechange_new/SimulationData.pickle"
+path_to_simulation_data = "exampledata/lanechange/SimulationData.pickle"
 sim_data = import_data_CM(path_to_simulation_data)
 
 points = len(sim_data)
@@ -52,7 +52,7 @@ intial_state= StateVector(x=sim_data[0].Vhcl_PoI_Pos_x,
                           y=sim_data[0].Vhcl_PoI_Pos_y,
                           yaw=sim_data[0].Vhcl_Yaw)
 
-vehicle_dynamics = VehicleDynamics(state_0 = intial_state, initial_gear = 1, freq=frequency, param_path = "Audi_R8.yaml")
+vehicle_dynamics = VehicleDynamics(state_0 = intial_state, initial_gear = 1, freq=frequency, param_path = "Audi_R8_PowertrainOPT_1.yaml")
 
 for i in tqdm.tqdm(range(points)):
     output_states.set_states(vehicle_dynamics.tick(*manoeuvre_carMaker[i]))

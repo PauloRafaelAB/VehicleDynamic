@@ -48,8 +48,8 @@ def main():
 
     varbound = np.array([[0, 2], [1, 5], [15, 40], [0, 1]])
 
-    algorithm_param = {'max_num_iteration': 1000,
-                       'population_size': 100,
+    algorithm_param = {'max_num_iteration': 500,
+                       'population_size': 50,
                        'mutation_probability': 0.1,
                        'elit_ratio': 0.01,
                        'crossover_probability': 0.5,
