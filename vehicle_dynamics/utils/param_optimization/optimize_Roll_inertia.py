@@ -18,21 +18,25 @@ class Roll_Optimization(object):
 
         self.parameters = Initialization(param_path, logger=self.logger)
         
-        self.powertrain = Powertrain(self.parameters)
+        
+        
+        
+        self.chassis_rotation = Chassis_rotation(self.parameters)
         self.sim_data = import_data_CM(path_to_simulation_data)
         self.simulation_range = range(len(self.sim_data))
         
-        self.powertrain_net_torque_CM = np.array([getattr(self.sim_data[i], "wheel_torque_FR") + 
-                                                  getattr(self.sim_data[i], "wheel_torque_FL") + 
-                                                  getattr(self.sim_data[i], "wheel_torque_RR") + 
-                                                  getattr(self.sim_data[i], "wheel_torque_RL") for j, i in enumerate(self.sim_data)])
+        
+        
+        
+        #parameter to be optmized
+        self.x_a.roll = np.array([getattr(self.sim_data[i], "roll") for i in enumerate(self.sim_data)])
 
     def run(self, current_car_parameters):
-        self.parameters.car_parameters.k_roll = current_car_parameters[0] #rewrite right side of the equation
+        self.parameters.car_parameters.k_roll = current_car_parameters[0] # rewrite right side of the equation
         self.parameters.car_parameters.k_pitch = current_car_parameters[1]
+        self.parameters.car_parameters.i_x_s = current_car_parameters[2]
+        self.parameters.car_parameters.i_y_s = current_car_parameters[3]
 
-        self.parameters.car_parameters.wheel_inertia = [current_car_parameters[2], current_car_parameters[2], current_car_parameters[2], current_car_parameters[2]]
-        self.parameters.car_parameters.i_d_shaft = current_car_parameters[3]
         powertrain_torque_calculated = []
 
         for i in self.simulation_range:
@@ -43,15 +47,16 @@ class Roll_Optimization(object):
 
         powertrain_net_torque_calculated = np.array(np.sum(powertrain_torque_calculated, axis=1))
 
-        return np.sqrt(np.mean(np.square(powertrain_net_torque_calculated - self.powertrain_net_torque_CM)))
+
+        return np.sqrt(np.mean(np.square(roll - self.powertrain_net_torque_CM))) # comparison of variable of interest
 
 
 def main():
     PARAM_PATH = "../../../Audi_r8.yaml"
     PATH_TO_SIMULATION_DATA = "../../../exampledata/lanechange_new/SimulationData.pickle"
-    powertrain_optimizator = Roll_Optimization(PARAM_PATH, PATH_TO_SIMULATION_DATA)
+    roll_optimizator = Roll_Optimization(PARAM_PATH, PATH_TO_SIMULATION_DATA)
 
-    varbound = np.array([[0, 2], [1, 5], [15, 40], [0, 1]])
+    varbound = np.array([[7000, 13000], [5000, 12000], [100, 1000], [1000, 2000]])
 
     algorithm_param = {'max_num_iteration': 500,
                        'population_size': 50,
@@ -62,7 +67,7 @@ def main():
                        'crossover_type': 'uniform',
                        'max_iteration_without_improv': 50}
 
-    model = ga(function = powertrain_optimizator.run,
+    model = ga(function = roll_optimizator.run,
                dimension = 4,
                variable_type='real',
                variable_boundaries=varbound,
@@ -74,7 +79,7 @@ def main():
 
     print(convergence, solution)
 
-    with open("solution.powertrain.pickle", "wb+")as handle:
+    with open("solution.chassis_rotation.pickle", "wb+")as handle:
         pickle.dump(model, handle)
 
 

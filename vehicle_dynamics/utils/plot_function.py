@@ -11,15 +11,16 @@ def plot_function(output_states, manoeuvre, sim_data):
     vy = [i.vy for i in states]
 
     gear = output_states[:].gear
-    #plot 1
     
+    #plot 1
+    plt.figure()
     #plt.plot(manoeuvre.time, x_position, '4k', label='x position')
-    #plt.plot(manoeuvre.time, vx, '--k', label='Vx')
-    '''
-    plt.plot(manoeuvre.time, throttle, ':', label='Throttle')
+    plt.plot(manoeuvre.time, vx, '--k', label='Vx')
+    
     plt.legend(loc=0)
     plt.ylabel('Thorttle ')
     plt.twinx()
+    plt.plot(manoeuvre.time, throttle, ':', label='Throttle')
     plt.plot(manoeuvre.time, pitch, '-', label='Pitch')
     #plt.step(manoeuvre.time, gear, 'k', label='gear')
     plt.xlabel('time (s)')
@@ -40,7 +41,7 @@ def plot_function(output_states, manoeuvre, sim_data):
     #plt.legend(loc=3)
     plt.title("Slip Angles")
    
-    '''
+    
     #plot 3 - steering
     plt.figure()
     plt.plot(manoeuvre.time, output_states.delta, label = "delta")
@@ -82,9 +83,9 @@ def plot_function(output_states, manoeuvre, sim_data):
     plt.legend()   
     #plt.step(manoeuvre.time, gear, 'k', label='gear')
     
-
-    
     '''
+    
+    
 
     #plot 6 ROLL
     plt.figure()
@@ -101,7 +102,7 @@ def plot_function(output_states, manoeuvre, sim_data):
     plt.xlabel('Time (s)')
     #plt.title('Roll at Step Steer')
     plt.ylabel('Angle [rad]')
-         
+     
     #var_name="acc_x"
     #plt.plot(manoeuvre.time, [getattr(i,var_name) for i in states],'--k',label = var_name)
     #plt.step(manoeuvre.time, gear, 'k', label='gear')
@@ -109,49 +110,47 @@ def plot_function(output_states, manoeuvre, sim_data):
     #plot 6-2 pitch trottle brake
     plt.figure()
     #plt.plot(manoeuvre.time, [i.roll for i in states],label = " roll")
-    #plt.plot(manoeuvre.time, [i.pitch*57 for i in states],'-',label = "Pitch")
+    plt.plot(manoeuvre.time, [i.pitch for i in states],'-',label = "Pitch")
     #plt.plot(manoeuvre.time, manoeuvre.throttle, '--', label='Throttle')
     #plt.plot(manoeuvre.time, manoeuvre.brake, ':', label='Brake Pedal')
-    plt.plot(manoeuvre.time, [i.yaw for i in states],label = "yaw")
+    #plt.plot(manoeuvre.time, [i.yaw for i in states],label = "yaw")
     #plt.plot(manoeuvre.time, vy, '--y', label='vy')
     plt.xlabel('time (s)')
     #plt.title('Pitch at Acceleration and Braking')
-    plt.ylabel('Yaw [rad]')
+    plt.ylabel('pitch [rad]')
     plt.legend(loc=1)
     
-    '''
+    ''' 
    #plot 6-3 pitch trottle brake compariso
     plt.figure()
-    #plt.plot(manoeuvre.time, [i.roll for i in states],label = " roll")
+    plt.plot(manoeuvre.time, [i.roll for i in states],label = " roll")
     plt.plot(manoeuvre.time, [i.pitch for i in states],'-',label = "Pitch")
     var_name="Vhcl_Pitch"
     plt.plot([i for j, i in enumerate(manoeuvre.time) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"--",label='Pitch CM')
-    
     plt.plot(manoeuvre.time, manoeuvre.throttle, '--', label='Throttle')
     #plt.plot(manoeuvre.time, manoeuvre.brake, ':', label='Brake Pedal')
     #plt.plot(manoeuvre.time, [i.yaw for i in states],label = "yaw")
     #plt.plot(manoeuvre.time, vy, '--y', label='vy')
     plt.xlabel('time (s)')
-    plt.title('Pitch at Acceleration and Braking')
-    plt.ylabel('Pitch [rad]')
+    #plt.title('Pitch at Acceleration and Braking')
+    #plt.ylabel('Pitch [rad]')
     plt.legend(loc=1)
-    '''
     
-    '''
+    
     #plot 6-4 pitch trottle brake compariso
     plt.figure()
-    #plt.plot(manoeuvre.time, [i.roll for i in states],label = " roll")
-    plt.plot(manoeuvre.time, [i.wy for i in states],'-',label = "Pitch Rate")
-    var_name="Vhcl_PitchVel"
-    plt.plot([i for j, i in enumerate(manoeuvre.time) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"k",label='Pitch CM')
+    plt.plot(manoeuvre.time, [i.roll for i in states],label = "roll")
+    #plt.plot(manoeuvre.time, [i.wy for i in states],'-',label = "Pitch Rate")
+    #var_name="Vhcl_PitchVel"
+    #plt.plot([i for j, i in enumerate(manoeuvre.time) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"k",label='Pitch CM')
     #plt.plot(manoeuvre.time, [i.yaw for i in states],label = "yaw")
-    plt.plot(manoeuvre.time, vy, '--y', label='vy')
+    #plt.plot(manoeuvre.time, vy, '--y', label='vy')
     plt.xlabel('time (s)')
-    plt.title('Pitch rate at Step Steer')
-    plt.ylabel('Pitch [rad]')
-    plt.legend(loc=1)   
-    '''
+    #plt.title('Pitch rate at Lane Change')
+    #plt.ylabel('Pitch [rad]')
+    plt.legend(loc=1) 
     
+    '''
 
     #plot 7
     plt.figure()
@@ -164,18 +163,18 @@ def plot_function(output_states, manoeuvre, sim_data):
     #plt.twinx()
     #plt.plot(manoeuvre.time, manoeuvre.throttle, '--c', label='throttle')
     plt.xlabel('time (s)')
-    plt.title('Yaw Rate at Lane Change')
-    plt.ylabel('Yaw Rate [Rad/s]')
+    #plt.title('Yaw Rate at Lane Change')
+    #plt.ylabel('Yaw Rate [Rad/s]')
     var_name="wz"
     plt.plot(manoeuvre.time, [getattr(i,var_name) for i in states],":", label = 'Yaw Rate')
-    #var_name="wx"
-    #plt.plot(manoeuvre.time, [getattr(i,var_name) for i in states],":", label = 'Roll Rate')
-    #var_name= 'Vhcl_RollVel'
-    #plt.plot([i for j, i in enumerate(manoeuvre.time) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"--",label='Roll Rate CM')
+    var_name="wx"
+    plt.plot(manoeuvre.time, [getattr(i,var_name) for i in states],":", label = 'Roll Rate')
+    var_name= 'Vhcl_RollVel'
+    plt.plot([i for j, i in enumerate(manoeuvre.time) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"--",label='Roll Rate CM')
     var_name= 'Vhcl_YawVel'
     plt.plot([i for j, i in enumerate(manoeuvre.time) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"--",label='Yaw Rate CM')
     plt.legend(loc=2)
-    
+    '''
     plt.figure()
     plt.plot(x_position, label = 'x Position')
     plt.plot(y_position, label = 'y Position')
@@ -183,7 +182,7 @@ def plot_function(output_states, manoeuvre, sim_data):
              [getattr(sim_data[i], "Vhcl_PoI_Pos_y") for j, i in enumerate(sim_data) if j % 10 == 0])
     plt.legend()
     
-    '''
+    
     #plot 9
     plt.figure()
     plt.title("Wheel Torque")
@@ -208,22 +207,23 @@ def plot_function(output_states, manoeuvre, sim_data):
     var_name="Vhcl_PoI_Vel_1_x"
     plt.plot([i for j, i in enumerate(manoeuvre.time) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"--",label="Vx CM")
     plt.legend(loc=2)
-    plt.twinx()
-    plt.plot(manoeuvre.time, vy, ':k', label='Vy')
-    var_name="Vhcl_PoI_Vel_1_y"
-    plt.plot([i for j, i in enumerate(manoeuvre.time) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],":",label='Vy CM')
-    plt.legend(loc=0)
+    #plt.twinx()
+    #plt.plot(manoeuvre.time, vy, ':k', label='Vy')
+    #var_name="Vhcl_PoI_Vel_1_y"
+    #plt.plot([i for j, i in enumerate(manoeuvre.time) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],":",label='Vy CM')
+    #plt.legend(loc=0)
     '''
 
+    
     #plot 11
-    #plt.figure()
-    #plt.title("Engine rotation")
-    #plt.plot(manoeuvre.time, output_states[:].engine_w,"*",label = "Engine rotation")
-    #var_name="engine_rotv"
-    #plt.plot([i for j, i in enumerate(manoeuvre.time) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"*-",label=var_name)
-    #plt.legend()
-    #plt.twinx()
-    #plt.plot(manoeuvre.time, manoeuvre.throttle, '--c', label='throttle')
-    #plt.legend()
-
+    plt.figure()
+    plt.title("Engine rotation")
+    plt.plot(manoeuvre.time, output_states[:].engine_w,"*",label = "Engine rotation")
+    var_name="engine_rotv"
+    plt.plot([i for j, i in enumerate(manoeuvre.time) if j % 10 == 0], [getattr(sim_data[i], var_name) for j, i in enumerate(sim_data) if j % 10 == 0],"*-",label=var_name)
+    plt.legend()
+    plt.twinx()
+    plt.plot(manoeuvre.time, manoeuvre.throttle, '--c', label='throttle')
+    plt.legend()
+    
     plt.show()
